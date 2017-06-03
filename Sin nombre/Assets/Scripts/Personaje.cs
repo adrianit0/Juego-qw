@@ -4,115 +4,125 @@ using UnityEngine;
 
 public class Personaje : MonoBehaviour {
 
-    public float velocidad = 1;
-    public int maxPasos = 0;
-    
-    //GAMEMANAGER
+    public float velocity = 5;
+    public int maxSteps = 0;
+
+    bool canWalk = false;
+
+    //GAMEMANAGER.
     public GameManager manager;
     
-    //LINE RENDERER
+    //LINE RENDERER.
     LineRenderer line;
-    List<Vector3> posiciones;
+    List<Vector3> _positions;
     
-    //VALORES INTERNOS
-    float distanciaPos = 0.25f;
-    float distanciaFinal = 1.00f;
+    //VALORES INTERNOS.
+    float distancePos = 0.25f;
+    float distanceFinal = 1.00f;
 
-    //ACCION
-    public Accion accion;
-    float tiempoActualAccion = 0f;
-    public LineRenderer lineaAccion;
-
-    bool puedeAndar = false;
+    //ACCION QUE ESTÁ REALIZANDO ACTUALMENTE EL PERSONAJE.
+    public Action action;
+    float timeBetweenActions = 0f;
+    public LineRenderer lineAction;
+    Animator anim;
     
     void Awake() {
         line = GetComponent<LineRenderer>();
+        anim = GetComponent<Animator>();
         if(line == null) {
             line = gameObject.AddComponent<LineRenderer>();
         }
     }
     
 	void Start () {
-        puedeAndar = false;
+        canWalk = false;
 
-        manager.personajes.Add(this);
+        manager.characters.Add(this);
 	}
     
     void Update() {
         //Actualizar el LineRenderer
-        ActualizarLine();
+        UpdateLine();
 
-        if(!puedeAndar || posiciones.Count <= 1)
+        if(!canWalk || _positions.Count <= 1) {
+            anim.SetBool("Mov", false);
             return;
+        }
+            
 
 
-        if (accion != null) {
-            if(Vector3.Distance(transform.position, posiciones[posiciones.Count-1]) <= distanciaFinal) {
-                if(tiempoActualAccion == 0) {
-                    lineaAccion.gameObject.SetActive(true);
+        if (action != null) {
+            if(Vector3.Distance(transform.position, _positions[_positions.Count-1]) <= distanceFinal) {
+                if(timeBetweenActions == 0) {
+                    lineAction.gameObject.SetActive(true);
                     line.enabled = false;
+                    anim.SetBool("Working", true);
                 }
-                tiempoActualAccion += Time.deltaTime;
-                PorcentajeAccion(tiempoActualAccion/accion.recursoAccion.tiempoTotal);
+                timeBetweenActions += Time.deltaTime;
+                PercentAction(timeBetweenActions/action.resourceAction.tiempoTotal);
 
-                if (tiempoActualAccion > accion.recursoAccion.tiempoTotal) {
-                    manager.AñadirRecurso(accion.recursoAccion);
+                if (timeBetweenActions > action.resourceAction.tiempoTotal) {
+                    manager.AddResource(action.resourceAction);
 
-                    Destroy (accion.renderIcono.gameObject);
-                    accion = null;
-                    tiempoActualAccion = 0;
-                    lineaAccion.gameObject.SetActive(false);
+                    Destroy (action.renderIcon.gameObject);
+                    action = null;
+                    timeBetweenActions = 0;
+                    lineAction.gameObject.SetActive(false);
                     line.enabled = true;
+
+                    anim.SetBool("Working", false);
 
                     SetPositions(Vector3.zero);
                 }
 
             } else {
-                transform.position += (-posiciones[0] + posiciones[1]).normalized * velocidad * Time.deltaTime;
+                transform.position += (-_positions[0] + _positions[1]).normalized * velocity * Time.deltaTime;
+                transform.localScale = new Vector3(Mathf.Sign(_positions[0].x - _positions[1].x), 1, 1);
+                anim.SetBool("Mov", true);
             }
         }
     }
 
     public void SetPositions (params Vector3[] pos) {
-        posiciones = new List<Vector3>(pos);
+        _positions = new List<Vector3>(pos);
 
         if (pos == null ||pos.Length==0) {
             return;
         }
 
-        puedeAndar = true;
+        canWalk = true;
 
         ReiniciarLine();
     }
 
-    void ActualizarLine () {
-        if(posiciones == null || posiciones.Count <= 1) {
-            puedeAndar = false;
+    void UpdateLine () {
+        if(_positions == null || _positions.Count <= 1) {
+            canWalk = false;
             return;
         }
         
-        posiciones[0] = transform.position;
-        line.SetPosition(0, posiciones[0]);
+        _positions[0] = transform.position;
+        line.SetPosition(0, _positions[0]);
 
         bool cambiar = false;
-        if (Vector3.Distance (posiciones[0], posiciones[1])<= distanciaPos) {
-            posiciones.RemoveAt(1);
+        if (Vector3.Distance (_positions[0], _positions[1])<= distancePos) {
+            _positions.RemoveAt(1);
             cambiar = true;
         }
         
         if (cambiar) {
-            line.numPositions = posiciones.Count;
-            line.SetPositions(posiciones.ToArray());
+            line.numPositions = _positions.Count;
+            line.SetPositions(_positions.ToArray());
         }
     }
 
     void ReiniciarLine () {
-        line.numPositions = posiciones.Count;
-        line.SetPositions(posiciones.ToArray());
+        line.numPositions = _positions.Count;
+        line.SetPositions(_positions.ToArray());
     }
 
-    public void PorcentajeAccion (float porc) {
+    public void PercentAction (float porc) {
         porc = Mathf.Clamp(porc, 0, 1);
-        lineaAccion.SetPosition(1, new Vector3(porc-0.5f, 0, 0));
+        lineAction.SetPosition(1, new Vector3(porc-0.5f, 0, 0));
     }
 }

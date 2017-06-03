@@ -22,7 +22,7 @@ public class Recurso : MonoBehaviour {
     }
 
     void Start() {
-        manager.CrearRecurso(Mathf.RoundToInt(transform.position.x), Mathf.RoundToInt(transform.position.y), this);
+        manager.CreateResource(Mathf.RoundToInt(transform.position.x), Mathf.RoundToInt(transform.position.y), this);
     } 
 
     public void SetUsar (bool usar) {

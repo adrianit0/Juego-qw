@@ -1,18 +1,21 @@
 fileFormatVersion: 2
-guid: 8af460910dffe954cabf7bbb0ce5d45a
-timeCreated: 1496507194
+guid: 96a96dcf57d39ad4094c6837b983b389
+timeCreated: 1496505554
 licenseType: Free
 TextureImporter:
   fileIDToRecycleName:
-    21300000: Iconos_0
-    21300002: Iconos_1
-    21300004: Iconos_2
-    21300006: Iconos_3
-    21300008: Iconos_4
-    21300010: Iconos_5
-    21300012: Iconos_6
-    21300014: Iconos_7
-    21300016: Iconos_8
+    21300000: Caras_0
+    21300002: Caras_1
+    21300004: Caras_2
+    21300006: Caras_3
+    21300008: Caras_4
+    21300010: Caras_5
+    21300012: Caras_6
+    21300014: Caras_7
+    21300016: Caras_8
+    21300018: Caras_9
+    21300020: Caras_10
+    21300022: Caras_11
   serializedVersion: 4
   mipmaps:
     mipMapMode: 0
@@ -45,7 +48,7 @@ TextureImporter:
   compressionQuality: 50
   spriteMode: 2
   spriteExtrude: 1
-  spriteMeshType: 1
+  spriteMeshType: 0
   alignment: 0
   spritePivot: {x: 0.5, y: 0.5}
   spriteBorder: {x: 0, y: 0, z: 0, w: 0}
@@ -103,117 +106,156 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: Iconos_0
+      name: Caras_0
       rect:
         serializedVersion: 2
         x: 0
-        y: 64
-        width: 32
-        height: 32
+        y: 42
+        width: 17
+        height: 14
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       tessellationDetail: 0
     - serializedVersion: 2
-      name: Iconos_1
+      name: Caras_1
       rect:
         serializedVersion: 2
-        x: 32
-        y: 64
-        width: 32
-        height: 32
+        x: 17
+        y: 42
+        width: 17
+        height: 14
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       tessellationDetail: 0
     - serializedVersion: 2
-      name: Iconos_2
+      name: Caras_2
       rect:
         serializedVersion: 2
-        x: 64
-        y: 64
-        width: 32
-        height: 32
+        x: 34
+        y: 42
+        width: 17
+        height: 14
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       tessellationDetail: 0
     - serializedVersion: 2
-      name: Iconos_3
+      name: Caras_3
       rect:
         serializedVersion: 2
         x: 0
-        y: 32
-        width: 32
-        height: 32
+        y: 28
+        width: 17
+        height: 14
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       tessellationDetail: 0
     - serializedVersion: 2
-      name: Iconos_4
+      name: Caras_4
       rect:
         serializedVersion: 2
-        x: 32
-        y: 32
-        width: 32
-        height: 32
+        x: 17
+        y: 28
+        width: 17
+        height: 14
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       tessellationDetail: 0
     - serializedVersion: 2
-      name: Iconos_5
+      name: Caras_5
       rect:
         serializedVersion: 2
-        x: 64
-        y: 32
-        width: 32
-        height: 32
+        x: 34
+        y: 28
+        width: 17
+        height: 14
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       tessellationDetail: 0
     - serializedVersion: 2
-      name: Iconos_6
+      name: Caras_6
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 14
+        width: 17
+        height: 14
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      tessellationDetail: 0
+    - serializedVersion: 2
+      name: Caras_7
+      rect:
+        serializedVersion: 2
+        x: 17
+        y: 14
+        width: 17
+        height: 14
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      tessellationDetail: 0
+    - serializedVersion: 2
+      name: Caras_8
+      rect:
+        serializedVersion: 2
+        x: 34
+        y: 14
+        width: 17
+        height: 14
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      tessellationDetail: 0
+    - serializedVersion: 2
+      name: Caras_9
       rect:
         serializedVersion: 2
         x: 0
         y: 0
-        width: 32
-        height: 32
+        width: 17
+        height: 14
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       tessellationDetail: 0
     - serializedVersion: 2
-      name: Iconos_7
+      name: Caras_10
       rect:
         serializedVersion: 2
-        x: 32
+        x: 17
         y: 0
-        width: 32
-        height: 32
+        width: 17
+        height: 14
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       tessellationDetail: 0
     - serializedVersion: 2
-      name: Iconos_8
+      name: Caras_11
       rect:
         serializedVersion: 2
-        x: 64
+        x: 34
         y: 0
-        width: 32
-        height: 32
+        width: 17
+        height: 14
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
