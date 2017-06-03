@@ -18,8 +18,6 @@ public class Personaje : MonoBehaviour {
     float distanciaPos = 0.25f;
     float distanciaFinal = 1.00f;
 
-    float actualizacion = 0.1f;
-
     //ACCION
     public Accion accion;
     float tiempoActualAccion = 0f;
@@ -35,11 +33,15 @@ public class Personaje : MonoBehaviour {
     }
     
 	void Start () {
-        InvokeRepeating("Actualizacion", actualizacion, actualizacion);
         puedeAndar = false;
-	}
 
+        manager.personajes.Add(this);
+	}
+    
     void Update() {
+        //Actualizar el LineRenderer
+        ActualizarLine();
+
         if(!puedeAndar || posiciones.Count <= 1)
             return;
 
@@ -48,6 +50,7 @@ public class Personaje : MonoBehaviour {
             if(Vector3.Distance(transform.position, posiciones[posiciones.Count-1]) <= distanciaFinal) {
                 if(tiempoActualAccion == 0) {
                     lineaAccion.gameObject.SetActive(true);
+                    line.enabled = false;
                 }
                 tiempoActualAccion += Time.deltaTime;
                 PorcentajeAccion(tiempoActualAccion/accion.recursoAccion.tiempoTotal);
@@ -55,25 +58,22 @@ public class Personaje : MonoBehaviour {
                 if (tiempoActualAccion > accion.recursoAccion.tiempoTotal) {
                     manager.AñadirRecurso(accion.recursoAccion);
 
+                    Destroy (accion.renderIcono.gameObject);
                     accion = null;
                     tiempoActualAccion = 0;
                     lineaAccion.gameObject.SetActive(false);
+                    line.enabled = true;
+
+                    SetPositions(Vector3.zero);
                 }
 
             } else {
                 transform.position += (-posiciones[0] + posiciones[1]).normalized * velocidad * Time.deltaTime;
             }
         }
-        
     }
 
-    void Actualizacion () {
-        
-        ActualizarLine();
-
-	}
-
-    public void SetPositions (Vector3[] pos) {
+    public void SetPositions (params Vector3[] pos) {
         posiciones = new List<Vector3>(pos);
 
         if (pos == null ||pos.Length==0) {
@@ -82,7 +82,7 @@ public class Personaje : MonoBehaviour {
 
         puedeAndar = true;
 
-        ActualizarLine();
+        ReiniciarLine();
     }
 
     void ActualizarLine () {
@@ -90,13 +90,23 @@ public class Personaje : MonoBehaviour {
             puedeAndar = false;
             return;
         }
-
+        
         posiciones[0] = transform.position;
+        line.SetPosition(0, posiciones[0]);
 
+        bool cambiar = false;
         if (Vector3.Distance (posiciones[0], posiciones[1])<= distanciaPos) {
             posiciones.RemoveAt(1);
+            cambiar = true;
         }
+        
+        if (cambiar) {
+            line.numPositions = posiciones.Count;
+            line.SetPositions(posiciones.ToArray());
+        }
+    }
 
+    void ReiniciarLine () {
         line.numPositions = posiciones.Count;
         line.SetPositions(posiciones.ToArray());
     }

@@ -19,11 +19,9 @@ public class GameManager : MonoBehaviour {
 
     Vector3[] posiciones;
 
-    public Personaje personaje;
-    public GameObject target;
-
-    Vector2 posTarget;
-
+    public List<Personaje> personajes = new List<Personaje>();
+    public List<Accion> acciones = new List<Accion>();
+    
     public Sprite[] spriteTierra = new Sprite[16];
     public Sprite spriteAgua;
     
@@ -39,6 +37,51 @@ public class GameManager : MonoBehaviour {
 	void Awake () {
         CrearMapa();
 	}
+
+    void Start () {
+        InvokeRepeating("BuscarAccion", 0.25f, 0.25f);
+    }
+    
+    //Busca la acción idonea para realizar para cada personaje.
+    void BuscarAccion () {
+        if(acciones.Count == 0)
+            return;
+
+        List<Personaje> libres = new List<Personaje>();
+
+        foreach (Personaje personaje in personajes) {
+            if(personaje.accion == null)
+                libres.Add(personaje);
+        }
+
+        if(libres.Count == 0)
+            return;
+        
+        for (int i = 0; i < acciones.Count; i++) {
+            //Calcularemos que personaje es el mejor para realizar cada acción libre, como actualmente no hay nada de eso programado, el personaje más cercano será quien se ocupe de la acción.
+            int cercano = 0;
+            Vector3[] posCercanas = null;
+            for(int x = 0; x < libres.Count; x++) {
+                Vector3[] posActual = PathFinding(libres[x], acciones[i].posicion) ;
+
+                if (posCercanas==null || posActual.Length<posCercanas.Length) {
+                    posCercanas = posActual;
+                    cercano = x;
+                }
+            }
+
+            libres[cercano].SetPositions(posCercanas);
+            libres[cercano].accion = acciones[i];
+            acciones[i].renderIcono.color = Color.gray;
+
+            acciones.RemoveAt(i);
+            libres.RemoveAt(cercano);
+            i--;
+
+            if(libres.Count == 0)
+                return;
+        }
+    }
 	
     void CrearMapa () {
         mapa = new Nodo[(int) tamañoTotal.x, (int) tamañoTotal.y];
@@ -84,31 +127,29 @@ public class GameManager : MonoBehaviour {
             if(_x < 0 || _y < 0 || _x >= tamañoTotal.x || _y >= tamañoTotal.y || mapa[_x, _y].recusos == null || mapa[_x, _y].recusos.usado)
                 return;
 
-            Accion _accion = new Accion(mapa[_x, _y].recusos, new Vector3(_x, _y));
+            
 
             GameObject _obj = Instantiate(objetivoPrefab);
             _obj.transform.position = _pos;
-
-            Destroy(target.gameObject);
-            target = _obj;
-
-            personaje.SetPositions (PathFinding());
-            personaje.accion = _accion;
+            
+            Accion _accion = new Accion(mapa[_x, _y].recusos, new Vector3(_x, _y), _obj.GetComponent<SpriteRenderer>());
+            
+            acciones.Add(_accion);
         }
 	}
     
     public void Reiniciar () {
         nodos = new List<NodoPath>();
         
-        posTarget = new Vector3(Mathf.Round(target.transform.position.x), Mathf.Round(target.transform.position.y));
         encontrado = false;
         posiciones = new Vector3[0];
     }
 
-    public Vector3[] PathFinding() {
+    public Vector3[] PathFinding(Personaje personaje, Vector2 posicion) {
         Reiniciar();
+        posicion = new Vector2(Mathf.Round(posicion.x), Mathf.Round(posicion.y));
 
-        BuscarNodos(new NodoPath(personaje.transform.position, personaje.maxPasos), true);
+        BuscarNodos(new NodoPath(personaje.transform.position, personaje.maxPasos), posicion, true);
         while (!encontrado) {
             List<NodoPath> _nodos = new List<NodoPath>(nodos);
             int pathDesactivados = 0;
@@ -117,7 +158,7 @@ public class GameManager : MonoBehaviour {
                     pathDesactivados++;
                     continue;
                 }
-                BuscarNodos(_nodos[i]);
+                BuscarNodos(_nodos[i], posicion);
 
                 if(encontrado)
                     break;
@@ -132,7 +173,7 @@ public class GameManager : MonoBehaviour {
         return posiciones;
     }
 
-    void BuscarNodos (NodoPath path, bool primero = false) {
+    void BuscarNodos (NodoPath path, Vector2 objetivo, bool primero = false) {
         int _x = Mathf.RoundToInt(path.pos.x);
         int _y = Mathf.RoundToInt(path.pos.y);
 
@@ -175,7 +216,7 @@ public class GameManager : MonoBehaviour {
                 path.pos = nodo.transform.position;
 
                 //Si ha llegado a su objetivo, entonces traza el camino y da por concluido el PathFinding
-                if(new Vector2(nodo.transform.position.x, nodo.transform.position.y) == posTarget) {
+                if(new Vector2(nodo.transform.position.x, nodo.transform.position.y) == objetivo) {
                     CaminoEncontrado(path);
                     return;
                 }
@@ -325,11 +366,14 @@ public class RecursosInfo {
 
 public class Accion {
     public Recurso recursoAccion;
+    public SpriteRenderer renderIcono;
 
     public Vector3 posicion;
 
-    public Accion (Recurso recursoAccion, Vector3 posicion) {
+    public Accion (Recurso recursoAccion, Vector3 posicion, SpriteRenderer render) {
         this.recursoAccion = recursoAccion;
         this.posicion = posicion;
+
+        renderIcono = render;
     }
 }
