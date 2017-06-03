@@ -3,7 +3,8 @@ using System.Collections.Generic;
 using UnityEngine;
 
 public class Nodo : MonoBehaviour {
-    
+
+    public Recurso recusos;
     public SpriteRenderer render;
     public BoxCollider2D coll;
 

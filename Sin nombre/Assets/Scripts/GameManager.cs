@@ -1,10 +1,15 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
+
+public enum RECURSOS { Madera, Piedra }
 
 public class GameManager : MonoBehaviour {
 
     public Vector2 tamañoTotal = new Vector2(20, 20);
+
+    public RecursosInfo[] recursos = new RecursosInfo[2];
 
     public GameObject nodoPrefab;
     public GameObject objetivoPrefab;
@@ -31,7 +36,7 @@ public class GameManager : MonoBehaviour {
 
     List<NodoPath> nodos = new List<NodoPath>();
 
-	void Start () {
+	void Awake () {
         CrearMapa();
 	}
 	
@@ -76,8 +81,10 @@ public class GameManager : MonoBehaviour {
 
             Vector2 _pos = new Vector2(_x, _y);
 
-            if(_x < 0 || _y < 0 || _x >= tamañoTotal.x || _y >= tamañoTotal.y)
+            if(_x < 0 || _y < 0 || _x >= tamañoTotal.x || _y >= tamañoTotal.y || mapa[_x, _y].recusos == null || mapa[_x, _y].recusos.usado)
                 return;
+
+            Accion _accion = new Accion(mapa[_x, _y].recusos, new Vector3(_x, _y));
 
             GameObject _obj = Instantiate(objetivoPrefab);
             _obj.transform.position = _pos;
@@ -86,6 +93,7 @@ public class GameManager : MonoBehaviour {
             target = _obj;
 
             personaje.SetPositions (PathFinding());
+            personaje.accion = _accion;
         }
 	}
     
@@ -218,6 +226,27 @@ public class GameManager : MonoBehaviour {
         }
     }
 
+    public void AñadirRecurso (Recurso recurso) {
+        for (int i = 0; i < recursos.Length; i++) {
+            if (recursos[i].tipo == recurso.tipo) {
+                recursos[i].cantidad += recurso.cantidad;
+                recursos[i].textoCantidad.text = recursos[i].cantidad.ToString();
+
+                recurso.SetUsar(true);
+                return;
+            }
+        }
+
+        Debug.LogWarning("No se ha encontrado ese recurso");
+    }
+
+    public void CrearRecurso (int x, int y, Recurso recurso) {
+        if(x < 0 || y < 0 || x >= tamañoTotal.x || y >= tamañoTotal.y)
+            return;
+
+        mapa[x, y].recusos = recurso;
+    }
+
     //Actualiza los sprites de todo el mapa.
     public void ActualizarMapa() {
         for(int x = 0; x < mapa.GetLength(0); x++) {
@@ -282,3 +311,25 @@ public class GameManager : MonoBehaviour {
     }
 }
 
+[System.Serializable]
+public class RecursosInfo {
+    public string nombre;
+
+    public RECURSOS tipo;
+
+    public int cantidad;
+    public Sprite imagen;
+
+    public Text textoCantidad;
+}
+
+public class Accion {
+    public Recurso recursoAccion;
+
+    public Vector3 posicion;
+
+    public Accion (Recurso recursoAccion, Vector3 posicion) {
+        this.recursoAccion = recursoAccion;
+        this.posicion = posicion;
+    }
+}
