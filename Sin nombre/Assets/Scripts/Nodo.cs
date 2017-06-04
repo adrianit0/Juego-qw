@@ -4,7 +4,8 @@ using UnityEngine;
 
 public class Nodo : MonoBehaviour {
 
-    public Recurso recusos;
+    public Estructura estructura;
+
     public SpriteRenderer render;
     public BoxCollider2D coll;
 

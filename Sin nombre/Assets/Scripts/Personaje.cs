@@ -2,17 +2,21 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Personaje : MonoBehaviour {
+public class Personaje : MonoBehaviour, IEquipo {
 
     public float velocity = 5;
     public int maxSteps = 0;
+
+    public int capacidadTotal = 30, capacidadActual = 0;
+    public List<ResourceInfo> inventario = new List<ResourceInfo>();
 
     bool canWalk = false;
 
     //GAMEMANAGER.
     public GameManager manager;
-    
+
     //LINE RENDERER.
+    public GameObject contentCharacter;
     LineRenderer line;
     List<Vector3> _positions;
     
@@ -48,8 +52,6 @@ public class Personaje : MonoBehaviour {
             anim.SetBool("Mov", false);
             return;
         }
-            
-
 
         if (action != null) {
             if(Vector3.Distance(transform.position, _positions[_positions.Count-1]) <= distanceFinal) {
@@ -58,28 +60,78 @@ public class Personaje : MonoBehaviour {
                     line.enabled = false;
                     anim.SetBool("Working", true);
                 }
+
                 timeBetweenActions += Time.deltaTime;
-                PercentAction(timeBetweenActions/action.resourceAction.tiempoTotal);
+                PercentAction(timeBetweenActions/action.totalTime);
 
-                if (timeBetweenActions > action.resourceAction.tiempoTotal) {
-                    manager.AddResource(action.resourceAction);
+                if (timeBetweenActions > action.totalTime) {
+                    //TERMINA LA ACCION
+                    Destroy(action.renderIcon.gameObject);
+                    bool nuevaAccion = false;
 
-                    Destroy (action.renderIcon.gameObject);
-                    action = null;
+                    switch (action.tipo) {
+                        case TIPOACCION.Almacenar:
+                            CleanResource(action.warehouseAction);
+                            break;
+                        case TIPOACCION.Talar:
+                        case TIPOACCION.Minar:
+                        case TIPOACCION.Pescar:
+                            AddResource(action.resourceAction);
+
+                            if (manager.ExistBuild (ESTRUCTURA.Almacen)) {
+                                nuevaAccion = true;
+
+                                Vector2 pos = manager.GetNearBuild(transform.position, ESTRUCTURA.Almacen);
+                                action = manager.CreateAction(Mathf.RoundToInt(pos.x), Mathf.RoundToInt(pos.y));
+                                SetPositions(manager.PathFinding(this, pos));
+                            }
+                            break;
+                    }
+
+                    if (!nuevaAccion) {
+                        action = null;
+                        SetPositions(Vector3.zero);
+                    }
+                        
+
                     timeBetweenActions = 0;
                     lineAction.gameObject.SetActive(false);
                     line.enabled = true;
 
                     anim.SetBool("Working", false);
-
-                    SetPositions(Vector3.zero);
                 }
 
             } else {
                 transform.position += (-_positions[0] + _positions[1]).normalized * velocity * Time.deltaTime;
                 transform.localScale = new Vector3(Mathf.Sign(_positions[0].x - _positions[1].x), 1, 1);
+                contentCharacter.transform.localScale = new Vector3(Mathf.Sign(_positions[0].x - _positions[1].x), 1, 1);
                 anim.SetBool("Mov", true);
             }
+        }
+    }
+
+    public int AddResource(Recurso recurso) {
+        recurso.SetUsar(true);
+
+        for(int i = 0; i < inventario.Count; i++) {
+            if(inventario[i].type == recurso.tipoRecurso) {
+                inventario[i].quantity += recurso.cantidad;
+                
+                return 0;
+            }
+        }
+
+        inventario.Add(new ResourceInfo(recurso.tipoRecurso, recurso.cantidad));
+
+        capacidadActual += recurso.cantidad;
+
+        return 0;
+    }
+
+    public void CleanResource (Almacen almacen) {
+        for (int i =0;i < inventario.Count; i++) {
+            int sobrante = almacen.AddResource(inventario[i].type, inventario[i].quantity);
+            inventario[i].quantity = sobrante;
         }
     }
 

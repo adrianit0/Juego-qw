@@ -4,12 +4,15 @@ using UnityEngine;
 using UnityEngine.UI;
 
 public enum RECURSOS { Madera, Piedra }
+public enum TIPOACCION { Talar, Construir, Investigar, Cocinar, Minar, Cosechar, Almacenar, Pescar, Socializar }
 
 public class GameManager : MonoBehaviour {
 
     public Vector2 totalSize = new Vector2(20, 20);
 
     public ResourceInfo[] resource = new ResourceInfo[2];
+    public IconInfo[] iconos = new IconInfo[9];
+    public List<Estructura> builds = new List<Estructura>();
 
     public GameObject nodoPrefab;
     public GameObject objetivoPrefab;
@@ -39,7 +42,76 @@ public class GameManager : MonoBehaviour {
     void Start () {
         InvokeRepeating("SearchAction", 0.25f, 0.25f);
     }
-    
+
+    void Update() {
+        if(Input.GetMouseButtonUp(0)) {
+            int _x = Mathf.RoundToInt(Camera.main.ScreenToWorldPoint(Input.mousePosition).x);
+            int _y = Mathf.RoundToInt(Camera.main.ScreenToWorldPoint(Input.mousePosition).y);
+            if(_x < 0 || _y < 0 || _x >= totalSize.x || _y >= totalSize.y)
+                return;
+
+            map[_x, _y].bloqueado = !map[_x, _y].bloqueado;
+            map[_x, _y].coll.isTrigger = !map[_x, _y].bloqueado;
+            //mapa[_x, _y].render.sprite = (!mapa[_x, _y].bloqueado) ? spriteTierra : spriteAgua;
+
+            UpdateMap();
+        }
+
+        if(Input.GetMouseButtonUp(1)) {
+            int _x = Mathf.RoundToInt(Camera.main.ScreenToWorldPoint(Input.mousePosition).x);
+            int _y = Mathf.RoundToInt(Camera.main.ScreenToWorldPoint(Input.mousePosition).y);
+
+            
+            if(_x < 0 || _y < 0 || _x >= totalSize.x || _y >= totalSize.y || map[_x, _y].estructura == null)
+                return;
+
+            actions.Add(CreateAction (_x, _y));
+        }
+    }
+
+    public Action CreateAction (int _x, int _y) {
+        Vector2 _pos = new Vector2(_x, _y);
+        
+        
+        //Buscamos que tipo de acción queremos hacer.
+        TIPOACCION accion = TIPOACCION.Talar;
+
+        Recurso _resource = map[_x, _y].estructura.GetComponent<Recurso>();
+        Almacen _wareHouse = map[_x, _y].estructura.GetComponent<Almacen>();
+
+        if (_resource != null) {
+            switch (_resource.tipoRecurso) {
+                case RECURSOS.Madera:
+                    accion = TIPOACCION.Talar;
+                    break;
+                case RECURSOS.Piedra:
+                    accion = TIPOACCION.Minar;
+                    break;
+            }
+        } else if (_wareHouse != null) {
+            accion = TIPOACCION.Almacenar;
+        } else {
+            return null;
+        }
+
+        GameObject _obj = Instantiate(objetivoPrefab);
+        SpriteRenderer actionRender = _obj.GetComponent<SpriteRenderer>();
+        _obj.transform.position = _pos;
+        
+        actionRender.sprite = SearchIcon(accion);
+
+        return new Action(map[_x, _y].estructura, accion, new Vector3(_x, _y), actionRender); ;
+    }
+
+    Sprite SearchIcon (TIPOACCION tipoAccion) {
+        for (int i=0; i < iconos.Length; i++) {
+            if(iconos[i].type == tipoAccion)
+                return iconos[i].sprite;
+        }
+
+        return null;
+    }
+
     //Busca la acción idonea para realizar para cada personaje.
     void SearchAction () {
         if(actions.Count == 0)
@@ -100,51 +172,48 @@ public class GameManager : MonoBehaviour {
         }
     }
 
-	void Update () {
-		if (Input.GetMouseButtonUp (0)) {
-            int _x = Mathf.RoundToInt (Camera.main.ScreenToWorldPoint(Input.mousePosition).x);
-            int _y = Mathf.RoundToInt (Camera.main.ScreenToWorldPoint(Input.mousePosition).y);
-            if(_x < 0 || _y < 0 || _x >= totalSize.x || _y >= totalSize.y)
-                return;
-
-            map[_x, _y].bloqueado = !map[_x, _y].bloqueado;
-            map[_x, _y].coll.isTrigger = !map[_x, _y].bloqueado;
-            //mapa[_x, _y].render.sprite = (!mapa[_x, _y].bloqueado) ? spriteTierra : spriteAgua;
-
-            UpdateMap();
+    /// <summary>
+    /// Busca una estructura y dice si existe o no.
+    /// </summary>
+    public bool ExistBuild (ESTRUCTURA buildType) {
+        for (int i = 0; i < builds.Count; i++) {
+            if(builds[i].tipo == buildType)
+                return true;
         }
 
-        if (Input.GetMouseButtonUp(1)) {
-            int _x = Mathf.RoundToInt(Camera.main.ScreenToWorldPoint(Input.mousePosition).x);
-            int _y = Mathf.RoundToInt(Camera.main.ScreenToWorldPoint(Input.mousePosition).y);
+        return false;
+    }
 
-            Vector2 _pos = new Vector2(_x, _y);
+    /// <summary>
+    /// Busca la construcción más cercana.
+    /// </summary>
+    public Vector2 GetNearBuild (Vector2 initialPos, ESTRUCTURA buildType) {
+        Vector2 nearest = Vector3.zero;
+        int foundCount = 0;
+        for(int i = 0; i < builds.Count; i++) {
+            if(builds[i].tipo == buildType && (foundCount==0 || Vector2.Distance (builds[i].transform.position, initialPos) < Vector2.Distance (nearest, initialPos))) {
+                nearest = builds[i].transform.position;
 
-            if(_x < 0 || _y < 0 || _x >= totalSize.x || _y >= totalSize.y || map[_x, _y].recusos == null || map[_x, _y].recusos.usado)
-                return;
-
-            
-
-            GameObject _obj = Instantiate(objetivoPrefab);
-            _obj.transform.position = _pos;
-            
-            Action _action = new Action(map[_x, _y].recusos, new Vector3(_x, _y), _obj.GetComponent<SpriteRenderer>());
-            
-            actions.Add(_action);
+                foundCount++;
+            }
         }
-	}
-    
-    public void Restart () {
-        nodes = new List<NodoPath>();
-        
-        pathFound = false;
-        positionsPathFinding = new Vector3[0];
+
+        if(foundCount == 0)
+            Debug.LogWarning("No ha encontrado ninguna construcción cercana");
+
+        return nearest;
     }
 
     public Vector3[] PathFinding(Personaje character, Vector2 position) {
-        Restart();
+        //Reinicia los nodos del anterior pathfinding.
+        nodes = new List<NodoPath>();
+
+        pathFound = false;
+        positionsPathFinding = new Vector3[0];
+
         position = new Vector2(Mathf.Round(position.x), Mathf.Round(position.y));
 
+        //Ahora busca el pathFinding
         SearchNodes(new NodoPath(character.transform.position, character.maxSteps), position, true);
         while (!pathFound) {
             List<NodoPath> _nodes = new List<NodoPath>(nodes);
@@ -265,30 +334,40 @@ public class GameManager : MonoBehaviour {
     }
 
     /// <summary>
-    /// Añade un recurso a tu inventario.
+    /// Añade un recurso al inventario total
     /// </summary>
     public void AddResource (Recurso recurso) {
-        for (int i = 0; i < resource.Length; i++) {
-            if (resource[i].type == recurso.tipo) {
-                resource[i].quantity += recurso.cantidad;
-                resource[i].quantityText.text = resource[i].quantity.ToString();
 
-                recurso.SetUsar(true);
+        recurso.SetUsar(true);
+
+        AddResource(recurso.tipoRecurso, recurso.cantidad);
+    }
+
+    public void AddResource(RECURSOS type, int quantity) {
+        for(int i = 0; i < resource.Length; i++) {
+            if(resource[i].type == type) {
+                resource[i].quantity += quantity;
+                if (resource[i].quantityText != null)
+                resource[i].quantityText.text = resource[i].quantity.ToString();
+                
                 return;
             }
         }
 
+        //Se debería poderse añadir automaticamente
         Debug.LogWarning("No se ha encontrado ese recurso");
     }
 
     /// <summary>
-    /// Crea un recurso en el mapa.
+    /// Crea una estructura en el mapa.
     /// </summary>
-    public void CreateResource (int x, int y, Recurso recurso) {
+    public void CreateBuild (int x, int y, Estructura estructura) {
         if(x < 0 || y < 0 || x >= totalSize.x || y >= totalSize.y)
             return;
 
-        map[x, y].recusos = recurso;
+        map[x, y].estructura = estructura;
+
+        builds.Add(estructura);
     }
 
     ///Actualiza los sprites de todo el mapa.
@@ -365,20 +444,43 @@ public class ResourceInfo {
     public Sprite sprite;
 
     public Text quantityText;
+
+    public ResourceInfo (RECURSOS type, int initialQuantity) {
+        name = type.ToString();
+        this.type = type;
+
+        quantity = initialQuantity;
+    }
+}
+
+[System.Serializable]
+public class IconInfo {
+    public TIPOACCION type;
+    public Sprite sprite;
+    
 }
 
 /// <summary>
 /// Acciones
 /// </summary>
 public class Action {
-    public Recurso resourceAction;
+    public float totalTime;
     public SpriteRenderer renderIcon;
-
+    public TIPOACCION tipo;
     public Vector3 position;
 
-    public Action (Recurso resourceAction, Vector3 position, SpriteRenderer render) {
-        this.resourceAction = resourceAction;
+    //Tipos de acciones (Según las diferentes estructuras).
+    public Recurso resourceAction; //Solo si es un recurso.
+    public Almacen warehouseAction; //Para almacenar informacion
+
+    public Action (Estructura estructure, TIPOACCION tipoAccion, Vector3 position, SpriteRenderer render) {
+        resourceAction = estructure.GetComponent<Recurso>();
+        warehouseAction = estructure.GetComponent<Almacen>();
+        
         this.position = position;
+        this.tipo = tipoAccion;
+
+        totalTime = (resourceAction!=null) ? resourceAction.tiempoTotal : (warehouseAction!=null) ? warehouseAction.tiempoTotal : 0;
 
         renderIcon = render;
     }
