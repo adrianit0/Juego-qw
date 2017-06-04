@@ -14,6 +14,8 @@ public class GameManager : MonoBehaviour {
     public IconInfo[] iconos = new IconInfo[9];
     public List<Estructura> builds = new List<Estructura>();
 
+    public GameObject[] panelesRecursos = new GameObject[2];
+
     public GameObject nodoPrefab;
     public GameObject objetivoPrefab;
 
@@ -34,6 +36,8 @@ public class GameManager : MonoBehaviour {
     
     public Sprite[] spriteTierra = new Sprite[16];
     public Sprite spriteAgua;
+
+    public bool desactivarBotonDerecho = false;
     
 	void Awake () {
         CrearMapa();
@@ -44,7 +48,7 @@ public class GameManager : MonoBehaviour {
     }
 
     void Update() {
-        if(Input.GetMouseButtonUp(0)) {
+        if(!desactivarBotonDerecho && Input.GetMouseButtonUp(0)) {
             int _x = Mathf.RoundToInt(Camera.main.ScreenToWorldPoint(Input.mousePosition).x);
             int _y = Mathf.RoundToInt(Camera.main.ScreenToWorldPoint(Input.mousePosition).y);
             if(_x < 0 || _y < 0 || _x >= totalSize.x || _y >= totalSize.y)
@@ -431,6 +435,12 @@ public class GameManager : MonoBehaviour {
             return 15;
 
         return 4;
+    }
+    
+    public void CambiarPestañaRecursos (int index) {
+        for (int i = 0; i < panelesRecursos.Length; i++) {
+            panelesRecursos[i].SetActive(index == i);
+        }
     }
 }
 
