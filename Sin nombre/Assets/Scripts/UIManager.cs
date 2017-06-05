@@ -11,4 +11,8 @@ public class UIManager : MonoBehaviour {
     public void DesactivarGameObject(GameObject obj) {
         obj.SetActive(false);
     }
+
+    public void ActivarDesactivar(GameObject obj) {
+        obj.SetActive(!obj.activeSelf);
+    }
 }
