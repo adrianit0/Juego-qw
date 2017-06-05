@@ -5,15 +5,24 @@ using UnityEngine.UI;
 
 public enum RECURSOS { Madera, Piedra }
 public enum TIPOACCION { Talar, Construir, Investigar, Cocinar, Minar, Cosechar, Almacenar, Pescar, Socializar }
+public enum HERRAMIENTA { Seleccionar = 0, Recolectar = 1, Priorizar = 2, Destruir = 3 }
 
 public class GameManager : MonoBehaviour {
 
     public Vector2 totalSize = new Vector2(20, 20);
-
+    
+    //CONTENIDO PARTIDA
     public ResourceInfo[] resource = new ResourceInfo[2];
     public IconInfo[] iconos = new IconInfo[9];
+
     public List<Estructura> builds = new List<Estructura>();
 
+    //PANEL HERRAMIENTAS
+    public HERRAMIENTA herramientaSeleccionada = HERRAMIENTA.Seleccionar;
+    public Sprite[] iconosHerramientas = new Sprite[4];
+    public Image imagenCentral;
+    
+    //PANEL RECURSOS
     public GameObject[] panelesRecursos = new GameObject[2];
 
     public GameObject nodoPrefab;
@@ -441,6 +450,11 @@ public class GameManager : MonoBehaviour {
         for (int i = 0; i < panelesRecursos.Length; i++) {
             panelesRecursos[i].SetActive(index == i);
         }
+    }
+
+    public void SeleccionarHerramienta (int herramienta) {
+        herramientaSeleccionada = (HERRAMIENTA) herramienta;
+        imagenCentral.sprite = iconosHerramientas[herramienta];
     }
 }
 
