@@ -3,7 +3,12 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
-public enum RECURSOS { Madera, Piedra }
+public enum RECURSOS {
+    //RECURSOS
+    Madera, Piedra, Cobre, Plata, Oro,
+    //COMIDA
+    Manzana, ManzanaDorada
+}
 public enum TIPOACCION { Talar, Construir, Investigar, Cocinar, Minar, Cosechar, Almacenar, Pescar, Socializar }
 public enum HERRAMIENTA { Seleccionar = 0, Recolectar = 1, Priorizar = 2, Destruir = 3 }
 
@@ -29,17 +34,8 @@ public class GameManager : MonoBehaviour {
     public GameObject objetivoPrefab;
 
     GameObject objParent;
-    Nodo[,] map;
-
-    //Toda la información a guardar del sistema de PathFinding.
-    List<NodoPath> nodes = new List<NodoPath>();
-    Vector3[] positionsPathFinding;
-    bool pathFound = false;
-    Vector2[] directions = new Vector2[8] {
-        Vector2.up, Vector2.right, Vector2.down, Vector2.left,
-        new Vector2 (1, 1), new Vector2 (1, -1), new Vector2 (-1, -1), new Vector2(-1, 1)
-    };
-
+    public Nodo[,] map;
+    
     public List<Personaje> characters = new List<Personaje>();
     public List<Action> actions = new List<Action>();
     
@@ -47,13 +43,24 @@ public class GameManager : MonoBehaviour {
     public Sprite spriteAgua;
 
     public bool desactivarBotonDerecho = false;
+
+    PathFinding path;
     
 	void Awake () {
+        path = GetComponent<PathFinding>();
+
         CrearMapa();
 	}
 
     void Start () {
         InvokeRepeating("SearchAction", 0.25f, 0.25f);
+    }
+
+    /// <summary>
+    /// Devuelve el camino más corto desde la posición del personaje hasta una posición
+    /// </summary>
+    public Vector3[] PathFinding(Personaje character, Vector2 position) {
+        return path.PathFind(character, position);
     }
 
     void Update() {
@@ -85,7 +92,6 @@ public class GameManager : MonoBehaviour {
     public Action CreateAction (int _x, int _y) {
         Vector2 _pos = new Vector2(_x, _y);
         
-        
         //Buscamos que tipo de acción queremos hacer.
         TIPOACCION accion = TIPOACCION.Talar;
 
@@ -93,14 +99,9 @@ public class GameManager : MonoBehaviour {
         Almacen _wareHouse = map[_x, _y].estructura.GetComponent<Almacen>();
 
         if (_resource != null) {
-            switch (_resource.tipoRecurso) {
-                case RECURSOS.Madera:
-                    accion = TIPOACCION.Talar;
-                    break;
-                case RECURSOS.Piedra:
-                    accion = TIPOACCION.Minar;
-                    break;
-            }
+            if(_resource.actualQuantity == 0)   //Si el recurso está vacio no te permite usarlo.
+                return null;
+            accion = _resource.actionType;
         } else if (_wareHouse != null) {
             accion = TIPOACCION.Almacenar;
         } else {
@@ -134,7 +135,7 @@ public class GameManager : MonoBehaviour {
         List<Personaje> freeWorkers = new List<Personaje>();
 
         foreach (Personaje worker in characters) {
-            if(worker.action == null)
+            if(worker.GetActionsCount() == 0)
                 freeWorkers.Add(worker);
         }
 
@@ -155,8 +156,7 @@ public class GameManager : MonoBehaviour {
             }
 
             freeWorkers[nearWorkers].SetPositions(nearPositions);
-            freeWorkers[nearWorkers].action = actions[i];
-            actions[i].renderIcon.color = Color.gray;
+            freeWorkers[nearWorkers].AddAction (actions[i]);
 
             actions.RemoveAt(i);
             freeWorkers.RemoveAt(nearWorkers);
@@ -217,146 +217,10 @@ public class GameManager : MonoBehaviour {
         return nearest;
     }
 
-    public Vector3[] PathFinding(Personaje character, Vector2 position) {
-        //Reinicia los nodos del anterior pathfinding.
-        nodes = new List<NodoPath>();
-
-        pathFound = false;
-        positionsPathFinding = new Vector3[0];
-
-        position = new Vector2(Mathf.Round(position.x), Mathf.Round(position.y));
-
-        //Ahora busca el pathFinding
-        SearchNodes(new NodoPath(character.transform.position, character.maxSteps), position, true);
-        while (!pathFound) {
-            List<NodoPath> _nodes = new List<NodoPath>(nodes);
-            int pathDesactivados = 0;
-            for (int i = 0; i < _nodes.Count; i++) {
-                if (!_nodes[i].activado) {
-                    pathDesactivados++;
-                    continue;
-                }
-                SearchNodes(_nodes[i], position);
-
-                if(pathFound)
-                    break;
-            }
-
-            if (nodes.Count==0 || _nodes.Count == pathDesactivados) {
-                Debug.Log("No se ha encontrado caminos");
-                break;
-            }
-        }
-
-        return positionsPathFinding;
-    }
-    
-    void SearchNodes (NodoPath path, Vector2 objetive, bool firstPath = false) {
-        int _x = Mathf.RoundToInt(path.pos.x);
-        int _y = Mathf.RoundToInt(path.pos.y);
-
-        if(_x < 0 || _y < 0 || _x >= totalSize.x || _y >= totalSize.y)
-            return;
-        
-        if (firstPath) {
-            nodes.Add(path);
-        }
-
-        List<Nodo> foundNodes = new List<Nodo>();
-
-        //Busca todos los nodos disponibles
-        for (int i = 0; i < directions.Length; i++) {
-            Nodo node = SearchPath(path.pos, directions[i]);
-
-            if(node == null)
-                continue;
-
-            foundNodes.Add(node);
-        }
-
-        //Busca si el nodo pertenece a otro camino, y busca si ya no ha sido trazado por otro camino (De ser así pasa al siguiente).
-        //Si encuentra más de un camino válido, se clona.
-        //Si no encuentra un camino válido, el camino se borra.
-        int validNodes = 0;
-        int invalidNodes = 0;
-        foreach (Nodo node in foundNodes) {
-
-            if (!ContainNode(node)) {
-                if (validNodes>0) {
-                    path = new NodoPath(path);
-                    path.nodos[path.nodos.Count-1] = node;
-                    nodes.Add(path);
-                } else {
-                    path.nodos.Add(node);
-                    path.AñadirPaso();
-                }
-                
-                path.pos = node.transform.position;
-
-                //Si ha llegado a su objetivo, entonces traza el camino y da por concluido el PathFinding
-                if(new Vector2(node.transform.position.x, node.transform.position.y) == objetive) {
-                    PathFound(path);
-                    return;
-                }
-
-                validNodes++;
-            } else {
-                invalidNodes++;
-            }
-        }
-
-        //Si no ha encontrado nodo, borra el camino
-        if(foundNodes.Count == 0) {
-            nodes.Remove(path);
-            return;
-        } else if (foundNodes.Count == invalidNodes) {
-            path.activado = false;
-        }
-    }
-
-    //Encuentra todos los nodos de un camino
-    Nodo SearchPath (Vector2 actual, Vector2 camino) {
-        int _x = Mathf.RoundToInt(actual.x + camino.x);
-        int _y = Mathf.RoundToInt(actual.y + camino.y);
-
-        if(_x < 0 || _y < 0 || _x >= totalSize.x || _y >= totalSize.y)
-            return null;
-
-        if(!map[_x, _y].bloqueado && (!map[_x, (int) actual.y].bloqueado||camino.x==0) && (!map[(int) actual.x, _y].bloqueado||camino.y==0))
-            return map[_x, _y];
-
-        return null;
-    }
-
-    bool ContainNode (Nodo nodo) {
-        for (int i = 0; i < nodes.Count; i++) {
-            if(nodes[i].nodos.Contains(nodo))
-                return true;
-        }
-
-        return false;
-    }
-
-    void PathFound (NodoPath path) {
-        pathFound = true;
-
-        positionsPathFinding = new Vector3[path.nodos.ToArray().Length];
-        for (int i = 0; i < positionsPathFinding.Length; i++) {
-            positionsPathFinding[i] = path.nodos[i].transform.position;
-        }
-    }
-
-    /// <summary>
-    /// Añade un recurso al inventario total
-    /// </summary>
-    public void AddResource (Recurso recurso) {
-
-        recurso.SetUsar(true);
-
-        AddResource(recurso.tipoRecurso, recurso.cantidad);
-    }
-
     public void AddResource(RECURSOS type, int quantity) {
+        if(quantity == 0)
+            return;
+
         for(int i = 0; i < resource.Length; i++) {
             if(resource[i].type == type) {
                 resource[i].quantity += quantity;

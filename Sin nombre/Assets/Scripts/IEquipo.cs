@@ -4,6 +4,6 @@ using UnityEngine;
 
 public interface IEquipo {
 
-    int AddResource(Recurso recurso);
+    int AddResource(RECURSOS recurso, int cantidad);
 
 }

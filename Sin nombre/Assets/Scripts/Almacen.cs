@@ -15,22 +15,14 @@ public class Almacen : Estructura, IEquipo {
     void Awake() {
         line = GetComponent<LineRenderer>();
     }
-
-    public void PercentAction(float porc) {
-        porc = Mathf.Clamp(porc, 0, 1);
-
-        line.SetPosition(1, new Vector3((porc/tamLine) - tamLine/2, yPos, 0));
-    }
-
-    public int AddResource(Recurso recurso) {
-        recurso.SetUsar(true);
-        return AddResource(recurso.tipoRecurso, recurso.cantidad);
-    }
-
+    
     /// <summary>
     /// Añade recursos al almacen, y devuelve la cantidad de sobra (La que no puede almacenar).
     /// </summary>
     public int AddResource(RECURSOS recurso, int cantidad) {
+        if(cantidad == 0)
+            return 0;
+
         int sobrante = 0;
         if (cantidad > (capacityTotal-capacityActual)) {
             sobrante = cantidad - (capacityTotal - capacityActual);
@@ -42,19 +34,27 @@ public class Almacen : Estructura, IEquipo {
         if(cantidad == 0)
             return sobrante;
 
+        bool encontrado = false;
         for(int i = 0; i < inventario.Count; i++) {
             if(inventario[i].type == recurso) {
                 inventario[i].quantity += cantidad;
-                
-                return sobrante;
+                encontrado = true;
             }
         }
         
-        //Si no existe ese recurso en este inventario, lo crea.
-        inventario.Add(new ResourceInfo(recurso, cantidad));
-        PercentAction(((float) capacityActual / (float) capacityTotal));
+        if (!encontrado) //Si no existe ese recurso en este inventario, lo crea.
+            inventario.Add(new ResourceInfo(recurso, cantidad));
+
+
+        Porcentaje(((float) capacityActual / (float) capacityTotal));
         manager.AddResource(recurso, cantidad);
 
         return sobrante;
+    }
+
+    public void Porcentaje(float porc) {
+        porc = Mathf.Clamp(porc, 0, 1);
+
+        line.SetPosition(1, new Vector3(porc * tamLine - tamLine / 2, yPos, 0));
     }
 }

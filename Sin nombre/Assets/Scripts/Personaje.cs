@@ -7,7 +7,11 @@ public class Personaje : MonoBehaviour, IEquipo {
     public float velocity = 5;
     public int maxSteps = 0;
 
-    public int capacidadTotal = 30, capacidadActual = 0;
+    public int capacidadTotal = 30;
+    public int capacidadActual {
+        set { }
+        get { return CountItems(); }
+    }
     public List<ResourceInfo> inventario = new List<ResourceInfo>();
 
     bool canWalk = false;
@@ -25,7 +29,7 @@ public class Personaje : MonoBehaviour, IEquipo {
     float distanceFinal = 1.00f;
 
     //ACCION QUE ESTÁ REALIZANDO ACTUALMENTE EL PERSONAJE.
-    public Action action;
+    List<Action> actions = new List<Action>();
     float timeBetweenActions = 0f;
     public LineRenderer lineAction;
     Animator anim;
@@ -47,14 +51,16 @@ public class Personaje : MonoBehaviour, IEquipo {
     void Update() {
         //Actualizar el LineRenderer
         UpdateLine();
+        
+        if (actions.Count>0) {
+            Action action = actions[0];
+            if(Vector3.Distance(transform.position, action.position) <= distanceFinal) {
+                
+                if (action == null) {
+                    actions.RemoveAt(0);
+                    return;
+                }
 
-        if(!canWalk || _positions.Count <= 1) {
-            anim.SetBool("Mov", false);
-            return;
-        }
-
-        if (action != null) {
-            if(Vector3.Distance(transform.position, _positions[_positions.Count-1]) <= distanceFinal) {
                 if(timeBetweenActions == 0) {
                     lineAction.gameObject.SetActive(true);
                     line.enabled = false;
@@ -66,8 +72,8 @@ public class Personaje : MonoBehaviour, IEquipo {
 
                 if (timeBetweenActions > action.totalTime) {
                     //TERMINA LA ACCION
+                    
                     Destroy(action.renderIcon.gameObject);
-                    bool nuevaAccion = false;
 
                     switch (action.tipo) {
                         case TIPOACCION.Almacenar:
@@ -78,21 +84,26 @@ public class Personaje : MonoBehaviour, IEquipo {
                         case TIPOACCION.Pescar:
                             AddResource(action.resourceAction);
 
-                            if (manager.ExistBuild (ESTRUCTURA.Almacen)) {
-                                nuevaAccion = true;
-
+                            if (capacidadActual < capacidadTotal && action.resourceAction.actualQuantity > 0) {
+                                AddAction(manager.CreateAction(Mathf.RoundToInt(action.position.x), Mathf.RoundToInt(action.position.y)));
+                            } else if (manager.ExistBuild (ESTRUCTURA.Almacen)) {
                                 Vector2 pos = manager.GetNearBuild(transform.position, ESTRUCTURA.Almacen);
-                                action = manager.CreateAction(Mathf.RoundToInt(pos.x), Mathf.RoundToInt(pos.y));
-                                SetPositions(manager.PathFinding(this, pos));
+                                AddAction (manager.CreateAction(Mathf.RoundToInt(pos.x), Mathf.RoundToInt(pos.y)));
+
+                                if (action.resourceAction.actualQuantity>0) {
+                                    AddAction (manager.CreateAction(Mathf.RoundToInt(action.position.x), Mathf.RoundToInt(action.position.y)));
+                                }
                             }
                             break;
                     }
 
-                    if (!nuevaAccion) {
-                        action = null;
+                    actions.RemoveAt(0);
+
+                    if(actions.Count == 0) {
                         SetPositions(Vector3.zero);
+                    } else {
+                        SetPositions(manager.PathFinding(this, actions[0].position));
                     }
-                        
 
                     timeBetweenActions = 0;
                     lineAction.gameObject.SetActive(false);
@@ -102,28 +113,70 @@ public class Personaje : MonoBehaviour, IEquipo {
                 }
 
             } else {
-                transform.position += (-_positions[0] + _positions[1]).normalized * velocity * Time.deltaTime;
-                transform.localScale = new Vector3(Mathf.Sign(_positions[0].x - _positions[1].x), 1, 1);
-                contentCharacter.transform.localScale = new Vector3(Mathf.Sign(_positions[0].x - _positions[1].x), 1, 1);
+                if(!canWalk) {
+                    anim.SetBool("Mov", false);
+                    return;
+                }
+
+                if (_positions.Count>=1) {
+                    transform.position += (-_positions[0] + _positions[1]).normalized * velocity * Time.deltaTime;
+                    transform.localScale = new Vector3(Mathf.Sign(_positions[0].x - _positions[1].x), 1, 1);
+                    contentCharacter.transform.localScale = new Vector3(Mathf.Sign(_positions[0].x - _positions[1].x), 1, 1);
+                } else {
+                    transform.position += (action.position-transform.position).normalized * velocity * Time.deltaTime;
+                    transform.localScale = new Vector3(Mathf.Sign(transform.position.x - action.position.x), 1, 1);
+                    contentCharacter.transform.localScale = new Vector3(Mathf.Sign(transform.position.x - action.position.x), 1, 1);
+                }
+                
                 anim.SetBool("Mov", true);
             }
+        } else {
+            anim.SetBool("Mov", false);
         }
     }
 
-    public int AddResource(Recurso recurso) {
-        recurso.SetUsar(true);
+    public void AddAction (Action action) {
+        actions.Add (action);
+        
+        action.renderIcon.color = new Color (0.5f, 0.5f, 0.5f, 0.5f);
+    }
 
+    public int GetActionsCount () {
+        return actions.Count;
+    }
+         
+    public void AddResource(Recurso recurso) {
+        if(recurso == null)
+            return;
+
+        ResourceInfo[] recursos = recurso.TomarRecursos(capacidadTotal-capacidadActual);
+
+        if(recursos == null)
+            return;
+        
+        for (int i = 0; i < recursos.Length; i++) {
+            AddResource(recursos[i].type, recursos[i].quantity);
+        }
+    }
+
+    public int CountItems () {
+        int count = 0;
         for(int i = 0; i < inventario.Count; i++) {
-            if(inventario[i].type == recurso.tipoRecurso) {
-                inventario[i].quantity += recurso.cantidad;
-                
+            count += inventario[i].quantity;
+        }
+        return count;
+    }
+
+    public int AddResource(RECURSOS recurso, int cantidad) {
+        for(int i = 0; i < inventario.Count; i++) {
+            if(inventario[i].type == recurso) {
+                inventario[i].quantity += cantidad;
+
                 return 0;
             }
         }
 
-        inventario.Add(new ResourceInfo(recurso.tipoRecurso, recurso.cantidad));
-
-        capacidadActual += recurso.cantidad;
+        inventario.Add(new ResourceInfo(recurso, cantidad));
 
         return 0;
     }
