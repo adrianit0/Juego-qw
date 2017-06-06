@@ -9,8 +9,8 @@ public enum RECURSOS {
     //COMIDA
     Manzana, ManzanaDorada
 }
-public enum TIPOACCION { Talar, Construir, Investigar, Cocinar, Minar, Cosechar, Almacenar, Pescar, Socializar }
-public enum HERRAMIENTA { Seleccionar = 0, Recolectar = 1, Priorizar = 2, Destruir = 3 }
+public enum TIPOACCION { Talar, Construir, Investigar, Cocinar, Minar, Cosechar, Almacenar, Pescar, Socializar, Arar }
+public enum HERRAMIENTA { Seleccionar = 0, Recolectar = 1, Plantar = 2, Priorizar = 3, Destruir = 4, Construir = 5 }
 
 public class GameManager : MonoBehaviour {
 
@@ -45,9 +45,11 @@ public class GameManager : MonoBehaviour {
     public bool desactivarBotonDerecho = false;
 
     PathFinding path;
+    Agricultura farm;
     
 	void Awake () {
         path = GetComponent<PathFinding>();
+        farm = GetComponent<Agricultura>();
 
         CrearMapa();
 	}
@@ -80,33 +82,64 @@ public class GameManager : MonoBehaviour {
         if(Input.GetMouseButtonUp(1)) {
             int _x = Mathf.RoundToInt(Camera.main.ScreenToWorldPoint(Input.mousePosition).x);
             int _y = Mathf.RoundToInt(Camera.main.ScreenToWorldPoint(Input.mousePosition).y);
-
             
-            if(_x < 0 || _y < 0 || _x >= totalSize.x || _y >= totalSize.y || map[_x, _y].estructura == null)
-                return;
 
-            actions.Add(CreateAction (_x, _y));
+            actions.Add(CreateAction (_x, _y, herramientaSeleccionada));
         }
     }
 
-    public Action CreateAction (int _x, int _y) {
+    public Action CreateAction (int _x, int _y, HERRAMIENTA herramienta) {
+        if(_x < 0 || _y < 0 || _x >= totalSize.x || _y >= totalSize.y)
+                return null;
+
         Vector2 _pos = new Vector2(_x, _y);
         
         //Buscamos que tipo de acción queremos hacer.
         TIPOACCION accion = TIPOACCION.Talar;
 
-        Recurso _resource = map[_x, _y].estructura.GetComponent<Recurso>();
-        Almacen _wareHouse = map[_x, _y].estructura.GetComponent<Almacen>();
+        switch (herramienta) {
+            case HERRAMIENTA.Recolectar:
+                if(map[_x, _y].estructura == null)
+                    return null;
 
-        if (_resource != null) {
-            if(_resource.actualQuantity == 0)   //Si el recurso está vacio no te permite usarlo.
+                Recurso _resource = map[_x, _y].estructura.GetComponent<Recurso>();
+                Almacen _wareHouse = map[_x, _y].estructura.GetComponent<Almacen>();
+
+                if(_resource != null) {
+                    if(_resource.actualQuantity == 0)   //Si el recurso está vacio no te permite usarlo.
+                        return null;
+                    accion = _resource.actionType;
+                } else if(_wareHouse != null) {
+                    accion = TIPOACCION.Almacenar;
+                } else {
+                    return null;
+                }
+                break;
+
+            case HERRAMIENTA.Plantar:
+                if(map[_x, _y].estructura != null)
+                    return null;
+
+                accion = TIPOACCION.Arar;
+
+                GameObject _huerto = Instantiate(farm.huertoPrefab);
+                _huerto.transform.position = new Vector3(_x, _y);
+
+                _huerto.GetComponent<SpriteRenderer>().sortingOrder = 3; //PONER AQUI EL LAYER PERSONALIZADO
+                Huerto _huertoScript = _huerto.GetComponent<Huerto>();
+                _huertoScript.manager = this;
+                map[_x, _y].estructura = _huertoScript;
+
+                _huerto.SetActive(false);
+
+                break;
+
+            default:
+                Debug.LogWarning("Herramienta no programada aún");
                 return null;
-            accion = _resource.actionType;
-        } else if (_wareHouse != null) {
-            accion = TIPOACCION.Almacenar;
-        } else {
-            return null;
         }
+        
+
 
         GameObject _obj = Instantiate(objetivoPrefab);
         SpriteRenderer actionRender = _obj.GetComponent<SpriteRenderer>();
@@ -114,7 +147,7 @@ public class GameManager : MonoBehaviour {
         
         actionRender.sprite = SearchIcon(accion);
 
-        return new Action(map[_x, _y].estructura, accion, new Vector3(_x, _y), actionRender); ;
+        return new Action(map[_x, _y].estructura, accion, new Vector3(_x, _y), map[_x, _y].estructura.tiempoTotal, actionRender); ;
     }
 
     Sprite SearchIcon (TIPOACCION tipoAccion) {
@@ -144,6 +177,12 @@ public class GameManager : MonoBehaviour {
         
         for (int i = 0; i < actions.Count; i++) {
             //Calcularemos que personaje es el mejor para realizar cada acción libre, como actualmente no hay nada de eso programado, el personaje más cercano será quien se ocupe de la acción.
+            if (actions[i]==null) {
+                actions.RemoveAt(i);
+                i--;
+                continue;
+            }
+
             int nearWorkers = 0;
             Vector3[] nearPositions = null;
             for(int x = 0; x < freeWorkers.Count; x++) {
@@ -358,17 +397,19 @@ public class Action {
     public Vector3 position;
 
     //Tipos de acciones (Según las diferentes estructuras).
+    public Estructura estructure;
     public Recurso resourceAction; //Solo si es un recurso.
     public Almacen warehouseAction; //Para almacenar informacion
 
-    public Action (Estructura estructure, TIPOACCION tipoAccion, Vector3 position, SpriteRenderer render) {
+    public Action (Estructura estructure, TIPOACCION tipoAccion, Vector3 position, float duracion, SpriteRenderer render) {
+        this.estructure = estructure;
         resourceAction = estructure.GetComponent<Recurso>();
         warehouseAction = estructure.GetComponent<Almacen>();
         
         this.position = position;
         this.tipo = tipoAccion;
 
-        totalTime = (resourceAction!=null) ? resourceAction.tiempoTotal : (warehouseAction!=null) ? warehouseAction.tiempoTotal : 0;
+        totalTime = duracion;
 
         renderIcon = render;
     }

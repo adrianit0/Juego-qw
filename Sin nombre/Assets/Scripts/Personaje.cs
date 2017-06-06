@@ -85,15 +85,19 @@ public class Personaje : MonoBehaviour, IEquipo {
                             AddResource(action.resourceAction);
 
                             if (capacidadActual < capacidadTotal && action.resourceAction.actualQuantity > 0) {
-                                AddAction(manager.CreateAction(Mathf.RoundToInt(action.position.x), Mathf.RoundToInt(action.position.y)));
+                                AddAction(manager.CreateAction(Mathf.RoundToInt(action.position.x), Mathf.RoundToInt(action.position.y), HERRAMIENTA.Recolectar));
                             } else if (manager.ExistBuild (ESTRUCTURA.Almacen)) {
                                 Vector2 pos = manager.GetNearBuild(transform.position, ESTRUCTURA.Almacen);
-                                AddAction (manager.CreateAction(Mathf.RoundToInt(pos.x), Mathf.RoundToInt(pos.y)));
+                                AddAction (manager.CreateAction(Mathf.RoundToInt(pos.x), Mathf.RoundToInt(pos.y), HERRAMIENTA.Recolectar));
 
                                 if (action.resourceAction.actualQuantity>0) {
-                                    AddAction (manager.CreateAction(Mathf.RoundToInt(action.position.x), Mathf.RoundToInt(action.position.y)));
+                                    AddAction (manager.CreateAction(Mathf.RoundToInt(action.position.x), Mathf.RoundToInt(action.position.y), HERRAMIENTA.Recolectar));
                                 }
                             }
+                            break;
+
+                        case TIPOACCION.Arar:
+                            action.estructure.gameObject.SetActive(true);
                             break;
                     }
 
