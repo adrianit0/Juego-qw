@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.EventSystems;
 
 public enum RECURSOS {
     //RECURSOS
@@ -10,7 +11,7 @@ public enum RECURSOS {
     Manzana, ManzanaDorada
 }
 public enum TIPOACCION { Talar, Construir, Investigar, Cocinar, Minar, Cosechar, Almacenar, Pescar, Socializar, Arar }
-public enum HERRAMIENTA { Seleccionar = 0, Recolectar = 1, Plantar = 2, Priorizar = 3, Destruir = 4, Construir = 5 }
+public enum HERRAMIENTA { Seleccionar = 0, Recolectar = 1, Arar = 2, Priorizar = 3, Destruir = 4, Construir = 5 }
 
 public class GameManager : MonoBehaviour {
 
@@ -46,10 +47,12 @@ public class GameManager : MonoBehaviour {
 
     PathFinding path;
     Agricultura farm;
+    Construccion build;
     
 	void Awake () {
         path = GetComponent<PathFinding>();
         farm = GetComponent<Agricultura>();
+        build = GetComponent<Construccion>();
 
         CrearMapa();
 	}
@@ -66,7 +69,12 @@ public class GameManager : MonoBehaviour {
     }
 
     void Update() {
-        if(!desactivarBotonDerecho && Input.GetMouseButtonUp(0)) {
+        if (build.construyendo) {
+            //Si va a construir hace uso de su propio Update().
+            build.BuildUpdate();
+            return;
+        }
+        if(!desactivarBotonDerecho && Input.GetMouseButtonUp(1) && !EventSystem.current.IsPointerOverGameObject()) {
             int _x = Mathf.RoundToInt(Camera.main.ScreenToWorldPoint(Input.mousePosition).x);
             int _y = Mathf.RoundToInt(Camera.main.ScreenToWorldPoint(Input.mousePosition).y);
             if(_x < 0 || _y < 0 || _x >= totalSize.x || _y >= totalSize.y)
@@ -79,7 +87,7 @@ public class GameManager : MonoBehaviour {
             UpdateMap();
         }
 
-        if(Input.GetMouseButtonUp(1)) {
+        if(Input.GetMouseButtonUp(0) && !EventSystem.current.IsPointerOverGameObject()) {
             int _x = Mathf.RoundToInt(Camera.main.ScreenToWorldPoint(Input.mousePosition).x);
             int _y = Mathf.RoundToInt(Camera.main.ScreenToWorldPoint(Input.mousePosition).y);
             
@@ -96,6 +104,11 @@ public class GameManager : MonoBehaviour {
         
         //Buscamos que tipo de acción queremos hacer.
         TIPOACCION accion = TIPOACCION.Talar;
+
+        //Valores personalizados, si el valor es diferente se tomará en lugar del valor genérico.
+        GameObject customPrefab = null;
+        float customTime = -1;
+        Sprite customIcon = null;
 
         switch (herramienta) {
             case HERRAMIENTA.Recolectar:
@@ -116,21 +129,26 @@ public class GameManager : MonoBehaviour {
                 }
                 break;
 
-            case HERRAMIENTA.Plantar:
+            case HERRAMIENTA.Arar:
                 if(map[_x, _y].estructura != null)
                     return null;
 
                 accion = TIPOACCION.Arar;
 
-                GameObject _huerto = Instantiate(farm.huertoPrefab);
-                _huerto.transform.position = new Vector3(_x, _y);
+                customPrefab = farm.huertoPrefab;
+                customTime = farm.tiempoArar; 
 
-                _huerto.GetComponent<SpriteRenderer>().sortingOrder = 3; //PONER AQUI EL LAYER PERSONALIZADO
-                Huerto _huertoScript = _huerto.GetComponent<Huerto>();
-                _huertoScript.manager = this;
-                map[_x, _y].estructura = _huertoScript;
+                break;
 
-                _huerto.SetActive(false);
+            case HERRAMIENTA.Construir:
+                if(map[_x, _y].estructura != null)
+                    return null;
+
+                accion = TIPOACCION.Construir;
+
+                customPrefab = build.construcciones[build.selectID].prefab;
+                customTime = build.construcciones[build.selectID].tiempo;
+                customIcon = build.construcciones[build.selectID].spriteModelo;
 
                 break;
 
@@ -138,16 +156,19 @@ public class GameManager : MonoBehaviour {
                 Debug.LogWarning("Herramienta no programada aún");
                 return null;
         }
-        
-
 
         GameObject _obj = Instantiate(objetivoPrefab);
         SpriteRenderer actionRender = _obj.GetComponent<SpriteRenderer>();
         _obj.transform.position = _pos;
         
-        actionRender.sprite = SearchIcon(accion);
+        actionRender.sprite = customIcon != null ? customIcon : SearchIcon(accion);
 
-        return new Action(map[_x, _y].estructura, accion, new Vector3(_x, _y), map[_x, _y].estructura.tiempoTotal, actionRender); ;
+        if (customPrefab == null) {
+            return new Action(map[_x, _y].estructura, accion, new Vector3(_x, _y), map[_x, _y].estructura.tiempoTotal, actionRender);
+        } else {
+            return new Action(customPrefab, accion, new Vector3(_x, _y), customTime, actionRender);
+        }
+        
     }
 
     Sprite SearchIcon (TIPOACCION tipoAccion) {
@@ -265,7 +286,8 @@ public class GameManager : MonoBehaviour {
                 resource[i].quantity += quantity;
                 if (resource[i].quantityText != null)
                 resource[i].quantityText.text = resource[i].quantity.ToString();
-                
+
+                build.ShopUpdate();
                 return;
             }
         }
@@ -274,10 +296,31 @@ public class GameManager : MonoBehaviour {
         Debug.LogWarning("No se ha encontrado ese recurso");
     }
 
+    public int GetResource (RECURSOS type) {
+        for(int i = 0; i < resource.Length; i++) {
+            if(resource[i].type == type) {
+                return resource[i].quantity;
+            }
+        }
+
+        return 0;
+    }
+
+    public void CreateBuild (Vector3 position, GameObject prefab) {
+        GameObject _build = Instantiate(prefab);
+        _build.transform.position = position;
+
+        _build.GetComponent<SpriteRenderer>().sortingOrder = 3; //PONER AQUI EL LAYER PERSONALIZADO
+        Estructura _buildScript = _build.GetComponent<Estructura>();
+        _buildScript.manager = this;
+        
+        AddBuildInMap(Mathf.RoundToInt(position.x), Mathf.RoundToInt(position.y), _buildScript);
+    }
+
     /// <summary>
     /// Crea una estructura en el mapa.
     /// </summary>
-    public void CreateBuild (int x, int y, Estructura estructura) {
+    public void AddBuildInMap (int x, int y, Estructura estructura) {
         if(x < 0 || y < 0 || x >= totalSize.x || y >= totalSize.y)
             return;
 
@@ -398,13 +441,31 @@ public class Action {
 
     //Tipos de acciones (Según las diferentes estructuras).
     public Estructura estructure;
+    public GameObject prefab;
     public Recurso resourceAction; //Solo si es un recurso.
     public Almacen warehouseAction; //Para almacenar informacion
 
     public Action (Estructura estructure, TIPOACCION tipoAccion, Vector3 position, float duracion, SpriteRenderer render) {
         this.estructure = estructure;
+        prefab = estructure.gameObject;
         resourceAction = estructure.GetComponent<Recurso>();
         warehouseAction = estructure.GetComponent<Almacen>();
+        
+        this.position = position;
+        this.tipo = tipoAccion;
+
+        totalTime = duracion;
+
+        renderIcon = render;
+    }
+
+    public Action(GameObject build, TIPOACCION tipoAccion, Vector3 position, float duracion, SpriteRenderer render) {
+        prefab = build;
+        estructure = build.GetComponent<Estructura>();
+        if (estructure!=null) {
+            resourceAction = build.GetComponent<Recurso>();
+            warehouseAction = build.GetComponent<Almacen>();
+        }
         
         this.position = position;
         this.tipo = tipoAccion;

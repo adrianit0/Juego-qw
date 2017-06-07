@@ -13,6 +13,6 @@ public class Estructura : MonoBehaviour {
     public float tiempoTotal = 0.5f;
 
     void Start() {
-        manager.CreateBuild(Mathf.RoundToInt(transform.position.x), Mathf.RoundToInt(transform.position.y), this);
+        manager.AddBuildInMap(Mathf.RoundToInt(transform.position.x), Mathf.RoundToInt(transform.position.y), this);
     }
 }

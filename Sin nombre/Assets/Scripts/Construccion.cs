@@ -1,0 +1,197 @@
+﻿using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+using UnityEngine.UI;
+using UnityEngine.EventSystems;
+
+public enum CONSTRUCCION { Estructuras = 0, Agricultura = 1, Investigacion = 2, Electricidad = 3, Agua = 4 }
+public enum INVESTIGACION { Ninguno = 0 }
+
+public class Construccion :MonoBehaviour {
+
+    public ObjetoTienda[] construcciones = new ObjetoTienda[1];
+
+    public GameObject[] panelesConstruccion = new GameObject[5];
+
+    //Construyendo
+    public bool construyendo = false;
+    public int selectID = 0;
+    public SpriteRenderer interfazConstructor;
+
+    //Configurar estructuras
+    public GameObject buttonPrefab;
+    Button[] createdButtons;
+
+    //Información estructura (Cuando pones el ratón encima del botón).
+    public RectTransform cartel;
+    public Text textoNombre;
+    public Text textoDescripcion;
+    public Text textoTiempo;
+    public Text[] textosRequisitos = new Text[3];
+
+    GameManager manager;
+
+    void Awake() {
+        manager = GetComponent<GameManager>();
+    }
+
+    void Start() {
+        CreateButtons();
+
+        cartel.gameObject.SetActive(false);
+    }
+
+    void CreateButtons() {
+        createdButtons = new Button[construcciones.Length];
+
+        for(int i = 0; i < construcciones.Length; i++) {
+            if(construcciones[i] == null)
+                continue;
+
+            GameObject _obj = Instantiate(buttonPrefab);
+            _obj.transform.SetParent(panelesConstruccion[(int) construcciones[i].categoria].transform);
+            _obj.transform.localScale = new Vector3(1, 1, 1);
+
+            Button _button = _obj.GetComponent<Button>();
+            int x = i;
+            _button.onClick.AddListener(() => SelectBuild(x));
+            createdButtons[i] = _button;
+
+            _obj.transform.GetChild(0).GetComponent<Image>().sprite = construcciones[i].spriteObjeto;  //Aquí no entiendo porque no funciona el GetComponentInChild, por lo que uso GetChild(0).GetComponent que si funciona
+
+            //CONFIGURAR EL EVENT TRIGGER
+            
+            EventTrigger trigger = _obj.GetComponent<EventTrigger>();
+            //Entrar
+            EventTrigger.Entry entry = new EventTrigger.Entry();
+            entry.eventID = EventTriggerType.PointerEnter;
+            entry.callback.AddListener((eventData) => { ShowInformation(x); });
+            trigger.triggers.Add(entry);
+            //Salir
+            EventTrigger.Entry exit = new EventTrigger.Entry();
+            exit.eventID = EventTriggerType.PointerExit;
+            exit.callback.AddListener((eventData) => { HideInformation(); });
+            trigger.triggers.Add(exit);
+        }
+
+        ShopUpdate();
+    }
+
+    /// <summary>
+    /// Cuando se añada o se elimine algún recurso se actualizará para saber que construcciones puedes producir.
+    /// </summary>
+    public void ShopUpdate() {
+        for (int i = 0; i < createdButtons.Length; i++) {
+            bool activar = true;
+
+            for (int x = 0; x < construcciones[i].recursosNecesarios.Length; x++) {
+                if (construcciones[i].recursosNecesarios[x].cantidadNecesaria>manager.GetResource (construcciones[i].recursosNecesarios[x].recurso)) {
+                    activar = false;
+                    break;
+                }
+            }
+
+            createdButtons[i].interactable = activar;
+        }
+    }
+
+    /// <summary>
+    /// Se actualizará una vez cada frame.
+    /// </summary>
+    public void BuildUpdate() {
+        Vector3 pos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+        int x = Mathf.RoundToInt(pos.x), y = Mathf.RoundToInt(pos.y);
+        interfazConstructor.transform.position = new Vector3(x, y);
+        interfazConstructor.color = (manager.map[x, y].estructura != null || manager.map[x, y].bloqueado) ? new Color(1, 0, 0, 0.75f) : new Color(1, 1, 1, 0.75f);
+
+        if(Input.GetMouseButtonUp(0) && !EventSystem.current.IsPointerOverGameObject()) {
+            StartBuild();
+        }
+
+        if(Input.GetMouseButtonUp(1) && !EventSystem.current.IsPointerOverGameObject()) {
+            CancelBuild();
+        }
+    }
+
+    public void SelectBuild (int ID) {
+        construyendo = true;
+        selectID = ID;
+
+        interfazConstructor.sprite = construcciones[ID].spriteModelo;
+        interfazConstructor.gameObject.SetActive(true);
+
+    }
+
+    public void StartBuild () {
+        manager.actions.Add (manager.CreateAction(Mathf.RoundToInt(interfazConstructor.transform.position.x), Mathf.RoundToInt(interfazConstructor.transform.position.y), HERRAMIENTA.Construir));
+
+        CancelBuild();
+    }
+
+    public void CancelBuild () {
+        construyendo = false;
+
+        interfazConstructor.gameObject.SetActive(false);
+    }
+
+    /// <summary>
+    /// Muestra la información en un cartel emergente
+    /// </summary>
+    void ShowInformation(int ID) {
+        cartel.gameObject.SetActive(true);
+
+        textoNombre.text = construcciones[ID].nombre;
+        textoDescripcion.text = construcciones[ID].descripcion;
+        textoTiempo.text = "<b>Tiempo: </b>" + construcciones[ID].tiempo + "s";
+
+        cartel.position = new Vector3 (cartel.position.x, createdButtons[ID].transform.position.y-30, cartel.position.z);
+
+        for (int i = 0; i < textosRequisitos.Length; i++) {
+            if (i < construcciones[ID].recursosNecesarios.Length) {
+                textosRequisitos[i].gameObject.SetActive(true);
+                textosRequisitos[i].text = "x" + construcciones[ID].recursosNecesarios[i].cantidadNecesaria;
+                int _resPos = (int) construcciones[ID].recursosNecesarios[i].recurso;
+                textosRequisitos[i].GetComponentInChildren<Image>().sprite = manager.resource [_resPos].sprite;
+
+                textosRequisitos[i].color = (construcciones[ID].recursosNecesarios[i].cantidadNecesaria > manager.GetResource(construcciones[ID].recursosNecesarios[i].recurso)) ? Color.red : Color.white;
+            } else {
+                textosRequisitos[i].gameObject.SetActive(false);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Oculta la información
+    /// </summary>
+    void HideInformation() {
+        cartel.gameObject.SetActive(false);
+    }
+}
+
+[System.Serializable]
+public class ObjetoTienda {
+    public string nombre;
+    [TextArea(3, 5)]
+    public string descripcion;
+
+    [Space(5)]
+    public Sprite spriteObjeto;
+    public Sprite spriteModelo;
+
+    [Space (5)]
+    public GameObject prefab;
+
+    [Space(5)]
+    public int tiempo = 5;
+    public CONSTRUCCION categoria;
+    public INVESTIGACION investigacionNec;
+
+    [Space(5)]
+    public ObjetoRecursos[] recursosNecesarios;
+}
+
+[System.Serializable]
+public class ObjetoRecursos {
+    public RECURSOS recurso;
+    public int cantidadNecesaria;
+}

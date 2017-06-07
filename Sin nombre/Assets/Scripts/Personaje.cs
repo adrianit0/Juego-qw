@@ -97,7 +97,8 @@ public class Personaje : MonoBehaviour, IEquipo {
                             break;
 
                         case TIPOACCION.Arar:
-                            action.estructure.gameObject.SetActive(true);
+                        case TIPOACCION.Construir:
+                            manager.CreateBuild(action.position, action.prefab);
                             break;
                     }
 
@@ -193,11 +194,11 @@ public class Personaje : MonoBehaviour, IEquipo {
     }
 
     public void SetPositions (params Vector3[] pos) {
-        _positions = new List<Vector3>(pos);
-
         if (pos == null ||pos.Length==0) {
-            return;
+            pos = new Vector3[1] { Vector3.zero };
         }
+
+        _positions = new List<Vector3>(pos);
 
         canWalk = true;
 
