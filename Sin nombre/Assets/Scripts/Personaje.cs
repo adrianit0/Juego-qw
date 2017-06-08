@@ -16,6 +16,11 @@ public class Personaje : MonoBehaviour, IEquipo {
 
     bool canWalk = false;
 
+    //SPRITES
+    public SpriteRenderer body;
+    public SpriteRenderer head;
+    public SpriteRenderer mask;
+
     //GAMEMANAGER.
     public GameManager manager;
 
@@ -50,7 +55,11 @@ public class Personaje : MonoBehaviour, IEquipo {
     void Update() {
         //Actualizar el LineRenderer
         UpdateLine();
-        
+
+        body.sortingOrder = manager.SetSortingLayer(transform.position.y);
+        head.sortingOrder = manager.SetSortingLayer(transform.position.y)+1;
+        mask.sortingOrder = manager.SetSortingLayer(transform.position.y)+2;
+
         if (actions.Count>0) {
             Action action = actions[0];
             if(Vector3.Distance(transform.position, action.position) <= distanceFinal) {

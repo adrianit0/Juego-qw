@@ -9,11 +9,10 @@ public class Recurso : Estructura {
 
     public Sprite[] sprites;
     public RecursoObject[] recursos;
-    
-    public SpriteRenderer render;
 
-    void Awake() {
-        render = GetComponent<SpriteRenderer>();
+    new void Awake() {
+        base.Awake();
+
         SetSprite();
     }
 

@@ -67,6 +67,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 323ad37a53412464a9c9d35822609b46, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  estructura: {fileID: 0}
   render: {fileID: 212917816112517720}
   coll: {fileID: 61136518871485912}
   teletransporte: {fileID: 0}
@@ -101,7 +102,7 @@ SpriteRenderer:
   m_AutoUVMaxDistance: 0.5
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
-  m_SortingLayerID: 0
+  m_SortingLayerID: -407635877
   m_SortingOrder: 0
   m_Sprite: {fileID: 21300000, guid: ba9a1d6f8939b7d43901727a658473f1, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}

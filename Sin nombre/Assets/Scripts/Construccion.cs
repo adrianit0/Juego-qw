@@ -118,7 +118,6 @@ public class Construccion :MonoBehaviour {
                 }
             }
         }
-        
 
         if(Input.GetMouseButtonUp(0) && !EventSystem.current.IsPointerOverGameObject()) {
             StartBuild();

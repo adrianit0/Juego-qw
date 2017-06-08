@@ -12,7 +12,9 @@ public class Almacen :Estructura, IEquipo {
     public float yPos = -0.383f;
     LineRenderer line;
 
-    void Awake() {
+    new void Awake() {
+        base.Awake();
+
         line = GetComponent<LineRenderer>();
     }
 

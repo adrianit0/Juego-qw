@@ -446,9 +446,13 @@ public class GameManager : MonoBehaviour {
         }
     }
 
-    public void SeleccionarHerramienta (int herramienta) {
+    public void SeleccionarHerramienta(int herramienta) {
         herramientaSeleccionada = (HERRAMIENTA) herramienta;
         imagenCentral.sprite = iconosHerramientas[herramienta];
+    }
+
+    public int SetSortingLayer (float yPos) {
+        return Mathf.RoundToInt(yPos*1000 * -1);
     }
 }
 
