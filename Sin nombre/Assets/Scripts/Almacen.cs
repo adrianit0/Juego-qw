@@ -2,8 +2,8 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Almacen : Estructura, IEquipo {
-    
+public class Almacen :Estructura, IEquipo {
+
     public int capacityTotal = 100, capacityActual = 0;
 
     List<ResourceInfo> inventario = new List<ResourceInfo>();
@@ -15,7 +15,7 @@ public class Almacen : Estructura, IEquipo {
     void Awake() {
         line = GetComponent<LineRenderer>();
     }
-    
+
     /// <summary>
     /// Añade recursos al almacen, y devuelve la cantidad de sobra (La que no puede almacenar).
     /// </summary>
@@ -24,7 +24,7 @@ public class Almacen : Estructura, IEquipo {
             return 0;
 
         int sobrante = 0;
-        if (cantidad > (capacityTotal-capacityActual)) {
+        if(cantidad > (capacityTotal - capacityActual)) {
             sobrante = cantidad - (capacityTotal - capacityActual);
             cantidad = capacityTotal - capacityActual;
         }
@@ -41,8 +41,8 @@ public class Almacen : Estructura, IEquipo {
                 encontrado = true;
             }
         }
-        
-        if (!encontrado) //Si no existe ese recurso en este inventario, lo crea.
+
+        if(!encontrado) //Si no existe ese recurso en este inventario, lo crea.
             inventario.Add(new ResourceInfo(recurso, cantidad));
 
 
@@ -50,6 +50,55 @@ public class Almacen : Estructura, IEquipo {
         manager.AddResource(recurso, cantidad);
 
         return sobrante;
+    }
+
+    public void RemoveResource(RECURSOS recurso, int cantidad) {
+        if(cantidad == 0)
+            return;
+        
+        bool encontrado = false;
+        for(int i = 0; i < inventario.Count; i++) {
+            if(inventario[i].type == recurso) {
+                inventario[i].quantity -= cantidad;
+                encontrado = true;
+            }
+        }
+
+        if(!encontrado)
+            return;
+        
+        capacityActual -= cantidad;
+
+        Porcentaje(((float) capacityActual / (float) capacityTotal));
+        manager.RemoveResource(recurso, cantidad);
+    }
+
+    public int GetResource(RECURSOS recurso, int cantidad, Personaje personaje) {
+        if(cantidad == 0)
+            return 0;
+
+        int faltante = 0;
+
+        int disponible = CountItem(recurso);
+
+        if (cantidad > disponible) {
+            faltante = cantidad - disponible;
+            cantidad = disponible;
+        }
+
+        personaje.AddResource(recurso, cantidad);
+        RemoveResource(recurso, cantidad);
+
+        return faltante;
+    }
+
+    public int CountItem(RECURSOS recurso) {
+        for(int i = 0; i < inventario.Count; i++) {
+            if(inventario[i].type == recurso) {
+                return inventario[i].quantity;
+            }
+        }
+        return 0;
     }
 
     public void Porcentaje(float porc) {

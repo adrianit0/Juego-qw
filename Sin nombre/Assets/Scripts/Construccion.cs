@@ -17,6 +17,7 @@ public class Construccion :MonoBehaviour {
     public bool construyendo = false;
     public int selectID = 0;
     public SpriteRenderer interfazConstructor;
+    Vector3 lastPositionBuild;
 
     //Configurar estructuras
     public GameObject buttonPrefab;
@@ -100,9 +101,24 @@ public class Construccion :MonoBehaviour {
     /// </summary>
     public void BuildUpdate() {
         Vector3 pos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-        int x = Mathf.RoundToInt(pos.x), y = Mathf.RoundToInt(pos.y);
-        interfazConstructor.transform.position = new Vector3(x, y);
-        interfazConstructor.color = (manager.map[x, y].estructura != null || manager.map[x, y].bloqueado) ? new Color(1, 0, 0, 0.75f) : new Color(1, 1, 1, 0.75f);
+
+        if (pos != lastPositionBuild) {
+            lastPositionBuild = pos;
+            
+            int x = Mathf.RoundToInt(pos.x), y = Mathf.RoundToInt(pos.y);
+            interfazConstructor.transform.position = new Vector3(x, y);
+            interfazConstructor.color = new Color(1, 1, 1, 0.75f);
+
+            for (int i = 0; i < construcciones[selectID].posicionesExtras.Length; i++) {
+                int x2 = Mathf.RoundToInt(construcciones[selectID].posicionesExtras[i].x), y2 = Mathf.RoundToInt(construcciones[selectID].posicionesExtras[i].y);
+
+                if(x+x2< 0 || y + y2 < 0 || x+x2 >= manager.totalSize.x || y + y2 >= manager.totalSize.y || manager.map[x + x2, y + y2].estructura != null || manager.map[x + x2, y + y2].bloqueado) {
+                    interfazConstructor.color = new Color(1, 0, 0, 0.75f);
+                    break;
+                }
+            }
+        }
+        
 
         if(Input.GetMouseButtonUp(0) && !EventSystem.current.IsPointerOverGameObject()) {
             StartBuild();
@@ -188,6 +204,10 @@ public class ObjetoTienda {
 
     [Space(5)]
     public ObjetoRecursos[] recursosNecesarios;
+
+    [Space(5)]
+    public Vector2 entrada = Vector2.zero;                                  //En caso de ocupar más de 1 espacio, cual de ellas es la importante.   
+    public Vector2[] posicionesExtras = new Vector2[1] { Vector2.zero };    //Cuanto espacio ocupa la estructura. Por defecto solo 1.
 }
 
 [System.Serializable]

@@ -30,7 +30,6 @@ public class Personaje : MonoBehaviour, IEquipo {
 
     //ACCION QUE ESTÁ REALIZANDO ACTUALMENTE EL PERSONAJE.
     List<Action> actions = new List<Action>();
-    float timeBetweenActions = 0f;
     public LineRenderer lineAction;
     Animator anim;
     
@@ -61,16 +60,23 @@ public class Personaje : MonoBehaviour, IEquipo {
                     return;
                 }
 
-                if(timeBetweenActions == 0) {
+                if(action.actualTime == 0) {
                     lineAction.gameObject.SetActive(true);
                     line.enabled = false;
                     anim.SetBool("Working", true);
+
+                    //Primera vez usa la accion.
+                    switch (action.tipo) {
+                        case TIPOACCION.Construir:
+
+                            break;
+                    }
                 }
 
-                timeBetweenActions += Time.deltaTime;
-                PercentAction(timeBetweenActions/action.totalTime);
+                action.actualTime += Time.deltaTime;
+                PercentAction(action.actualTime / action.totalTime);
 
-                if (timeBetweenActions > action.totalTime) {
+                if (action.actualTime > action.totalTime) {
                     //TERMINA LA ACCION
                     
                     Destroy(action.renderIcon.gameObject);
@@ -78,6 +84,12 @@ public class Personaje : MonoBehaviour, IEquipo {
                     switch (action.tipo) {
                         case TIPOACCION.Almacenar:
                             CleanResource(action.warehouseAction);
+                            break;
+                        case TIPOACCION.SacarAlmacen:
+                            for (int i = 0; i < action.recursosNecesarios.Count; i++) {
+                                action.warehouseAction.GetResource(action.recursosNecesarios[i].type, action.recursosNecesarios[i].quantity, this);
+                            }
+                            
                             break;
                         case TIPOACCION.Talar:
                         case TIPOACCION.Minar:
@@ -88,7 +100,7 @@ public class Personaje : MonoBehaviour, IEquipo {
                                 AddAction(manager.CreateAction(Mathf.RoundToInt(action.position.x), Mathf.RoundToInt(action.position.y), HERRAMIENTA.Recolectar));
                             } else if (manager.ExistBuild (ESTRUCTURA.Almacen)) {
                                 Vector2 pos = manager.GetNearBuild(transform.position, ESTRUCTURA.Almacen);
-                                AddAction (manager.CreateAction(Mathf.RoundToInt(pos.x), Mathf.RoundToInt(pos.y), HERRAMIENTA.Recolectar));
+                                AddAction (manager.CreateAction(Mathf.RoundToInt(pos.x), Mathf.RoundToInt(pos.y), HERRAMIENTA.Custom, new CustomAction (TIPOACCION.Almacenar, inventario)));
 
                                 if (action.resourceAction.actualQuantity>0) {
                                     AddAction (manager.CreateAction(Mathf.RoundToInt(action.position.x), Mathf.RoundToInt(action.position.y), HERRAMIENTA.Recolectar));
@@ -97,8 +109,13 @@ public class Personaje : MonoBehaviour, IEquipo {
                             break;
 
                         case TIPOACCION.Arar:
-                        case TIPOACCION.Construir:
                             manager.CreateBuild(action.position, action.prefab);
+                            break;
+                        case TIPOACCION.Construir:
+                            Estructura _build = manager.CreateBuild(action.position, action.prefab);
+                            for (int i = 0; i < manager.build.construcciones[action.buildID].posicionesExtras.Length; i++) {
+                                manager.AddBuildInMap(action.position + (Vector3) manager.build.construcciones[action.buildID].posicionesExtras[i], _build);
+                            }
                             break;
                     }
 
@@ -110,11 +127,13 @@ public class Personaje : MonoBehaviour, IEquipo {
                         SetPositions(manager.PathFinding(this, actions[0].position));
                     }
 
-                    timeBetweenActions = 0;
                     lineAction.gameObject.SetActive(false);
                     line.enabled = true;
 
                     anim.SetBool("Working", false);
+                } else {
+                    //Acciones que realiza mientras realiza la acción, actualmente desactivado.
+
                 }
 
             } else {
@@ -140,10 +159,28 @@ public class Personaje : MonoBehaviour, IEquipo {
         }
     }
 
-    public void AddAction (Action action) {
-        actions.Add (action);
+    public void AddAction(Action action, int insertAt = -1) {
+        OnActionReceived(action);
+
+        if (insertAt<=-1)
+            actions.Add (action);
+        else {
+            actions.Insert(insertAt, action);
+        }
         
         action.renderIcon.color = new Color (0.5f, 0.5f, 0.5f, 0.5f);
+    }
+
+    //Un "evento" que se activa cuando va a realizar una acción.
+    void OnActionReceived (Action action) {
+        switch (action.tipo) {
+            case TIPOACCION.Construir:
+                //Va a buscar el material necesario.
+                Vector2 _pos = manager.GetNearBuild(transform.position, ESTRUCTURA.Almacen);
+                AddAction(manager.CreateAction(Mathf.RoundToInt(_pos.x), Mathf.RoundToInt(_pos.y), HERRAMIENTA.Custom, new CustomAction(TIPOACCION.SacarAlmacen, action.recursosNecesarios)), 0);
+
+                break;
+        }
     }
 
     public int GetActionsCount () {
@@ -164,14 +201,6 @@ public class Personaje : MonoBehaviour, IEquipo {
         }
     }
 
-    public int CountItems () {
-        int count = 0;
-        for(int i = 0; i < inventario.Count; i++) {
-            count += inventario[i].quantity;
-        }
-        return count;
-    }
-
     public int AddResource(RECURSOS recurso, int cantidad) {
         for(int i = 0; i < inventario.Count; i++) {
             if(inventario[i].type == recurso) {
@@ -184,6 +213,59 @@ public class Personaje : MonoBehaviour, IEquipo {
         inventario.Add(new ResourceInfo(recurso, cantidad));
 
         return 0;
+    }
+
+    public int CountItem (RECURSOS recurso) {
+        for(int i = 0; i < inventario.Count; i++) {
+            if(inventario[i].type == recurso) {
+                return inventario[i].quantity;
+            }
+        }
+        return 0;
+    }
+
+    public int CountItems() {
+        int count = 0;
+        for(int i = 0; i < inventario.Count; i++) {
+            count += inventario[i].quantity;
+        }
+        return count;
+    }
+    
+    public void RemoveResource(RECURSOS recurso, int cantidad) {
+        if(cantidad == 0)
+            return;
+
+        bool encontrado = false;
+        for(int i = 0; i < inventario.Count; i++) {
+            if(inventario[i].type == recurso) {
+                inventario[i].quantity -= cantidad;
+                encontrado = true;
+            }
+        }
+
+        if(!encontrado)
+            return;
+
+        capacidadActual -= cantidad;
+    }
+
+    public int GetResource(RECURSOS recurso, int cantidad) {
+        if(cantidad == 0)
+            return 0;
+
+        int faltante = 0;
+
+        int disponible = CountItem(recurso);
+
+        if(cantidad > disponible) {
+            faltante = cantidad - disponible;
+            cantidad = disponible;
+        }
+
+        RemoveResource(recurso, cantidad);
+
+        return faltante;
     }
 
     public void CleanResource (Almacen almacen) {

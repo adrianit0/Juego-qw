@@ -1315,6 +1315,8 @@ MonoBehaviour:
     sprite: {fileID: 21300016, guid: 8af460910dffe954cabf7bbb0ce5d45a, type: 3}
   - type: 9
     sprite: {fileID: 21300002, guid: 8af460910dffe954cabf7bbb0ce5d45a, type: 3}
+  - type: 10
+    sprite: {fileID: 21300012, guid: 8af460910dffe954cabf7bbb0ce5d45a, type: 3}
   builds: []
   herramientaSeleccionada: 0
   iconosHerramientas:
@@ -1350,6 +1352,7 @@ MonoBehaviour:
   - {fileID: 21300030, guid: ca434a961ed790c47876d0bdd78a0366, type: 3}
   spriteAgua: {fileID: 21300000, guid: 69cc6e07d5de1b7488c03d5d76152147, type: 3}
   desactivarBotonDerecho: 0
+  build: {fileID: 0}
 --- !u!4 &162923585
 Transform:
   m_ObjectHideFlags: 0
@@ -1411,6 +1414,9 @@ MonoBehaviour:
     recursosNecesarios:
     - recurso: 0
       cantidadNecesaria: 10
+    entrada: {x: 0, y: 0}
+    posicionesExtras:
+    - {x: 0, y: 0}
   - nombre: Arbolito
     descripcion: "Un arbol que no podr\xE1 ser construido, pero que necesito poner
       para a\xF1adir m\xE1s ejemplo."
@@ -1425,6 +1431,29 @@ MonoBehaviour:
       cantidadNecesaria: 50
     - recurso: 5
       cantidadNecesaria: 5
+    entrada: {x: 0, y: 0}
+    posicionesExtras:
+    - {x: 0, y: 0}
+  - nombre: "Caba\xF1a"
+    descripcion: "Una caba\xF1a hecha completamente de madera, poco confortable pero
+      un lugar donde descansar de noche."
+    spriteObjeto: {fileID: 21300000, guid: 3ff0c430da7c91d42b7b9508a24b8e8a, type: 3}
+    spriteModelo: {fileID: 21300002, guid: 3ff0c430da7c91d42b7b9508a24b8e8a, type: 3}
+    prefab: {fileID: 1622508273922200, guid: f747646082db28546a096778ebcc3eef, type: 2}
+    tiempo: 1
+    categoria: 0
+    investigacionNec: 0
+    recursosNecesarios:
+    - recurso: 0
+      cantidadNecesaria: 50
+    entrada: {x: 0, y: 0}
+    posicionesExtras:
+    - {x: -1, y: 0}
+    - {x: 0, y: 0}
+    - {x: 1, y: 0}
+    - {x: -1, y: 1}
+    - {x: 0, y: 1}
+    - {x: 1, y: 1}
   panelesConstruccion:
   - {fileID: 1400033697}
   - {fileID: 1400033697}
@@ -6308,6 +6337,7 @@ Transform:
   - {fileID: 720552590}
   - {fileID: 917426939}
   - {fileID: 561024763}
+  - {fileID: 1482658507}
   - {fileID: 1748080444}
   - {fileID: 749347039}
   m_Father: {fileID: 0}
@@ -9974,7 +10004,7 @@ Prefab:
       objectReference: {fileID: 0}
     - target: {fileID: 4822267489215688, guid: 5bdd0a7a03f965a4aa94267c337fbc5e, type: 2}
       propertyPath: m_RootOrder
-      value: 8
+      value: 9
       objectReference: {fileID: 0}
     - target: {fileID: 114951220738048298, guid: 5bdd0a7a03f965a4aa94267c337fbc5e,
         type: 2}
@@ -10185,6 +10215,96 @@ CanvasRenderer:
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 1476133133}
+--- !u!1 &1482658506
+GameObject:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  serializedVersion: 5
+  m_Component:
+  - component: {fileID: 1482658507}
+  - component: {fileID: 1482658509}
+  - component: {fileID: 1482658508}
+  m_Layer: 0
+  m_Name: Arbol (1)
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1482658507
+Transform:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 1482658506}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 10, y: 8, z: 0.025924921}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children: []
+  m_Father: {fileID: 975297375}
+  m_RootOrder: 7
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1482658508
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 1482658506}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1808d84d413c8a54eb0d7567e954ab5b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  tipo: 2
+  manager: {fileID: 162923584}
+  tiempoTotal: 2
+  actionType: 0
+  maxQuantity: 25
+  actualQuantity: 25
+  maxWaveQuantity: 25
+  sprites:
+  - {fileID: 21300000, guid: 5eb08d28664cf8b45b1efed34a983e17, type: 3}
+  - {fileID: 21300002, guid: 5eb08d28664cf8b45b1efed34a983e17, type: 3}
+  recursos:
+  - tipoRecurso: 0
+    ratio: 10
+  render: {fileID: 1482658509}
+--- !u!212 &1482658509
+SpriteRenderer:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 1482658506}
+  m_Enabled: 1
+  m_CastShadows: 0
+  m_ReceiveShadows: 0
+  m_MotionVectors: 1
+  m_LightProbeUsage: 0
+  m_ReflectionProbeUsage: 0
+  m_Materials:
+  - {fileID: 10754, guid: 0000000000000000f000000000000000, type: 0}
+  m_StaticBatchInfo:
+    firstSubMesh: 0
+    subMeshCount: 0
+  m_StaticBatchRoot: {fileID: 0}
+  m_ProbeAnchor: {fileID: 0}
+  m_LightProbeVolumeOverride: {fileID: 0}
+  m_ScaleInLightmap: 1
+  m_PreserveUVs: 0
+  m_IgnoreNormalsForChartDetection: 0
+  m_ImportantGI: 0
+  m_SelectedEditorRenderState: 0
+  m_MinimumChartSize: 4
+  m_AutoUVMaxDistance: 0.5
+  m_AutoUVMaxAngle: 89
+  m_LightmapParameters: {fileID: 0}
+  m_SortingLayerID: 0
+  m_SortingOrder: 2
+  m_Sprite: {fileID: 21300000, guid: 5eb08d28664cf8b45b1efed34a983e17, type: 3}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_FlipX: 0
+  m_FlipY: 0
 --- !u!1 &1487492373
 GameObject:
   m_ObjectHideFlags: 0
@@ -12072,7 +12192,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 975297375}
-  m_RootOrder: 7
+  m_RootOrder: 8
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &1748080445
 MonoBehaviour:

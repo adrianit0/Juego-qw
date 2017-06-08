@@ -10,8 +10,8 @@ public enum RECURSOS {
     //COMIDA
     Manzana, ManzanaDorada
 }
-public enum TIPOACCION { Talar, Construir, Investigar, Cocinar, Minar, Cosechar, Almacenar, Pescar, Socializar, Arar }
-public enum HERRAMIENTA { Seleccionar = 0, Recolectar = 1, Arar = 2, Priorizar = 3, Destruir = 4, Construir = 5 }
+public enum TIPOACCION { Talar, Construir, Investigar, Cocinar, Minar, Cosechar, Almacenar, Pescar, Socializar, Arar, SacarAlmacen }
+public enum HERRAMIENTA { Seleccionar = 0, Recolectar = 1, Arar = 2, Priorizar = 3, Destruir = 4, Construir = 5, Custom = 6 }
 
 public class GameManager : MonoBehaviour {
 
@@ -47,7 +47,7 @@ public class GameManager : MonoBehaviour {
 
     PathFinding path;
     Agricultura farm;
-    Construccion build;
+    public Construccion build;  //Necesario en el personaje.
     
 	void Awake () {
         path = GetComponent<PathFinding>();
@@ -96,7 +96,7 @@ public class GameManager : MonoBehaviour {
         }
     }
 
-    public Action CreateAction (int _x, int _y, HERRAMIENTA herramienta) {
+    public Action CreateAction (int _x, int _y, HERRAMIENTA herramienta, CustomAction customAction = null) {
         if(_x < 0 || _y < 0 || _x >= totalSize.x || _y >= totalSize.y)
                 return null;
 
@@ -109,6 +109,7 @@ public class GameManager : MonoBehaviour {
         GameObject customPrefab = null;
         float customTime = -1;
         Sprite customIcon = null;
+        List<ResourceInfo> recNecesario = null;
 
         switch (herramienta) {
             case HERRAMIENTA.Recolectar:
@@ -116,14 +117,11 @@ public class GameManager : MonoBehaviour {
                     return null;
 
                 Recurso _resource = map[_x, _y].estructura.GetComponent<Recurso>();
-                Almacen _wareHouse = map[_x, _y].estructura.GetComponent<Almacen>();
 
                 if(_resource != null) {
                     if(_resource.actualQuantity == 0)   //Si el recurso está vacio no te permite usarlo.
                         return null;
                     accion = _resource.actionType;
-                } else if(_wareHouse != null) {
-                    accion = TIPOACCION.Almacenar;
                 } else {
                     return null;
                 }
@@ -150,6 +148,27 @@ public class GameManager : MonoBehaviour {
                 customTime = build.construcciones[build.selectID].tiempo;
                 customIcon = build.construcciones[build.selectID].spriteModelo;
 
+                recNecesario = new List<ResourceInfo>();
+                for (int i = 0; i < build.construcciones[build.selectID].recursosNecesarios.Length; i++) {
+                    recNecesario.Add(new ResourceInfo(build.construcciones[build.selectID].recursosNecesarios[i].recurso, build.construcciones[build.selectID].recursosNecesarios[i].cantidadNecesaria));
+                }
+
+                break;
+
+            case HERRAMIENTA.Custom:
+                //Herramienta especial. Para realizar cosas que con las anteriores no se pueden (Como extraer cosas del almacen).
+                if(customAction == null)
+                    return null;
+
+                accion = customAction.tipo;
+
+                switch (accion) {
+                    case TIPOACCION.Almacenar:
+                    case TIPOACCION.SacarAlmacen:
+                        recNecesario = new List<ResourceInfo>(customAction.recNecesarios);
+                        break;
+                }
+
                 break;
 
             default:
@@ -163,12 +182,14 @@ public class GameManager : MonoBehaviour {
         
         actionRender.sprite = customIcon != null ? customIcon : SearchIcon(accion);
 
-        if (customPrefab == null) {
-            return new Action(map[_x, _y].estructura, accion, new Vector3(_x, _y), map[_x, _y].estructura.tiempoTotal, actionRender);
+        if (accion == TIPOACCION.Construir) {
+            return new Action(customPrefab, build.selectID, new Vector3(_x, _y), customTime, actionRender, recNecesario);
+        } else if (customPrefab == null) {
+            return new Action(map[_x, _y].estructura, accion, new Vector3(_x, _y), map[_x, _y].estructura.tiempoTotal, actionRender, recNecesario);
         } else {
-            return new Action(customPrefab, accion, new Vector3(_x, _y), customTime, actionRender);
+            return new Action(customPrefab, accion, new Vector3(_x, _y), customTime, actionRender, recNecesario);
         }
-        
+
     }
 
     Sprite SearchIcon (TIPOACCION tipoAccion) {
@@ -277,6 +298,7 @@ public class GameManager : MonoBehaviour {
         return nearest;
     }
 
+
     public void AddResource(RECURSOS type, int quantity) {
         if(quantity == 0)
             return;
@@ -286,6 +308,25 @@ public class GameManager : MonoBehaviour {
                 resource[i].quantity += quantity;
                 if (resource[i].quantityText != null)
                 resource[i].quantityText.text = resource[i].quantity.ToString();
+
+                build.ShopUpdate();
+                return;
+            }
+        }
+
+        //Se debería poderse añadir automaticamente
+        Debug.LogWarning("No se ha encontrado ese recurso");
+    }
+
+    public void RemoveResource(RECURSOS type, int quantity) {
+        if(quantity == 0)
+            return;
+
+        for(int i = 0; i < resource.Length; i++) {
+            if(resource[i].type == type) {
+                resource[i].quantity -= quantity;
+                if(resource[i].quantityText != null)
+                    resource[i].quantityText.text = resource[i].quantity.ToString();
 
                 build.ShopUpdate();
                 return;
@@ -306,7 +347,7 @@ public class GameManager : MonoBehaviour {
         return 0;
     }
 
-    public void CreateBuild (Vector3 position, GameObject prefab) {
+    public Estructura CreateBuild (Vector3 position, GameObject prefab) {
         GameObject _build = Instantiate(prefab);
         _build.transform.position = position;
 
@@ -315,6 +356,8 @@ public class GameManager : MonoBehaviour {
         _buildScript.manager = this;
         
         AddBuildInMap(Mathf.RoundToInt(position.x), Mathf.RoundToInt(position.y), _buildScript);
+
+        return _buildScript;
     }
 
     /// <summary>
@@ -326,7 +369,12 @@ public class GameManager : MonoBehaviour {
 
         map[x, y].estructura = estructura;
 
-        builds.Add(estructura);
+        if (!builds.Contains (estructura))
+            builds.Add(estructura);
+    }
+
+    public void AddBuildInMap(Vector3 position, Estructura estructura) {
+        AddBuildInMap(Mathf.RoundToInt(position.x), Mathf.RoundToInt(position.y), estructura);
     }
 
     ///Actualiza los sprites de todo el mapa.
@@ -428,50 +476,4 @@ public class IconInfo {
     public TIPOACCION type;
     public Sprite sprite;
     
-}
-
-/// <summary>
-/// Acciones
-/// </summary>
-public class Action {
-    public float totalTime;
-    public SpriteRenderer renderIcon;
-    public TIPOACCION tipo;
-    public Vector3 position;
-
-    //Tipos de acciones (Según las diferentes estructuras).
-    public Estructura estructure;
-    public GameObject prefab;
-    public Recurso resourceAction; //Solo si es un recurso.
-    public Almacen warehouseAction; //Para almacenar informacion
-
-    public Action (Estructura estructure, TIPOACCION tipoAccion, Vector3 position, float duracion, SpriteRenderer render) {
-        this.estructure = estructure;
-        prefab = estructure.gameObject;
-        resourceAction = estructure.GetComponent<Recurso>();
-        warehouseAction = estructure.GetComponent<Almacen>();
-        
-        this.position = position;
-        this.tipo = tipoAccion;
-
-        totalTime = duracion;
-
-        renderIcon = render;
-    }
-
-    public Action(GameObject build, TIPOACCION tipoAccion, Vector3 position, float duracion, SpriteRenderer render) {
-        prefab = build;
-        estructure = build.GetComponent<Estructura>();
-        if (estructure!=null) {
-            resourceAction = build.GetComponent<Recurso>();
-            warehouseAction = build.GetComponent<Almacen>();
-        }
-        
-        this.position = position;
-        this.tipo = tipoAccion;
-
-        totalTime = duracion;
-
-        renderIcon = render;
-    }
 }
