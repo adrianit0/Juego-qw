@@ -23,6 +23,9 @@ public class Action {
     bool canBuild = false;
     public List<ResourceInfo> recursosNecesarios;
 
+    //AutoPath
+    public PathResult pathResult;
+
     // El genérico para la mayoria de las acciones.
     public Action(Estructura estructure, TIPOACCION tipoAccion, Vector3 position, float duracion, SpriteRenderer render, List<ResourceInfo> recursos = null) {
         this.estructure = estructure;
@@ -113,8 +116,7 @@ public class CustomAction {
     public TIPOACCION tipo;
     public List<ResourceInfo> recNecesarios;
 
-    //Accion personalizada para sacar contenido del almacén.
-    public CustomAction (TIPOACCION tipo, List<ResourceInfo> recNecesarios) {
+    public CustomAction(TIPOACCION tipo, List<ResourceInfo> recNecesarios) {
         this.tipo = tipo;
         this.recNecesarios = recNecesarios;
     }

@@ -65,7 +65,11 @@ public class GameManager : MonoBehaviour {
     /// Devuelve el camino más corto desde la posición del personaje hasta una posición
     /// </summary>
     public Vector3[] PathFinding(Personaje character, Vector2 position) {
-        return path.PathFind(character, position);
+        return path.PathFind(character, new PathSetting(position)).path;
+    }
+
+    public PathResult PathFinding(Personaje character, PathSetting settings) {
+        return path.PathFind(character, settings);
     }
 
     void Update() {
@@ -182,14 +186,18 @@ public class GameManager : MonoBehaviour {
         
         actionRender.sprite = customIcon != null ? customIcon : SearchIcon(accion);
 
+        Action actionScript = null;
+
+        //Según el tipo acción que sea se crearé bajo un tipo de sobrecarga u otra.
         if (accion == TIPOACCION.Construir) {
-            return new Action(customPrefab, build.selectID, new Vector3(_x, _y), customTime, actionRender, recNecesario);
+            actionScript = new Action(customPrefab, build.selectID, new Vector3(_x, _y), customTime, actionRender, recNecesario);
         } else if (customPrefab == null) {
-            return new Action(map[_x, _y].estructura, accion, new Vector3(_x, _y), map[_x, _y].estructura.tiempoTotal, actionRender, recNecesario);
+            actionScript = new Action(map[_x, _y].estructura, accion, new Vector3(_x, _y), map[_x, _y].estructura.tiempoTotal, actionRender, recNecesario);
         } else {
-            return new Action(customPrefab, accion, new Vector3(_x, _y), customTime, actionRender, recNecesario);
+            actionScript = new Action(customPrefab, accion, new Vector3(_x, _y), customTime, actionRender, recNecesario);
         }
 
+        return actionScript;
     }
 
     Sprite SearchIcon (TIPOACCION tipoAccion) {
@@ -281,7 +289,7 @@ public class GameManager : MonoBehaviour {
     /// <summary>
     /// Busca la construcción más cercana.
     /// </summary>
-    public Vector2 GetNearBuild (Vector2 initialPos, ESTRUCTURA buildType) {
+    public Vector2 _GetNearBuild (Vector2 initialPos, ESTRUCTURA buildType) {
         Vector2 nearest = Vector3.zero;
         int foundCount = 0;
         for(int i = 0; i < builds.Count; i++) {

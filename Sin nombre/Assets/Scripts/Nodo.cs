@@ -46,7 +46,7 @@ public class NodoPath {
         nodos = new List<Nodo>(oldPath.nodos);
     }
 
-    public void AñadirPaso () {
+    public void AddStep () {
         if(maxPasos == 0)
             return;
 

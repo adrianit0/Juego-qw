@@ -31,7 +31,7 @@ public class Personaje : MonoBehaviour, IEquipo {
     
     //VALORES INTERNOS.
     float distancePos = 0.25f;
-    float distanceFinal = 1.00f;
+    float distanceFinal = 1.1f;
 
     //ACCION QUE ESTÁ REALIZANDO ACTUALMENTE EL PERSONAJE.
     List<Action> actions = new List<Action>();
@@ -55,11 +55,7 @@ public class Personaje : MonoBehaviour, IEquipo {
     void Update() {
         //Actualizar el LineRenderer
         UpdateLine();
-
-        body.sortingOrder = manager.SetSortingLayer(transform.position.y);
-        head.sortingOrder = manager.SetSortingLayer(transform.position.y)+1;
-        mask.sortingOrder = manager.SetSortingLayer(transform.position.y)+2;
-
+        
         if (actions.Count>0) {
             Action action = actions[0];
             if(Vector3.Distance(transform.position, action.position) <= distanceFinal) {
@@ -87,8 +83,8 @@ public class Personaje : MonoBehaviour, IEquipo {
 
                 if (action.actualTime > action.totalTime) {
                     //TERMINA LA ACCION
-                    
-                    Destroy(action.renderIcon.gameObject);
+                    if (action.renderIcon!=null)
+                        Destroy(action.renderIcon.gameObject);
 
                     switch (action.tipo) {
                         case TIPOACCION.Almacenar:
@@ -108,7 +104,7 @@ public class Personaje : MonoBehaviour, IEquipo {
                             if (capacidadActual < capacidadTotal && action.resourceAction.actualQuantity > 0) {
                                 AddAction(manager.CreateAction(Mathf.RoundToInt(action.position.x), Mathf.RoundToInt(action.position.y), HERRAMIENTA.Recolectar));
                             } else if (manager.ExistBuild (ESTRUCTURA.Almacen)) {
-                                Vector2 pos = manager.GetNearBuild(transform.position, ESTRUCTURA.Almacen);
+                                Vector3 pos = manager.PathFinding(this, new PathSetting()).finalPosition;
                                 AddAction (manager.CreateAction(Mathf.RoundToInt(pos.x), Mathf.RoundToInt(pos.y), HERRAMIENTA.Custom, new CustomAction (TIPOACCION.Almacenar, inventario)));
 
                                 if (action.resourceAction.actualQuantity>0) {
@@ -133,7 +129,11 @@ public class Personaje : MonoBehaviour, IEquipo {
                     if(actions.Count == 0) {
                         SetPositions(Vector3.zero);
                     } else {
-                        SetPositions(manager.PathFinding(this, actions[0].position));
+                        if (actions[0].pathResult==null) {
+                            SetPositions(manager.PathFinding(this, actions[0].position));
+                        } else {
+                            SetPositions(actions[0].pathResult.path);
+                        }
                     }
 
                     lineAction.gameObject.SetActive(false);
@@ -151,7 +151,7 @@ public class Personaje : MonoBehaviour, IEquipo {
                     return;
                 }
 
-                if (_positions.Count>=1) {
+                if (_positions.Count>1) {
                     transform.position += (-_positions[0] + _positions[1]).normalized * velocity * Time.deltaTime;
                     transform.localScale = new Vector3(Mathf.Sign(_positions[0].x - _positions[1].x), 1, 1);
                     contentCharacter.transform.localScale = new Vector3(Mathf.Sign(_positions[0].x - _positions[1].x), 1, 1);
@@ -160,7 +160,11 @@ public class Personaje : MonoBehaviour, IEquipo {
                     transform.localScale = new Vector3(Mathf.Sign(transform.position.x - action.position.x), 1, 1);
                     contentCharacter.transform.localScale = new Vector3(Mathf.Sign(transform.position.x - action.position.x), 1, 1);
                 }
-                
+
+                body.sortingOrder = manager.SetSortingLayer(transform.position.y);
+                head.sortingOrder = manager.SetSortingLayer(transform.position.y) + 1;
+                mask.sortingOrder = manager.SetSortingLayer(transform.position.y) + 2;
+
                 anim.SetBool("Mov", true);
             }
         } else {
@@ -175,6 +179,10 @@ public class Personaje : MonoBehaviour, IEquipo {
             actions.Add (action);
         else {
             actions.Insert(insertAt, action);
+
+            if (insertAt==0) {
+                SetPositions (manager.PathFinding(this, action.position));
+            }
         }
         
         action.renderIcon.color = new Color (0.5f, 0.5f, 0.5f, 0.5f);
@@ -185,7 +193,7 @@ public class Personaje : MonoBehaviour, IEquipo {
         switch (action.tipo) {
             case TIPOACCION.Construir:
                 //Va a buscar el material necesario.
-                Vector2 _pos = manager.GetNearBuild(transform.position, ESTRUCTURA.Almacen);
+                Vector3 _pos = manager.PathFinding(this, new PathSetting(action.recursosNecesarios)).finalPosition;
                 AddAction(manager.CreateAction(Mathf.RoundToInt(_pos.x), Mathf.RoundToInt(_pos.y), HERRAMIENTA.Custom, new CustomAction(TIPOACCION.SacarAlmacen, action.recursosNecesarios)), 0);
 
                 break;
@@ -298,7 +306,7 @@ public class Personaje : MonoBehaviour, IEquipo {
 
     void UpdateLine () {
         if(_positions == null || _positions.Count <= 1) {
-            canWalk = false;
+            canWalk = actions.Count>0 ? true : false;
             return;
         }
         
@@ -306,7 +314,7 @@ public class Personaje : MonoBehaviour, IEquipo {
         line.SetPosition(0, _positions[0]);
 
         bool cambiar = false;
-        if (Vector3.Distance (_positions[0], _positions[1])<= distancePos) {
+        if (Vector3.Distance (_positions[0], _positions[1]) <= distancePos) {
             _positions.RemoveAt(1);
             cambiar = true;
         }

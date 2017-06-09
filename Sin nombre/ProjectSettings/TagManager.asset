@@ -41,6 +41,9 @@ TagManager:
   - name: Suelo
     uniqueID: 3887331419
     locked: 0
+  - name: Huerto
+    uniqueID: 288048593
+    locked: 0
   - name: Default
     uniqueID: 0
     locked: 0

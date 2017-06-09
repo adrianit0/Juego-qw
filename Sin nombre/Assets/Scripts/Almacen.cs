@@ -6,7 +6,7 @@ public class Almacen :Estructura, IEquipo {
 
     public int capacityTotal = 100, capacityActual = 0;
 
-    List<ResourceInfo> inventario = new List<ResourceInfo>();
+    public List<ResourceInfo> inventario = new List<ResourceInfo>();
 
     public float tamLine = 0.750f;
     public float yPos = -0.383f;
