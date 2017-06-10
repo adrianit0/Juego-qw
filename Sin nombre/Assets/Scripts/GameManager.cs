@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
-using UnityEngine.EventSystems;
 
 public enum RECURSOS {
     //RECURSOS
@@ -10,7 +9,7 @@ public enum RECURSOS {
     //COMIDA
     Manzana, ManzanaDorada
 }
-public enum TIPOACCION { Talar, Construir, Investigar, Cocinar, Minar, Cosechar, Almacenar, Pescar, Socializar, Arar, SacarAlmacen }
+public enum TIPOACCION { Talar, Construir, Investigar, Cocinar, Minar, Cosechar, Almacenar, Pescar, Socializar, Arar, SacarAlmacen, RecogerObjeto }
 public enum HERRAMIENTA { Seleccionar = 0, Recolectar = 1, Arar = 2, Priorizar = 3, Destruir = 4, Construir = 5, Custom = 6 }
 
 public class GameManager : MonoBehaviour {
@@ -31,6 +30,13 @@ public class GameManager : MonoBehaviour {
     //PANEL RECURSOS
     public GameObject[] panelesRecursos = new GameObject[2];
 
+    //PANEL INFORMACION
+    public GameObject panelInformacion;
+    public Text textoInformacion;
+
+    //OTRAS COSAS
+    public GameObject sacoObjetos;
+
     public GameObject nodoPrefab;
     public GameObject objetivoPrefab;
 
@@ -38,12 +44,11 @@ public class GameManager : MonoBehaviour {
     public Nodo[,] map;
     
     public List<Personaje> characters = new List<Personaje>();
-    public List<Action> actions = new List<Action>();
+    public List<Action> actions = new List<Action>();       //Lista por de acciones por adjudicar.
+    public List<Action> actualActions = new List<Action>(); //Lista de acciones actualmente realizandose.
     
     public Sprite[] spriteTierra = new Sprite[16];
     public Sprite spriteAgua;
-
-    public bool desactivarBotonDerecho = false;
 
     PathFinding path;
     Agricultura farm;
@@ -59,6 +64,8 @@ public class GameManager : MonoBehaviour {
 
     void Start () {
         InvokeRepeating("SearchAction", 0.25f, 0.25f);
+
+        panelInformacion.SetActive(false);
     }
 
     /// <summary>
@@ -71,38 +78,23 @@ public class GameManager : MonoBehaviour {
     public PathResult PathFinding(Personaje character, PathSetting settings) {
         return path.PathFind(character, settings);
     }
-
-    void Update() {
-        if (build.construyendo) {
-            //Si va a construir hace uso de su propio Update().
-            build.BuildUpdate();
-            return;
-        }
-        if(!desactivarBotonDerecho && Input.GetMouseButtonUp(1) && !EventSystem.current.IsPointerOverGameObject()) {
-            int _x = Mathf.RoundToInt(Camera.main.ScreenToWorldPoint(Input.mousePosition).x);
-            int _y = Mathf.RoundToInt(Camera.main.ScreenToWorldPoint(Input.mousePosition).y);
-            if(_x < 0 || _y < 0 || _x >= totalSize.x || _y >= totalSize.y)
-                return;
-
-            map[_x, _y].bloqueado = !map[_x, _y].bloqueado;
-            map[_x, _y].coll.isTrigger = !map[_x, _y].bloqueado;
-            //mapa[_x, _y].render.sprite = (!mapa[_x, _y].bloqueado) ? spriteTierra : spriteAgua;
-
-            UpdateMap();
-        }
-
-        if(Input.GetMouseButtonUp(0) && !EventSystem.current.IsPointerOverGameObject()) {
-            int _x = Mathf.RoundToInt(Camera.main.ScreenToWorldPoint(Input.mousePosition).x);
-            int _y = Mathf.RoundToInt(Camera.main.ScreenToWorldPoint(Input.mousePosition).y);
-            
-
-            actions.Add(CreateAction (_x, _y, herramientaSeleccionada));
-        }
-    }
-
+    
     public Action CreateAction (int _x, int _y, HERRAMIENTA herramienta, CustomAction customAction = null) {
         if(_x < 0 || _y < 0 || _x >= totalSize.x || _y >= totalSize.y)
                 return null;
+
+        //Mira si esta acción ya está seleccionada.
+        for (int i = 0; i < actions.Count; i++) {
+            if(actions[i]!=null && actions[i].position == new Vector3(_x, _y, 0)) {
+                return null;
+            }
+        }
+
+        for(int i = 0; i < actualActions.Count; i++) {
+            if(actualActions[i].position == new Vector3(_x, _y, 0)) {
+                return null;
+            }
+        }
 
         Vector2 _pos = new Vector2(_x, _y);
         
@@ -116,6 +108,13 @@ public class GameManager : MonoBehaviour {
         List<ResourceInfo> recNecesario = null;
 
         switch (herramienta) {
+            case HERRAMIENTA.Seleccionar:
+                if(map[_x, _y].estructura == null)
+                    return null;
+
+                map[_x, _y].estructura.MostrarInformacion();
+
+                return null;
             case HERRAMIENTA.Recolectar:
                 if(map[_x, _y].estructura == null)
                     return null;
@@ -179,7 +178,7 @@ public class GameManager : MonoBehaviour {
                 Debug.LogWarning("Herramienta no programada aún");
                 return null;
         }
-
+        
         GameObject _obj = Instantiate(objetivoPrefab);
         SpriteRenderer actionRender = _obj.GetComponent<SpriteRenderer>();
         _obj.transform.position = _pos;
@@ -234,19 +233,20 @@ public class GameManager : MonoBehaviour {
             }
 
             int nearWorkers = 0;
-            Vector3[] nearPositions = null;
+            float nearPosition = -1;
             for(int x = 0; x < freeWorkers.Count; x++) {
-                Vector3[] ActualPositions = PathFinding(freeWorkers[x], actions[i].position) ;
+                float ActualPositions = Vector3.Distance (freeWorkers[i].transform.position, actions[i].position);
 
-                if (nearPositions==null || ActualPositions.Length<nearPositions.Length) {
-                    nearPositions = ActualPositions;
+                if (nearPosition == -1 || ActualPositions<nearPosition) {
+                    nearPosition = ActualPositions;
                     nearWorkers = x;
                 }
             }
 
-            freeWorkers[nearWorkers].SetPositions(nearPositions);
+            freeWorkers[nearWorkers].SetPositions(PathFinding(freeWorkers[nearWorkers], actions[i].position));
             freeWorkers[nearWorkers].AddAction (actions[i]);
 
+            actualActions.Add(actions[i]);
             actions.RemoveAt(i);
             freeWorkers.RemoveAt(nearWorkers);
             i--;
@@ -358,8 +358,7 @@ public class GameManager : MonoBehaviour {
     public Estructura CreateBuild (Vector3 position, GameObject prefab) {
         GameObject _build = Instantiate(prefab);
         _build.transform.position = position;
-
-        _build.GetComponent<SpriteRenderer>().sortingOrder = 3; //PONER AQUI EL LAYER PERSONALIZADO
+        
         Estructura _buildScript = _build.GetComponent<Estructura>();
         _buildScript.manager = this;
         
@@ -376,6 +375,7 @@ public class GameManager : MonoBehaviour {
             return;
 
         map[x, y].estructura = estructura;
+        map[x, y].bloqueado = estructura.bloquear;
 
         if (!builds.Contains (estructura))
             builds.Add(estructura);
@@ -383,6 +383,23 @@ public class GameManager : MonoBehaviour {
 
     public void AddBuildInMap(Vector3 position, Estructura estructura) {
         AddBuildInMap(Mathf.RoundToInt(position.x), Mathf.RoundToInt(position.y), estructura);
+    }
+
+    public void RemoveBuildInMap(int x, int y) {
+        if(x < 0 || y < 0 || x >= totalSize.x || y >= totalSize.y|| map[x, y].estructura==null)
+            return;
+
+        if(!builds.Contains(map[x, y].estructura))
+            builds.Remove(map[x, y].estructura);
+
+        Destroy(map[x, y].estructura.gameObject);
+
+        map[x, y].estructura = null;
+        map[x, y].bloqueado = false;
+    }
+
+    public void RemoveBuildInMap (Vector3 position) {
+        RemoveBuildInMap(Mathf.RoundToInt(position.x), Mathf.RoundToInt(position.y));
     }
 
     ///Actualiza los sprites de todo el mapa.

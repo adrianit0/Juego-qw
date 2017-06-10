@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Almacen :Estructura, IEquipo {
+public class Almacen : Estructura, IEquipo, IEstructura {
 
     public int capacityTotal = 100, capacityActual = 0;
 
@@ -107,5 +107,21 @@ public class Almacen :Estructura, IEquipo {
         porc = Mathf.Clamp(porc, 0, 1);
 
         line.SetPosition(1, new Vector3(porc * tamLine - tamLine / 2, yPos, 0));
+    }
+
+    public string OnText() {
+        string text =  "<b>Contenido:</b> ["+capacityActual+"/"+capacityTotal+"]\n";
+
+        if (capacityActual>0) {
+            for(int i = 0; i < inventario.Count; i++) {
+                if (inventario[i].quantity>0) {
+                    text += "<b>" +inventario[i].type.ToString() + ":</b> " + inventario[i].quantity + "\n";
+                }
+            }
+        } else {
+            text += "Está vacío.";
+        }
+
+        return text;
     }
 }

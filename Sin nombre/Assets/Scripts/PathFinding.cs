@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public enum TIPOPATH { Posicion, AlmacenEspacio, AlmacenObjeto }
+public enum TIPOPATH { Posicion, AlmacenEspacio, AlmacenObjeto, huecoLibre }
 
 public class PathFinding : MonoBehaviour {
 
@@ -176,6 +176,9 @@ public class PathFinding : MonoBehaviour {
                 }
 
                 return false;
+
+            case TIPOPATH.huecoLibre:
+                return !nodo.bloqueado&&nodo.estructura==null;
         }
 
         return false;
@@ -222,8 +225,8 @@ public class PathSetting {
     }
 
     //Busca el mejor camino a un baul que no esté lleno
-    public PathSetting () {
-        type = TIPOPATH.AlmacenEspacio;
+    public PathSetting (TIPOPATH type) {
+        this.type = type;
     }
 
     //Busca el mejor camino a un baul con el contenido 

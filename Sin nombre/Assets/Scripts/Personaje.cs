@@ -83,63 +83,8 @@ public class Personaje : MonoBehaviour, IEquipo {
 
                 if (action.actualTime > action.totalTime) {
                     //TERMINA LA ACCION
-                    if (action.renderIcon!=null)
-                        Destroy(action.renderIcon.gameObject);
+                    RealizarAccion(action);
 
-                    switch (action.tipo) {
-                        case TIPOACCION.Almacenar:
-                            CleanResource(action.warehouseAction);
-                            break;
-                        case TIPOACCION.SacarAlmacen:
-                            for (int i = 0; i < action.recursosNecesarios.Count; i++) {
-                                action.warehouseAction.GetResource(action.recursosNecesarios[i].type, action.recursosNecesarios[i].quantity, this);
-                            }
-                            
-                            break;
-                        case TIPOACCION.Talar:
-                        case TIPOACCION.Minar:
-                        case TIPOACCION.Pescar:
-                            AddResource(action.resourceAction);
-
-                            if (capacidadActual < capacidadTotal && action.resourceAction.actualQuantity > 0) {
-                                AddAction(manager.CreateAction(Mathf.RoundToInt(action.position.x), Mathf.RoundToInt(action.position.y), HERRAMIENTA.Recolectar));
-                            } else if (manager.ExistBuild (ESTRUCTURA.Almacen)) {
-                                Vector3 pos = manager.PathFinding(this, new PathSetting()).finalPosition;
-                                AddAction (manager.CreateAction(Mathf.RoundToInt(pos.x), Mathf.RoundToInt(pos.y), HERRAMIENTA.Custom, new CustomAction (TIPOACCION.Almacenar, inventario)));
-
-                                if (action.resourceAction.actualQuantity>0) {
-                                    AddAction (manager.CreateAction(Mathf.RoundToInt(action.position.x), Mathf.RoundToInt(action.position.y), HERRAMIENTA.Recolectar));
-                                }
-                            }
-                            break;
-
-                        case TIPOACCION.Arar:
-                            manager.CreateBuild(action.position, action.prefab);
-                            break;
-                        case TIPOACCION.Construir:
-                            Estructura _build = manager.CreateBuild(action.position, action.prefab);
-                            for (int i = 0; i < manager.build.construcciones[action.buildID].posicionesExtras.Length; i++) {
-                                manager.AddBuildInMap(action.position + (Vector3) manager.build.construcciones[action.buildID].posicionesExtras[i], _build);
-                            }
-                            break;
-                    }
-
-                    actions.RemoveAt(0);
-
-                    if(actions.Count == 0) {
-                        SetPositions(Vector3.zero);
-                    } else {
-                        if (actions[0].pathResult==null) {
-                            SetPositions(manager.PathFinding(this, actions[0].position));
-                        } else {
-                            SetPositions(actions[0].pathResult.path);
-                        }
-                    }
-
-                    lineAction.gameObject.SetActive(false);
-                    line.enabled = true;
-
-                    anim.SetBool("Working", false);
                 } else {
                     //Acciones que realiza mientras realiza la acción, actualmente desactivado.
 
@@ -170,6 +115,72 @@ public class Personaje : MonoBehaviour, IEquipo {
         } else {
             anim.SetBool("Mov", false);
         }
+    }
+
+    void RealizarAccion (Action action) {
+        if(action.renderIcon != null)
+            Destroy(action.renderIcon.gameObject);
+
+        if(manager.actualActions.Contains(action))
+            manager.actualActions.Remove(action);
+
+        switch(action.tipo) {
+            case TIPOACCION.Almacenar:
+                CleanResource(action.warehouseAction);
+                if (capacidadActual>0) {
+                    BuscarAlmacenCercano();
+                }
+                break;
+            case TIPOACCION.SacarAlmacen:
+                for(int i = 0; i < action.recursosNecesarios.Count; i++) {
+                    action.warehouseAction.GetResource(action.recursosNecesarios[i].type, action.recursosNecesarios[i].quantity, this);
+                }
+
+                break;
+            case TIPOACCION.Talar:
+            case TIPOACCION.Minar:
+            case TIPOACCION.Pescar:
+            case TIPOACCION.RecogerObjeto:
+                AddResource(action.resourceAction);
+
+                if(capacidadActual < capacidadTotal && action.resourceAction.actualQuantity > 0) {
+                    AddAction(manager.CreateAction(Mathf.RoundToInt(action.position.x), Mathf.RoundToInt(action.position.y), HERRAMIENTA.Recolectar));
+                } else if(manager.ExistBuild(ESTRUCTURA.Almacen)) {
+                    BuscarAlmacenCercano();
+
+                    if(action.resourceAction.actualQuantity > 0) {
+                        AddAction(manager.CreateAction(Mathf.RoundToInt(action.position.x), Mathf.RoundToInt(action.position.y), HERRAMIENTA.Recolectar));
+                    }
+                }
+                break;
+
+            case TIPOACCION.Arar:
+                manager.CreateBuild(action.position, action.prefab);
+                break;
+            case TIPOACCION.Construir:
+                Estructura _build = manager.CreateBuild(action.position, action.prefab);
+                for(int i = 0; i < manager.build.construcciones[action.buildID].posicionesExtras.Length; i++) {
+                    manager.AddBuildInMap(action.position + (Vector3) manager.build.construcciones[action.buildID].posicionesExtras[i], _build);
+                }
+                break;
+        }
+
+        actions.RemoveAt(0);
+
+        if(actions.Count == 0) {
+            SetPositions(Vector3.zero);
+        } else {
+            if(actions[0].pathResult == null) {
+                SetPositions(manager.PathFinding(this, actions[0].position));
+            } else {
+                SetPositions(actions[0].pathResult.path);
+            }
+        }
+
+        lineAction.gameObject.SetActive(false);
+        line.enabled = true;
+
+        anim.SetBool("Working", false);
     }
 
     public void AddAction(Action action, int insertAt = -1) {
@@ -203,12 +214,30 @@ public class Personaje : MonoBehaviour, IEquipo {
     public int GetActionsCount () {
         return actions.Count;
     }
+
+    void BuscarAlmacenCercano () {
+        Vector3 pos = manager.PathFinding(this, new PathSetting(TIPOPATH.AlmacenEspacio)).finalPosition;
+        if(pos != Vector3.zero) {
+            AddAction(manager.CreateAction(Mathf.RoundToInt(pos.x), Mathf.RoundToInt(pos.y), HERRAMIENTA.Custom, new CustomAction(TIPOACCION.Almacenar, inventario)));
+        } else {
+            Debug.Log("Tiras los objetos en la posicion más cercana");
+            pos = manager.PathFinding(this, new PathSetting(TIPOPATH.huecoLibre)).finalPosition;
+
+            Estructura estructura = manager.CreateBuild(pos, manager.sacoObjetos);
+            if(estructura != null) {
+                Recurso _recurso = estructura.GetComponent<Recurso>();
+                _recurso.CreateResource(inventario.ToArray());
+                _recurso.transform.localScale = Vector3.Lerp(new Vector3(0.25f, 0.25f, 1), Vector3.one, ((float) _recurso.actualQuantity) / 100);
+                CleanResource();
+            }
+        }
+    }
          
     public void AddResource(Recurso recurso) {
         if(recurso == null)
             return;
 
-        ResourceInfo[] recursos = recurso.TomarRecursos(capacidadTotal-capacidadActual);
+        ResourceInfo[] recursos = recurso.GetResource(capacidadTotal-capacidadActual);
 
         if(recursos == null)
             return;
@@ -289,6 +318,12 @@ public class Personaje : MonoBehaviour, IEquipo {
         for (int i =0;i < inventario.Count; i++) {
             int sobrante = almacen.AddResource(inventario[i].type, inventario[i].quantity);
             inventario[i].quantity = sobrante;
+        }
+    }
+
+    public void CleanResource() {
+        for(int i = 0; i < inventario.Count; i++) {
+            inventario[i].quantity = 0;
         }
     }
 
