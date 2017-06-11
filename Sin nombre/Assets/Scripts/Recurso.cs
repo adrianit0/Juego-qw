@@ -144,6 +144,10 @@ public class Recurso : Estructura, IEstructura {
 
         return text;
     }
+
+    public void OnDestroyBuild() {
+
+    }
 }
 
 //El objeto a obtener en los recursos

@@ -15,7 +15,9 @@ public class Estructura : MonoBehaviour {
     public bool bloquear = true;
     public GameManager manager;
 
+    public bool esDestruible = false;
     public float tiempoTotal = 0.5f;
+    public float tiempoDestruccion = 1f;
 
     bool awaken = false;
 
@@ -50,6 +52,14 @@ public class Estructura : MonoBehaviour {
 
         if (estructura!=null) {
             manager.textoInformacion.text += estructura.OnText();
+        }
+    }
+
+    public void AlDestuirse () {
+        //Que hacer cuando se destruye 
+
+        if (estructura != null) {
+            estructura.OnDestroyBuild();
         }
     }
 }

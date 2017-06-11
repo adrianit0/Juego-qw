@@ -7,16 +7,35 @@ public class Personaje : MonoBehaviour, IEquipo {
     public float velocity = 5;
     public int maxSteps = 0;
 
-    public int capacidadTotal = 30;
+    [Header("Valores básicos")]
+    [Space (10)]
+    public int nivel = 0;
+
+    [Range(-3, 5)]
+    public int salud, estress;
+
+    [Header ("Atributos:")]
+    [Space (10)]
+    [Range(-3, 5)]
+    public int constitucion;
+
+    [Range(-3, 5)]
+    public int atlestismo, mineria, recoleccion, construccion, ingenio, carisma, culinario;
+
+    int capacidadTotal = 30;
     public int capacidadActual {
         set { }
         get { return CountItems(); }
     }
+
+    [HideInInspector]
     public List<ResourceInfo> inventario = new List<ResourceInfo>();
 
     bool canWalk = false;
 
     //SPRITES
+    [Header("Gráficos del personaje:")]
+    [Space (10)]
     public SpriteRenderer body;
     public SpriteRenderer head;
     public SpriteRenderer mask;
@@ -50,6 +69,8 @@ public class Personaje : MonoBehaviour, IEquipo {
         canWalk = false;
 
         manager.characters.Add(this);
+
+        velocity = 3 + atlestismo;
 	}
     
     void Update() {
@@ -72,6 +93,14 @@ public class Personaje : MonoBehaviour, IEquipo {
 
                     //Primera vez usa la accion.
                     switch (action.tipo) {
+                        case TIPOACCION.Talar:
+                        case TIPOACCION.RecogerObjeto:
+                        case TIPOACCION.Cosechar:
+                            if (recoleccion>0) {
+                                action.totalTime *= (1 - (0.15f * recoleccion));
+                            }
+                            
+                            break;
                         case TIPOACCION.Construir:
 
                             break;
@@ -118,11 +147,7 @@ public class Personaje : MonoBehaviour, IEquipo {
     }
 
     void RealizarAccion (Action action) {
-        if(action.renderIcon != null)
-            Destroy(action.renderIcon.gameObject);
-
-        if(manager.actualActions.Contains(action))
-            manager.actualActions.Remove(action);
+        RemoveAction(action);
 
         switch(action.tipo) {
             case TIPOACCION.Almacenar:
@@ -131,12 +156,14 @@ public class Personaje : MonoBehaviour, IEquipo {
                     BuscarAlmacenCercano();
                 }
                 break;
+
             case TIPOACCION.SacarAlmacen:
                 for(int i = 0; i < action.recursosNecesarios.Count; i++) {
                     action.warehouseAction.GetResource(action.recursosNecesarios[i].type, action.recursosNecesarios[i].quantity, this);
                 }
 
                 break;
+
             case TIPOACCION.Talar:
             case TIPOACCION.Minar:
             case TIPOACCION.Pescar:
@@ -157,26 +184,25 @@ public class Personaje : MonoBehaviour, IEquipo {
             case TIPOACCION.Arar:
                 manager.CreateBuild(action.position, action.prefab);
                 break;
+                
             case TIPOACCION.Construir:
                 Estructura _build = manager.CreateBuild(action.position, action.prefab);
                 for(int i = 0; i < manager.build.construcciones[action.buildID].posicionesExtras.Length; i++) {
                     manager.AddBuildInMap(action.position + (Vector3) manager.build.construcciones[action.buildID].posicionesExtras[i], _build);
                 }
                 break;
+
+            case TIPOACCION.Destruir:
+                action.estructure.AlDestuirse();
+
+                if (action.estructure != null)
+                    Destroy(action.estructure.gameObject);
+
+                //Si hubiera alguien realizando alguna acción lo cancelaría automaticamente al destruirse.
+                manager.CreateAction(Mathf.RoundToInt(action.position.x), Mathf.RoundToInt(action.position.y), HERRAMIENTA.Cancelar);
+                break;
         }
-
-        actions.RemoveAt(0);
-
-        if(actions.Count == 0) {
-            SetPositions(Vector3.zero);
-        } else {
-            if(actions[0].pathResult == null) {
-                SetPositions(manager.PathFinding(this, actions[0].position));
-            } else {
-                SetPositions(actions[0].pathResult.path);
-            }
-        }
-
+        
         lineAction.gameObject.SetActive(false);
         line.enabled = true;
 
@@ -184,8 +210,13 @@ public class Personaje : MonoBehaviour, IEquipo {
     }
 
     public void AddAction(Action action, int insertAt = -1) {
-        OnActionReceived(action);
+        if(action == null)
+            return;
 
+        OnActionReceived(action);
+        action.worker = this;
+
+        manager.actualActions.Add(action);
         if (insertAt<=-1)
             actions.Add (action);
         else {
@@ -198,14 +229,40 @@ public class Personaje : MonoBehaviour, IEquipo {
         
         action.renderIcon.color = new Color (0.5f, 0.5f, 0.5f, 0.5f);
     }
+    
+    public void RemoveAction (Action action) {
+        if(action.renderIcon != null)
+            Destroy(action.renderIcon.gameObject);
+        
+        if (actions.Contains (action)) {
+            actions.Remove(action);
+        }
+
+        if(manager.actualActions.Contains(action))
+            manager.actualActions.Remove(action);
+
+        if (actions.Count == 0) {
+            lineAction.gameObject.SetActive(false);
+            line.enabled = false;
+
+            anim.SetBool("Working", false);
+        }
+
+        if (capacidadActual>0) {
+            BuscarAlmacenCercano();
+        }
+
+        SiguienteAccion();
+    }
 
     //Un "evento" que se activa cuando va a realizar una acción.
     void OnActionReceived (Action action) {
+        
         switch (action.tipo) {
             case TIPOACCION.Construir:
                 //Va a buscar el material necesario.
                 Vector3 _pos = manager.PathFinding(this, new PathSetting(action.recursosNecesarios)).finalPosition;
-                AddAction(manager.CreateAction(Mathf.RoundToInt(_pos.x), Mathf.RoundToInt(_pos.y), HERRAMIENTA.Custom, new CustomAction(TIPOACCION.SacarAlmacen, action.recursosNecesarios)), 0);
+                AddAction(manager.CreateAction(Mathf.RoundToInt(_pos.x), Mathf.RoundToInt(_pos.y), HERRAMIENTA.Custom, new CustomAction(TIPOACCION.SacarAlmacen, true, action.recursosNecesarios)), 0);
 
                 break;
         }
@@ -215,21 +272,25 @@ public class Personaje : MonoBehaviour, IEquipo {
         return actions.Count;
     }
 
+    void SiguienteAccion() {
+        if(actions.Count == 0) {
+            SetPositions(Vector3.zero);
+        } else {
+            if(actions[0].pathResult == null) {
+                SetPositions(manager.PathFinding(this, actions[0].position));
+            } else {
+                SetPositions(actions[0].pathResult.path);
+            }
+        }
+    }
+
     void BuscarAlmacenCercano () {
         Vector3 pos = manager.PathFinding(this, new PathSetting(TIPOPATH.AlmacenEspacio)).finalPosition;
         if(pos != Vector3.zero) {
-            AddAction(manager.CreateAction(Mathf.RoundToInt(pos.x), Mathf.RoundToInt(pos.y), HERRAMIENTA.Custom, new CustomAction(TIPOACCION.Almacenar, inventario)));
+            AddAction(manager.CreateAction(Mathf.RoundToInt(pos.x), Mathf.RoundToInt(pos.y), HERRAMIENTA.Custom, new CustomAction(TIPOACCION.Almacenar, true, inventario)));
         } else {
-            Debug.Log("Tiras los objetos en la posicion más cercana");
-            pos = manager.PathFinding(this, new PathSetting(TIPOPATH.huecoLibre)).finalPosition;
-
-            Estructura estructura = manager.CreateBuild(pos, manager.sacoObjetos);
-            if(estructura != null) {
-                Recurso _recurso = estructura.GetComponent<Recurso>();
-                _recurso.CreateResource(inventario.ToArray());
-                _recurso.transform.localScale = Vector3.Lerp(new Vector3(0.25f, 0.25f, 1), Vector3.one, ((float) _recurso.actualQuantity) / 100);
-                CleanResource();
-            }
+            manager.CrearSaco(transform.position, maxSteps, inventario.ToArray());
+            CleanResource();
         }
     }
          
@@ -333,6 +394,7 @@ public class Personaje : MonoBehaviour, IEquipo {
         }
 
         _positions = new List<Vector3>(pos);
+        line.enabled = true;
 
         canWalk = true;
 

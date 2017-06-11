@@ -1,6 +1,6 @@
 fileFormatVersion: 2
 guid: 186b4be54ef7fce42925d26db9c4d6e1
-timeCreated: 1496732535
+timeCreated: 1497107619
 licenseType: Free
 TextureImporter:
   fileIDToRecycleName:
@@ -255,10 +255,10 @@ TextureImporter:
       name: InterfazAcciones_11
       rect:
         serializedVersion: 2
-        x: 75
+        x: 76
         y: 42
-        width: 12
-        height: 10
+        width: 9
+        height: 9
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}

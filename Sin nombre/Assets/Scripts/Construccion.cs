@@ -138,7 +138,9 @@ public class Construccion :MonoBehaviour {
     }
 
     public void StartBuild () {
-        manager.actions.Add (manager.CreateAction(Mathf.RoundToInt(interfazConstructor.transform.position.x), Mathf.RoundToInt(interfazConstructor.transform.position.y), HERRAMIENTA.Construir));
+        Action action = manager.CreateAction(Mathf.RoundToInt(interfazConstructor.transform.position.x), Mathf.RoundToInt(interfazConstructor.transform.position.y), HERRAMIENTA.Construir);
+        if (action!=null)
+            manager.actions.Add (action);
 
         CancelBuild();
     }

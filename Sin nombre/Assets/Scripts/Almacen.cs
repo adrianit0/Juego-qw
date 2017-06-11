@@ -124,4 +124,14 @@ public class Almacen : Estructura, IEquipo, IEstructura {
 
         return text;
     }
+
+    public void OnDestroyBuild() {
+        if (capacityActual>0) {
+            manager.CrearSaco(transform.position, 10, inventario.ToArray());
+
+            for (int i = 0; i < inventario.Count; i++) {
+                manager.RemoveResource(inventario[i].type, inventario[i].quantity);
+            }
+        }
+    }
 }

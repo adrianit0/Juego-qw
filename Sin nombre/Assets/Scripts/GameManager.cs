@@ -9,8 +9,8 @@ public enum RECURSOS {
     //COMIDA
     Manzana, ManzanaDorada
 }
-public enum TIPOACCION { Talar, Construir, Investigar, Cocinar, Minar, Cosechar, Almacenar, Pescar, Socializar, Arar, SacarAlmacen, RecogerObjeto }
-public enum HERRAMIENTA { Seleccionar = 0, Recolectar = 1, Arar = 2, Priorizar = 3, Destruir = 4, Construir = 5, Custom = 6 }
+public enum TIPOACCION { Talar, Construir, Investigar, Cocinar, Minar, Cosechar, Almacenar, Pescar, Socializar, Arar, SacarAlmacen, RecogerObjeto, Destruir }
+public enum HERRAMIENTA { Seleccionar = 0, Recolectar = 1, Arar = 2, Priorizar = 3, Destruir = 4, Cancelar = 5, Construir = 6, Custom = 7 }
 
 public class GameManager : MonoBehaviour {
 
@@ -78,21 +78,27 @@ public class GameManager : MonoBehaviour {
     public PathResult PathFinding(Personaje character, PathSetting settings) {
         return path.PathFind(character, settings);
     }
-    
+
+    public PathResult PathFinding(Vector3 position, int maxSteps, PathSetting settings) {
+        return path.PathFind(position, maxSteps, settings);
+    }
+
     public Action CreateAction (int _x, int _y, HERRAMIENTA herramienta, CustomAction customAction = null) {
         if(_x < 0 || _y < 0 || _x >= totalSize.x || _y >= totalSize.y)
                 return null;
 
         //Mira si esta acción ya está seleccionada.
-        for (int i = 0; i < actions.Count; i++) {
-            if(actions[i]!=null && actions[i].position == new Vector3(_x, _y, 0)) {
-                return null;
+        if (herramienta!=HERRAMIENTA.Cancelar && !(herramienta==HERRAMIENTA.Custom && customAction!=null && customAction.repeatable)) {
+            for(int i = 0; i < actions.Count; i++) {
+                if(actions[i] != null && actions[i].position == new Vector3(_x, _y, 0)) {
+                    return null;
+                }
             }
-        }
 
-        for(int i = 0; i < actualActions.Count; i++) {
-            if(actualActions[i].position == new Vector3(_x, _y, 0)) {
-                return null;
+            for(int i = 0; i < actualActions.Count; i++) {
+                if(actualActions[i].position == new Vector3(_x, _y, 0)) {
+                    return null;
+                }
             }
         }
 
@@ -158,6 +164,30 @@ public class GameManager : MonoBehaviour {
 
                 break;
 
+            case HERRAMIENTA.Destruir:
+                if(map[_x, _y].estructura == null || !map[_x, _y].estructura.esDestruible)
+                    return null;
+
+                accion = TIPOACCION.Destruir;
+                customTime = map[_x, _y].estructura.tiempoDestruccion;
+
+                break;
+
+
+            case HERRAMIENTA.Cancelar:
+                for(int i = 0; i < actions.Count; i++) {
+                    if(actions[i] != null && (Vector2) actions[i].position == _pos) {
+                        RemoveAction(actions[i]);
+                    }
+                }
+
+                for(int i = 0; i < actualActions.Count; i++) {
+                    if(actualActions[i] != null && (Vector2) actualActions[i].position == _pos) {
+                        RemoveAction(actualActions[i]);
+                    }
+                }
+                return null;
+
             case HERRAMIENTA.Custom:
                 //Herramienta especial. Para realizar cosas que con las anteriores no se pueden (Como extraer cosas del almacen).
                 if(customAction == null)
@@ -191,12 +221,25 @@ public class GameManager : MonoBehaviour {
         if (accion == TIPOACCION.Construir) {
             actionScript = new Action(customPrefab, build.selectID, new Vector3(_x, _y), customTime, actionRender, recNecesario);
         } else if (customPrefab == null) {
-            actionScript = new Action(map[_x, _y].estructura, accion, new Vector3(_x, _y), map[_x, _y].estructura.tiempoTotal, actionRender, recNecesario);
+            actionScript = new Action(map[_x, _y].estructura, accion, new Vector3(_x, _y), customTime > 0 ? customTime : map[_x, _y].estructura.tiempoTotal, actionRender, recNecesario);
         } else {
             actionScript = new Action(customPrefab, accion, new Vector3(_x, _y), customTime, actionRender, recNecesario);
         }
 
         return actionScript;
+    }
+
+    public void RemoveAction (Action action) {
+        if (actions.Contains (action)) {
+            if(action.renderIcon != null)
+                Destroy(action.renderIcon.gameObject);
+
+            actions.Remove(action);
+        }
+        
+        if (actualActions.Contains (action) && action.worker != null) {
+            action.worker.RemoveAction(action);
+        }
     }
 
     Sprite SearchIcon (TIPOACCION tipoAccion) {
@@ -245,8 +288,7 @@ public class GameManager : MonoBehaviour {
 
             freeWorkers[nearWorkers].SetPositions(PathFinding(freeWorkers[nearWorkers], actions[i].position));
             freeWorkers[nearWorkers].AddAction (actions[i]);
-
-            actualActions.Add(actions[i]);
+            
             actions.RemoveAt(i);
             freeWorkers.RemoveAt(nearWorkers);
             i--;
@@ -353,6 +395,17 @@ public class GameManager : MonoBehaviour {
         }
 
         return 0;
+    }
+
+    public void  CrearSaco (Vector3 pos, int maxSteps, ResourceInfo[] inventario) {
+        pos = PathFinding(pos, maxSteps, new PathSetting(TIPOPATH.huecoLibre)).finalPosition;
+
+        Estructura estructura = CreateBuild(pos, sacoObjetos);
+        if(estructura != null) {
+            Recurso _recurso = estructura.GetComponent<Recurso>();
+            _recurso.CreateResource(inventario);
+            _recurso.transform.localScale = Vector3.Lerp(new Vector3(0.25f, 0.25f, 1), Vector3.one, ((float) _recurso.actualQuantity) / 100);
+        }
     }
 
     public Estructura CreateBuild (Vector3 position, GameObject prefab) {

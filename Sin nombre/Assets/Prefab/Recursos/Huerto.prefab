@@ -57,7 +57,9 @@ MonoBehaviour:
   estado: 1
   bloquear: 0
   manager: {fileID: 0}
+  esDestruible: 1
   tiempoTotal: 1
+  tiempoDestruccion: 0.1
 --- !u!212 &212563378448357772
 SpriteRenderer:
   m_ObjectHideFlags: 1

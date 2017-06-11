@@ -12,6 +12,8 @@ public class Action {
     public TIPOACCION tipo;
     public Vector3 position;
 
+    public Personaje worker;
+
     //Tipos de acciones (Según las diferentes estructuras).
     public Estructura estructure;
     public GameObject prefab;
@@ -114,10 +116,12 @@ public class Action {
 
 public class CustomAction {
     public TIPOACCION tipo;
+    public bool repeatable;     //Sirve para que se pueda repetir acción entre distintos personajes.
     public List<ResourceInfo> recNecesarios;
 
-    public CustomAction(TIPOACCION tipo, List<ResourceInfo> recNecesarios) {
+    public CustomAction(TIPOACCION tipo, bool repeatable, List<ResourceInfo> recNecesarios) {
         this.tipo = tipo;
+        this.repeatable = repeatable;
         this.recNecesarios = recNecesarios;
     }
 }

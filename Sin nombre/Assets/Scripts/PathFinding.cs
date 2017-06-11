@@ -26,20 +26,20 @@ public class PathFinding : MonoBehaviour {
         manager = GetComponent<GameManager>();
     }
 
-    public PathResult PathFind(Personaje character, PathSetting settings) {
+    public PathResult PathFind (Vector3 position, int maxSteps, PathSetting settings) {
         //Reinicia los nodos del anterior pathfinding.
         nodes = new List<NodoPath>();
         result = new PathResult();
         this.settings = settings;
         pathFound = false;
-        
+
         if(map == null)
             map = manager.map;
 
         settings.position = new Vector2(Mathf.Round(settings.position.x), Mathf.Round(settings.position.y));
 
         //Ahora busca el pathFinding
-        SearchNodes(new NodoPath(character.transform.position, character.maxSteps), true);
+        SearchNodes(new NodoPath(position, maxSteps), true);
         while(!pathFound) {
             List<NodoPath> _nodes = new List<NodoPath>(nodes);
             int pathDesactivados = 0;
@@ -61,6 +61,10 @@ public class PathFinding : MonoBehaviour {
         }
 
         return result;
+    }
+
+    public PathResult PathFind(Personaje character, PathSetting settings) {
+        return PathFind(character.transform.position, character.maxSteps, settings);
     }
 
     void SearchNodes(NodoPath path, bool firstPath = false) {

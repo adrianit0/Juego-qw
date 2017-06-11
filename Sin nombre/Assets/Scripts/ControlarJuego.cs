@@ -56,7 +56,7 @@ public class ControlarJuego : MonoBehaviour {
         }
 
         if (Input.GetMouseButtonUp(0) && pulsandoBotonDerecho) {
-            FijatObjetivo();
+            FijarObjetivo();
         }
     }
 
@@ -88,10 +88,12 @@ public class ControlarJuego : MonoBehaviour {
         }
     }
 
-    void FijatObjetivo () {
+    void FijarObjetivo () {
         for (int y = (int) Mathf.Min (posInicial.y, posFinal.y); y < Mathf.Max(posInicial.y, posFinal.y)+1; y++) {
             for(int x = (int) Mathf.Min(posInicial.x, posFinal.x); x < Mathf.Max(posInicial.x, posFinal.x)+1; x++) {
-                manager.actions.Add(manager.CreateAction(x, y, manager.herramientaSeleccionada));
+                Action _action = manager.CreateAction(x, y, manager.herramientaSeleccionada);
+                if (_action!= null)
+                    manager.actions.Add(_action);
             }
         }
 
