@@ -86,7 +86,7 @@ public class Construccion :MonoBehaviour {
             bool activar = true;
 
             for (int x = 0; x < construcciones[i].recursosNecesarios.Length; x++) {
-                if (construcciones[i].recursosNecesarios[x].cantidadNecesaria>manager.GetResource (construcciones[i].recursosNecesarios[x].recurso)) {
+                if (construcciones[i].recursosNecesarios[x].cantidadNecesaria > manager._inventario [construcciones[i].recursosNecesarios[x].recurso].quantity) {
                     activar = false;
                     break;
                 }
@@ -168,9 +168,9 @@ public class Construccion :MonoBehaviour {
                 textosRequisitos[i].gameObject.SetActive(true);
                 textosRequisitos[i].text = "x" + construcciones[ID].recursosNecesarios[i].cantidadNecesaria;
                 int _resPos = (int) construcciones[ID].recursosNecesarios[i].recurso;
-                textosRequisitos[i].GetComponentInChildren<Image>().sprite = manager.resource [_resPos].sprite;
+                textosRequisitos[i].GetComponentInChildren<Image>().sprite = manager._inventario.inventario [_resPos].sprite;
 
-                textosRequisitos[i].color = (construcciones[ID].recursosNecesarios[i].cantidadNecesaria > manager.GetResource(construcciones[ID].recursosNecesarios[i].recurso)) ? Color.red : Color.white;
+                textosRequisitos[i].color = (construcciones[ID].recursosNecesarios[i].cantidadNecesaria > manager._inventario[construcciones[ID].recursosNecesarios[i].recurso].quantity) ? Color.red : Color.white;
             } else {
                 textosRequisitos[i].gameObject.SetActive(false);
             }

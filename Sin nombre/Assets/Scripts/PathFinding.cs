@@ -160,7 +160,7 @@ public class PathFinding : MonoBehaviour {
                 if(nodo.estructura != null && nodo.estructura.tipo == ESTRUCTURA.Almacen) {
                     Almacen _almacen = nodo.estructura.GetComponent<Almacen>();
 
-                    return (_almacen.capacityActual<_almacen.capacityTotal);
+                    return (_almacen._inventario.Count<_almacen.capacityTotal);
                 }
                     
 
@@ -170,7 +170,7 @@ public class PathFinding : MonoBehaviour {
                 if(nodo.estructura != null && nodo.estructura.tipo == ESTRUCTURA.Almacen && settings.recursos != null) {
                     Almacen _almacen = nodo.estructura.GetComponent<Almacen>();
 
-                    foreach (ResourceInfo recurso in _almacen.inventario) {
+                    foreach (ResourceInfo recurso in _almacen._inventario.inventario) {
                         for (int i = 0; i < settings.recursos.Count; i++) {
                             if (recurso.type == settings.recursos[i].type && recurso.quantity > 0) {
                                 return true;

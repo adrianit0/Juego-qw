@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public enum ESTRUCTURA { Vivienda, Almacen, Recurso, Huerto, Bolsa }
+public enum ESTRUCTURA { Vivienda, Almacen, Recurso, Huerto, Bolsa, Agua }
 
 
 public class Estructura : MonoBehaviour {

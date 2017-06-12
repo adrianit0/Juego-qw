@@ -2,11 +2,11 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Almacen : Estructura, IEquipo, IEstructura {
+public class Almacen : Estructura, IEstructura, IEquipo {
 
-    public int capacityTotal = 100, capacityActual = 0;
+    public int capacityTotal = 100;
 
-    public List<ResourceInfo> inventario = new List<ResourceInfo>();
+    public Inventario _inventario;
 
     public float tamLine = 0.750f;
     public float yPos = -0.383f;
@@ -16,91 +16,15 @@ public class Almacen : Estructura, IEquipo, IEstructura {
         base.Awake();
 
         line = GetComponent<LineRenderer>();
+        _inventario = new Inventario(capacityTotal);
+        _inventario.equipo = (IEquipo) this;
     }
 
-    /// <summary>
-    /// Añade recursos al almacen, y devuelve la cantidad de sobra (La que no puede almacenar).
-    /// </summary>
-    public int AddResource(RECURSOS recurso, int cantidad) {
-        if(cantidad == 0)
-            return 0;
+    public void OnCapacityChange (params ResourceInfo[] recursos) {
+        manager._inventario.AddResource(recursos);
 
-        int sobrante = 0;
-        if(cantidad > (capacityTotal - capacityActual)) {
-            sobrante = cantidad - (capacityTotal - capacityActual);
-            cantidad = capacityTotal - capacityActual;
-        }
-
-        capacityActual += cantidad;
-
-        if(cantidad == 0)
-            return sobrante;
-
-        bool encontrado = false;
-        for(int i = 0; i < inventario.Count; i++) {
-            if(inventario[i].type == recurso) {
-                inventario[i].quantity += cantidad;
-                encontrado = true;
-            }
-        }
-
-        if(!encontrado) //Si no existe ese recurso en este inventario, lo crea.
-            inventario.Add(new ResourceInfo(recurso, cantidad));
-
-
-        Porcentaje(((float) capacityActual / (float) capacityTotal));
-        manager.AddResource(recurso, cantidad);
-
-        return sobrante;
-    }
-
-    public void RemoveResource(RECURSOS recurso, int cantidad) {
-        if(cantidad == 0)
-            return;
-        
-        bool encontrado = false;
-        for(int i = 0; i < inventario.Count; i++) {
-            if(inventario[i].type == recurso) {
-                inventario[i].quantity -= cantidad;
-                encontrado = true;
-            }
-        }
-
-        if(!encontrado)
-            return;
-        
-        capacityActual -= cantidad;
-
-        Porcentaje(((float) capacityActual / (float) capacityTotal));
-        manager.RemoveResource(recurso, cantidad);
-    }
-
-    public int GetResource(RECURSOS recurso, int cantidad, Personaje personaje) {
-        if(cantidad == 0)
-            return 0;
-
-        int faltante = 0;
-
-        int disponible = CountItem(recurso);
-
-        if (cantidad > disponible) {
-            faltante = cantidad - disponible;
-            cantidad = disponible;
-        }
-
-        personaje.AddResource(recurso, cantidad);
-        RemoveResource(recurso, cantidad);
-
-        return faltante;
-    }
-
-    public int CountItem(RECURSOS recurso) {
-        for(int i = 0; i < inventario.Count; i++) {
-            if(inventario[i].type == recurso) {
-                return inventario[i].quantity;
-            }
-        }
-        return 0;
+        Porcentaje(_inventario.GetPerc());
+        //Mandar la orden al GameManager para que actualice el panel de recursos.
     }
 
     public void Porcentaje(float porc) {
@@ -110,12 +34,12 @@ public class Almacen : Estructura, IEquipo, IEstructura {
     }
 
     public string OnText() {
-        string text =  "<b>Contenido:</b> ["+capacityActual+"/"+capacityTotal+"]\n";
+        string text =  "<b>Contenido:</b> ["+_inventario.Count+"/"+capacityTotal+"]\n";
 
-        if (capacityActual>0) {
-            for(int i = 0; i < inventario.Count; i++) {
-                if (inventario[i].quantity>0) {
-                    text += "<b>" +inventario[i].type.ToString() + ":</b> " + inventario[i].quantity + "\n";
+        if (_inventario.Lenght > 0) {
+            for(int i = 0; i < _inventario.Lenght; i++) {
+                if (_inventario[i]>0) {
+                    text += "<b>" +_inventario.inventario[i].type.ToString() + ":</b> " + _inventario[i] + "\n";
                 }
             }
         } else {
@@ -126,11 +50,11 @@ public class Almacen : Estructura, IEquipo, IEstructura {
     }
 
     public void OnDestroyBuild() {
-        if (capacityActual>0) {
-            manager.CrearSaco(transform.position, 10, inventario.ToArray());
+        if (_inventario.Count > 0) {
+            manager.CrearSaco(transform.position, 10, _inventario.ToArray());
 
-            for (int i = 0; i < inventario.Count; i++) {
-                manager.RemoveResource(inventario[i].type, inventario[i].quantity);
+            for (int i = 0; i < _inventario.Count; i++) {
+                //manager.RemoveResource(inventario[i].type, inventario[i].quantity);
             }
         }
     }

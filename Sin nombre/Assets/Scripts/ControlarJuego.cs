@@ -37,6 +37,13 @@ public class ControlarJuego : MonoBehaviour {
 
             manager.map[_x, _y].bloqueado = !manager.map[_x, _y].bloqueado;
             manager.map[_x, _y].coll.isTrigger = !manager.map[_x, _y].bloqueado;
+
+            if (manager.map[_x, _y].bloqueado) {
+                manager.CreateBuild(new Vector3(_x, _y), manager.agua);
+            } else {
+                if (manager.map[_x, _y].estructura != null && manager.map[_x, _y].estructura.tipo == ESTRUCTURA.Agua)
+                    manager.RemoveBuildInMap(new Vector3(_x, _y));
+            }
             //mapa[_x, _y].render.sprite = (!mapa[_x, _y].bloqueado) ? spriteTierra : spriteAgua;
 
             manager.UpdateMap();

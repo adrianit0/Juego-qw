@@ -21,15 +21,8 @@ public class Personaje : MonoBehaviour, IEquipo {
 
     [Range(-3, 5)]
     public int atlestismo, mineria, recoleccion, construccion, ingenio, carisma, culinario;
-
-    int capacidadTotal = 30;
-    public int capacidadActual {
-        set { }
-        get { return CountItems(); }
-    }
-
-    [HideInInspector]
-    public List<ResourceInfo> inventario = new List<ResourceInfo>();
+    
+    public Inventario _inventario;
 
     bool canWalk = false;
 
@@ -67,6 +60,8 @@ public class Personaje : MonoBehaviour, IEquipo {
     
 	void Start () {
         canWalk = false;
+        _inventario = new Inventario(40);
+        _inventario.equipo = (IEquipo) this;
 
         manager.characters.Add(this);
 
@@ -151,26 +146,29 @@ public class Personaje : MonoBehaviour, IEquipo {
 
         switch(action.tipo) {
             case TIPOACCION.Almacenar:
-                CleanResource(action.warehouseAction);
-                if (capacidadActual>0) {
+                _inventario.CleanResource(action.warehouseAction._inventario);
+                if (_inventario.Count>0) {
                     BuscarAlmacenCercano();
                 }
                 break;
 
             case TIPOACCION.SacarAlmacen:
                 for(int i = 0; i < action.recursosNecesarios.Count; i++) {
-                    action.warehouseAction.GetResource(action.recursosNecesarios[i].type, action.recursosNecesarios[i].quantity, this);
+                    int restante = action.warehouseAction._inventario.GetResource(action.recursosNecesarios[i].type, action.recursosNecesarios[i].quantity, _inventario);
+                    if (restante>0) {
+                        //Buscarlo en otro almacén
+
+                    }
                 }
 
                 break;
 
             case TIPOACCION.Talar:
             case TIPOACCION.Minar:
-            case TIPOACCION.Pescar:
             case TIPOACCION.RecogerObjeto:
-                AddResource(action.resourceAction);
+                _inventario.AddResource(action.resourceAction);
 
-                if(capacidadActual < capacidadTotal && action.resourceAction.actualQuantity > 0) {
+                if(!_inventario.IsFull() && action.resourceAction.actualQuantity > 0) {
                     AddAction(manager.CreateAction(Mathf.RoundToInt(action.position.x), Mathf.RoundToInt(action.position.y), HERRAMIENTA.Recolectar));
                 } else if(manager.ExistBuild(ESTRUCTURA.Almacen)) {
                     BuscarAlmacenCercano();
@@ -178,6 +176,19 @@ public class Personaje : MonoBehaviour, IEquipo {
                     if(action.resourceAction.actualQuantity > 0) {
                         AddAction(manager.CreateAction(Mathf.RoundToInt(action.position.x), Mathf.RoundToInt(action.position.y), HERRAMIENTA.Recolectar));
                     }
+                }
+                break;
+
+            case TIPOACCION.Pescar:
+                Agua agua = action.estructure.GetComponent<Agua>();
+                if (agua != null) {
+                    bool obtenido = agua.Pescar();
+                    if (obtenido) {
+                        _inventario.AddResource(RECURSOS.Sardina, 1);
+                        BuscarAlmacenCercano();
+                    }
+
+                    AddAction(manager.CreateAction(Mathf.RoundToInt(action.position.x), Mathf.RoundToInt(action.position.y), HERRAMIENTA.Recolectar));
                 }
                 break;
 
@@ -248,7 +259,7 @@ public class Personaje : MonoBehaviour, IEquipo {
             anim.SetBool("Working", false);
         }
 
-        if (capacidadActual>0) {
+        if (_inventario.Count>0) {
             BuscarAlmacenCercano();
         }
 
@@ -287,105 +298,15 @@ public class Personaje : MonoBehaviour, IEquipo {
     void BuscarAlmacenCercano () {
         Vector3 pos = manager.PathFinding(this, new PathSetting(TIPOPATH.AlmacenEspacio)).finalPosition;
         if(pos != Vector3.zero) {
-            AddAction(manager.CreateAction(Mathf.RoundToInt(pos.x), Mathf.RoundToInt(pos.y), HERRAMIENTA.Custom, new CustomAction(TIPOACCION.Almacenar, true, inventario)));
+            AddAction(manager.CreateAction(Mathf.RoundToInt(pos.x), Mathf.RoundToInt(pos.y), HERRAMIENTA.Custom, new CustomAction(TIPOACCION.Almacenar, true, _inventario.inventario)));
         } else {
-            manager.CrearSaco(transform.position, maxSteps, inventario.ToArray());
-            CleanResource();
-        }
-    }
-         
-    public void AddResource(Recurso recurso) {
-        if(recurso == null)
-            return;
-
-        ResourceInfo[] recursos = recurso.GetResource(capacidadTotal-capacidadActual);
-
-        if(recursos == null)
-            return;
-        
-        for (int i = 0; i < recursos.Length; i++) {
-            AddResource(recursos[i].type, recursos[i].quantity);
+            manager.CrearSaco(transform.position, maxSteps, _inventario.ToArray());
+            _inventario.CleanResource();
         }
     }
 
-    public int AddResource(RECURSOS recurso, int cantidad) {
-        for(int i = 0; i < inventario.Count; i++) {
-            if(inventario[i].type == recurso) {
-                inventario[i].quantity += cantidad;
-
-                return 0;
-            }
-        }
-
-        inventario.Add(new ResourceInfo(recurso, cantidad));
-
-        return 0;
-    }
-
-    public int CountItem (RECURSOS recurso) {
-        for(int i = 0; i < inventario.Count; i++) {
-            if(inventario[i].type == recurso) {
-                return inventario[i].quantity;
-            }
-        }
-        return 0;
-    }
-
-    public int CountItems() {
-        int count = 0;
-        for(int i = 0; i < inventario.Count; i++) {
-            count += inventario[i].quantity;
-        }
-        return count;
-    }
-    
-    public void RemoveResource(RECURSOS recurso, int cantidad) {
-        if(cantidad == 0)
-            return;
-
-        bool encontrado = false;
-        for(int i = 0; i < inventario.Count; i++) {
-            if(inventario[i].type == recurso) {
-                inventario[i].quantity -= cantidad;
-                encontrado = true;
-            }
-        }
-
-        if(!encontrado)
-            return;
-
-        capacidadActual -= cantidad;
-    }
-
-    public int GetResource(RECURSOS recurso, int cantidad) {
-        if(cantidad == 0)
-            return 0;
-
-        int faltante = 0;
-
-        int disponible = CountItem(recurso);
-
-        if(cantidad > disponible) {
-            faltante = cantidad - disponible;
-            cantidad = disponible;
-        }
-
-        RemoveResource(recurso, cantidad);
-
-        return faltante;
-    }
-
-    public void CleanResource (Almacen almacen) {
-        for (int i =0;i < inventario.Count; i++) {
-            int sobrante = almacen.AddResource(inventario[i].type, inventario[i].quantity);
-            inventario[i].quantity = sobrante;
-        }
-    }
-
-    public void CleanResource() {
-        for(int i = 0; i < inventario.Count; i++) {
-            inventario[i].quantity = 0;
-        }
+    public void OnCapacityChange(params ResourceInfo[] recursos) {
+        //Pues no pasa nada...
     }
 
     public void SetPositions (params Vector3[] pos) {

@@ -7,17 +7,17 @@ public enum RECURSOS {
     //RECURSOS
     Madera, Piedra, Cobre, Plata, Oro,
     //COMIDA
-    Manzana, ManzanaDorada
+    Manzana, ManzanaDorada, Zanahoria, Sardina, Lubina
 }
 public enum TIPOACCION { Talar, Construir, Investigar, Cocinar, Minar, Cosechar, Almacenar, Pescar, Socializar, Arar, SacarAlmacen, RecogerObjeto, Destruir }
 public enum HERRAMIENTA { Seleccionar = 0, Recolectar = 1, Arar = 2, Priorizar = 3, Destruir = 4, Cancelar = 5, Construir = 6, Custom = 7 }
 
-public class GameManager : MonoBehaviour {
+public class GameManager : MonoBehaviour, IEquipo {
 
     public Vector2 totalSize = new Vector2(20, 20);
-    
+
     //CONTENIDO PARTIDA
-    public ResourceInfo[] resource = new ResourceInfo[2];
+    public Inventario _inventario;
     public IconInfo[] iconos = new IconInfo[9];
 
     public List<Estructura> builds = new List<Estructura>();
@@ -36,6 +36,7 @@ public class GameManager : MonoBehaviour {
 
     //OTRAS COSAS
     public GameObject sacoObjetos;
+    public GameObject agua;
 
     public GameObject nodoPrefab;
     public GameObject objetivoPrefab;
@@ -64,6 +65,7 @@ public class GameManager : MonoBehaviour {
 
     void Start () {
         InvokeRepeating("SearchAction", 0.25f, 0.25f);
+        _inventario.equipo = (IEquipo) this;
 
         panelInformacion.SetActive(false);
     }
@@ -131,6 +133,8 @@ public class GameManager : MonoBehaviour {
                     if(_resource.actualQuantity == 0)   //Si el recurso está vacio no te permite usarlo.
                         return null;
                     accion = _resource.actionType;
+                } else if(map[_x, _y].estructura.tipo == ESTRUCTURA.Agua) {
+                    accion = TIPOACCION.Pescar;
                 } else {
                     return null;
                 }
@@ -348,53 +352,8 @@ public class GameManager : MonoBehaviour {
         return nearest;
     }
 
-
-    public void AddResource(RECURSOS type, int quantity) {
-        if(quantity == 0)
-            return;
-
-        for(int i = 0; i < resource.Length; i++) {
-            if(resource[i].type == type) {
-                resource[i].quantity += quantity;
-                if (resource[i].quantityText != null)
-                resource[i].quantityText.text = resource[i].quantity.ToString();
-
-                build.ShopUpdate();
-                return;
-            }
-        }
-
-        //Se debería poderse añadir automaticamente
-        Debug.LogWarning("No se ha encontrado ese recurso");
-    }
-
-    public void RemoveResource(RECURSOS type, int quantity) {
-        if(quantity == 0)
-            return;
-
-        for(int i = 0; i < resource.Length; i++) {
-            if(resource[i].type == type) {
-                resource[i].quantity -= quantity;
-                if(resource[i].quantityText != null)
-                    resource[i].quantityText.text = resource[i].quantity.ToString();
-
-                build.ShopUpdate();
-                return;
-            }
-        }
-
-        //Se debería poderse añadir automaticamente
-        Debug.LogWarning("No se ha encontrado ese recurso");
-    }
-
-    public int GetResource (RECURSOS type) {
-        for(int i = 0; i < resource.Length; i++) {
-            if(resource[i].type == type) {
-                return resource[i].quantity;
-            }
-        }
-
-        return 0;
+    public void OnCapacityChange(params ResourceInfo[] recursos) {
+        build.ShopUpdate();
     }
 
     public void  CrearSaco (Vector3 pos, int maxSteps, ResourceInfo[] inventario) {

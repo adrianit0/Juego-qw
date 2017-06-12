@@ -4,3 +4,7 @@
     void OnDestroyBuild();
 
 }
+
+public interface IEquipo {
+    void OnCapacityChange(params ResourceInfo[] recursos);
+}
