@@ -9,7 +9,7 @@ public enum RECURSOS {
     //COMIDA
     Manzana, ManzanaDorada, Zanahoria, Sardina, Lubina
 }
-public enum TIPOACCION { Talar, Construir, Investigar, Cocinar, Minar, Cosechar, Almacenar, Pescar, Socializar, Arar, SacarAlmacen, RecogerObjeto, Destruir }
+public enum TIPOACCION { Talar, Construir, Investigar, Cocinar, Minar, Cosechar, Almacenar, Pescar, Socializar, Arar, SacarAlmacen, VaciarAlmacen, RecogerObjeto, Destruir, ExtraerAgua, Regar, Plantar }
 public enum HERRAMIENTA { Seleccionar = 0, Recolectar = 1, Arar = 2, Priorizar = 3, Destruir = 4, Cancelar = 5, Construir = 6, Custom = 7 }
 
 public class GameManager : MonoBehaviour, IEquipo {
@@ -29,10 +29,6 @@ public class GameManager : MonoBehaviour, IEquipo {
     
     //PANEL RECURSOS
     public GameObject[] panelesRecursos = new GameObject[2];
-
-    //PANEL INFORMACION
-    public GameObject panelInformacion;
-    public Text textoInformacion;
 
     //OTRAS COSAS
     public GameObject sacoObjetos;
@@ -54,11 +50,13 @@ public class GameManager : MonoBehaviour, IEquipo {
     PathFinding path;
     Agricultura farm;
     public Construccion build;  //Necesario en el personaje.
+    public Informacion info;    //Necesario en las estructuras.
     
 	void Awake () {
         path = GetComponent<PathFinding>();
         farm = GetComponent<Agricultura>();
         build = GetComponent<Construccion>();
+        info = GetComponent<Informacion>();
 
         CrearMapa();
 	}
@@ -66,8 +64,6 @@ public class GameManager : MonoBehaviour, IEquipo {
     void Start () {
         InvokeRepeating("SearchAction", 0.25f, 0.25f);
         _inventario.equipo = (IEquipo) this;
-
-        panelInformacion.SetActive(false);
     }
 
     /// <summary>
@@ -204,6 +200,31 @@ public class GameManager : MonoBehaviour, IEquipo {
                     case TIPOACCION.SacarAlmacen:
                         recNecesario = new List<ResourceInfo>(customAction.recNecesarios);
                         break;
+
+                    case TIPOACCION.VaciarAlmacen:
+                        if (map[_x, _y].estructura != null && map[_x, _y].estructura.GetComponent<Almacen>().inventario.Count>0) {
+                            customTime = 0.5f;
+                            customIcon = SearchIcon(TIPOACCION.SacarAlmacen);
+                        } else {
+                            return null;
+                        }
+                        break;
+
+                    case TIPOACCION.Plantar:
+                        recNecesario = new List<ResourceInfo>(customAction.recNecesarios);
+                        customTime = 0.50f;
+                        customIcon = SearchIcon(TIPOACCION.Almacenar);
+                        break;
+
+                    case TIPOACCION.ExtraerAgua:
+                        customTime = 0.5f;
+                        customIcon = SearchIcon(TIPOACCION.SacarAlmacen);
+                        break;
+
+                    case TIPOACCION.Regar:
+                        customTime = 0.25f;
+                        customIcon = SearchIcon(TIPOACCION.Almacenar);
+                        break;
                 }
 
                 break;
@@ -231,6 +252,21 @@ public class GameManager : MonoBehaviour, IEquipo {
         }
 
         return actionScript;
+    }
+
+    public Action CreateAction(Vector2 position, HERRAMIENTA herramienta, CustomAction customAction = null) {
+        return CreateAction(Mathf.RoundToInt(position.x), Mathf.RoundToInt(position.y), herramienta, customAction);
+    }
+
+    public void AddAction(int _x, int _y, HERRAMIENTA herramienta, CustomAction customAction = null) {
+        Action _action = CreateAction(_x, _y, herramienta, customAction);
+        if(_action != null) {
+            actions.Add(_action);
+        }
+    }
+
+    public void AddAction (Vector2 position, HERRAMIENTA herramienta, CustomAction customAction = null) {
+        AddAction(Mathf.RoundToInt(position.x), Mathf.RoundToInt(position.y), herramienta, customAction);
     }
 
     public void RemoveAction (Action action) {
@@ -273,16 +309,28 @@ public class GameManager : MonoBehaviour, IEquipo {
         
         for (int i = 0; i < actions.Count; i++) {
             //Calcularemos que personaje es el mejor para realizar cada acción libre, como actualmente no hay nada de eso programado, el personaje más cercano será quien se ocupe de la acción.
-            if (actions[i]==null) {
+            Action action = actions[i];
+            if (action==null) {
                 actions.RemoveAt(i);
                 i--;
                 continue;
             }
 
+            //Si no se puede realizar la acción tendrá que esperar 5s antes de volver a intentarlo.
+            if (action.desactivado) {
+                action.actualTime += 0.25f;
+                if (action.actualTime > 5f) {
+                    action.actualTime = 0;
+                    action.desactivado = false;
+                } else {
+                    continue;
+                }
+            }
+
             int nearWorkers = 0;
             float nearPosition = -1;
             for(int x = 0; x < freeWorkers.Count; x++) {
-                float ActualPositions = Vector3.Distance (freeWorkers[i].transform.position, actions[i].position);
+                float ActualPositions = Vector3.Distance (freeWorkers[x].transform.position, action.position);
 
                 if (nearPosition == -1 || ActualPositions<nearPosition) {
                     nearPosition = ActualPositions;
@@ -290,8 +338,14 @@ public class GameManager : MonoBehaviour, IEquipo {
                 }
             }
 
-            freeWorkers[nearWorkers].SetPositions(PathFinding(freeWorkers[nearWorkers], actions[i].position));
-            freeWorkers[nearWorkers].AddAction (actions[i]);
+            PathResult resultado = PathFinding(freeWorkers[nearWorkers], new PathSetting(action.position));
+            if (resultado.finalPosition==Vector3.zero) {
+                action.renderIcon.color = Color.red;
+                action.desactivado = true;
+                return;
+            }
+            freeWorkers[nearWorkers].SetPositions(resultado.path);
+            freeWorkers[nearWorkers].AddAction (action);
             
             actions.RemoveAt(i);
             freeWorkers.RemoveAt(nearWorkers);
@@ -484,6 +538,10 @@ public class GameManager : MonoBehaviour, IEquipo {
     }
 
     public void SeleccionarHerramienta(int herramienta) {
+        if (herramientaSeleccionada == HERRAMIENTA.Seleccionar) {
+            info.EliminarSeleccion();
+        }
+
         herramientaSeleccionada = (HERRAMIENTA) herramienta;
         imagenCentral.sprite = iconosHerramientas[herramienta];
     }

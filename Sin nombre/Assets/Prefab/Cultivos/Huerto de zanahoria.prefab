@@ -9,106 +9,107 @@ Prefab:
     m_Modifications: []
     m_RemovedComponents: []
   m_ParentPrefab: {fileID: 0}
-  m_RootGameObject: {fileID: 1251666684431510}
+  m_RootGameObject: {fileID: 1753731601360760}
   m_IsPrefabParent: 1
---- !u!1 &1251666684431510
+--- !u!1 &1635494938875390
 GameObject:
   m_ObjectHideFlags: 0
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 100100000}
   serializedVersion: 5
   m_Component:
-  - component: {fileID: 4674805526126356}
-  - component: {fileID: 212325872329902260}
-  - component: {fileID: 114434926971168604}
+  - component: {fileID: 4893478387467502}
+  - component: {fileID: 212713873714153744}
   m_Layer: 0
-  m_Name: Huerto
+  m_Name: Huerto (1)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!1 &1547052833534666
+--- !u!1 &1753731601360760
 GameObject:
   m_ObjectHideFlags: 0
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 100100000}
   serializedVersion: 5
   m_Component:
-  - component: {fileID: 4531173047355472}
-  - component: {fileID: 212563378448357772}
+  - component: {fileID: 4240061431709738}
+  - component: {fileID: 212037548833691224}
+  - component: {fileID: 114625281897007138}
   m_Layer: 0
-  m_Name: Cultivo
+  m_Name: Huerto de zanahoria
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!4 &4531173047355472
+--- !u!4 &4240061431709738
 Transform:
   m_ObjectHideFlags: 1
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 1547052833534666}
+  m_GameObject: {fileID: 1753731601360760}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 11, y: 7, z: 0}
+  m_LocalScale: {x: 1, y: 1.15, z: 1}
+  m_Children:
+  - {fileID: 4893478387467502}
+  m_Father: {fileID: 0}
+  m_RootOrder: 0
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!4 &4893478387467502
+Transform:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 1635494938875390}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
-  m_Father: {fileID: 4674805526126356}
+  m_Father: {fileID: 4240061431709738}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!4 &4674805526126356
-Transform:
-  m_ObjectHideFlags: 1
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 1251666684431510}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 6, y: 10, z: 0}
-  m_LocalScale: {x: 1, y: 1.15, z: 1}
-  m_Children:
-  - {fileID: 4531173047355472}
-  m_Father: {fileID: 0}
-  m_RootOrder: 0
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &114434926971168604
+--- !u!114 &114625281897007138
 MonoBehaviour:
   m_ObjectHideFlags: 1
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 1251666684431510}
+  m_GameObject: {fileID: 1753731601360760}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: ded3ccbd4d266044382114914c3ca721, type: 3}
+  m_Script: {fileID: 11500000, guid: 1808d84d413c8a54eb0d7567e954ab5b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  tipo: 3
-  nombre: Huerto
+  tipo: 2
+  nombre: Cultivo de zanahorias
   bloquear: 0
   manager: {fileID: 0}
-  esDestruible: 1
+  esDestruible: 0
   tiempoTotal: 1
-  tiempoDestruccion: 0.1
-  cultivo:
-    semilla: 0
-    tiempoCrecer: 1
-    litrosPorMinuto: 1
-    sprite: []
-    cultivoPrefab: {fileID: 0}
-    boton: {fileID: 0}
-  agua: 0
-  renderCultivo: {fileID: 212563378448357772}
-  sueloSeco: {fileID: 21300000, guid: 0f9968415a0fdf84ebc581969a0ceda8, type: 3}
-  sueloMojado: {fileID: 21300002, guid: 0f9968415a0fdf84ebc581969a0ceda8, type: 3}
-  spriteCultivar: {fileID: 21300024, guid: 186b4be54ef7fce42925d26db9c4d6e1, type: 3}
-  spriteFertilizar: {fileID: 21300014, guid: 186b4be54ef7fce42925d26db9c4d6e1, type: 3}
-  spriteRegar: {fileID: 21300026, guid: 186b4be54ef7fce42925d26db9c4d6e1, type: 3}
---- !u!212 &212325872329902260
+  tiempoDestruccion: 1
+  actionType: 5
+  fixedContent: 0
+  destruirTrasUsarse: 1
+  maxQuantity: 18
+  actualQuantity: 18
+  maxWaveQuantity: 3
+  sprites:
+  - {fileID: 21300010, guid: 0f9968415a0fdf84ebc581969a0ceda8, type: 3}
+  - {fileID: 21300012, guid: 0f9968415a0fdf84ebc581969a0ceda8, type: 3}
+  - {fileID: 21300014, guid: 0f9968415a0fdf84ebc581969a0ceda8, type: 3}
+  - {fileID: 0}
+  recursos:
+  - tipoRecurso: 7
+    ratio: 10
+    ratioRange: 10
+--- !u!212 &212037548833691224
 SpriteRenderer:
   m_ObjectHideFlags: 1
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 1251666684431510}
+  m_GameObject: {fileID: 1753731601360760}
   m_Enabled: 1
   m_CastShadows: 0
   m_ReceiveShadows: 0
@@ -134,16 +135,16 @@ SpriteRenderer:
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: 288048593
   m_SortingOrder: 3
-  m_Sprite: {fileID: 21300000, guid: 0f9968415a0fdf84ebc581969a0ceda8, type: 3}
+  m_Sprite: {fileID: 21300010, guid: 0f9968415a0fdf84ebc581969a0ceda8, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
---- !u!212 &212563378448357772
+--- !u!212 &212713873714153744
 SpriteRenderer:
   m_ObjectHideFlags: 1
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 1547052833534666}
+  m_GameObject: {fileID: 1635494938875390}
   m_Enabled: 1
   m_CastShadows: 0
   m_ReceiveShadows: 0
@@ -168,8 +169,8 @@ SpriteRenderer:
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: 288048593
-  m_SortingOrder: 3
-  m_Sprite: {fileID: 0}
+  m_SortingOrder: -7001
+  m_Sprite: {fileID: 21300000, guid: 0f9968415a0fdf84ebc581969a0ceda8, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0

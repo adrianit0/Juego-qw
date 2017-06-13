@@ -146,7 +146,7 @@ public class Personaje : MonoBehaviour, IEquipo {
 
         switch(action.tipo) {
             case TIPOACCION.Almacenar:
-                _inventario.CleanResource(action.warehouseAction._inventario);
+                _inventario.CleanResource(action.warehouseAction.inventario);
                 if (_inventario.Count>0) {
                     BuscarAlmacenCercano();
                 }
@@ -154,17 +154,20 @@ public class Personaje : MonoBehaviour, IEquipo {
 
             case TIPOACCION.SacarAlmacen:
                 for(int i = 0; i < action.recursosNecesarios.Count; i++) {
-                    int restante = action.warehouseAction._inventario.GetResource(action.recursosNecesarios[i].type, action.recursosNecesarios[i].quantity, _inventario);
+                    int restante = action.warehouseAction.inventario.GetResource(action.recursosNecesarios[i].type, action.recursosNecesarios[i].quantity, _inventario);
                     if (restante>0) {
                         //Buscarlo en otro almacén
-
                     }
                 }
+                break;
 
+            case TIPOACCION.VaciarAlmacen:
+                action.warehouseAction.OnDestroyBuild();
                 break;
 
             case TIPOACCION.Talar:
             case TIPOACCION.Minar:
+            case TIPOACCION.Cosechar:
             case TIPOACCION.RecogerObjeto:
                 _inventario.AddResource(action.resourceAction);
 
@@ -176,6 +179,27 @@ public class Personaje : MonoBehaviour, IEquipo {
                     if(action.resourceAction.actualQuantity > 0) {
                         AddAction(manager.CreateAction(Mathf.RoundToInt(action.position.x), Mathf.RoundToInt(action.position.y), HERRAMIENTA.Recolectar));
                     }
+                }
+                break;
+
+            case TIPOACCION.ExtraerAgua:
+                _inventario.aguaTotal = new Fluido(_inventario.litrosTotales, action.estructure.GetComponent<Agua>().agua);
+                break;
+
+            case TIPOACCION.Regar:
+                Huerto huerto = action.estructure.GetComponent<Huerto>();
+                if (huerto!=null) {
+                    huerto.Regar();
+                    _inventario.aguaTotal.litrosTotales--;
+                }
+
+                break;
+
+            case TIPOACCION.Plantar:
+                huerto = action.estructure.GetComponent<Huerto>();
+
+                if(huerto != null) {
+                    huerto.Cultivar(action.recursosNecesarios[0].type);
                 }
                 break;
 
@@ -224,7 +248,11 @@ public class Personaje : MonoBehaviour, IEquipo {
         if(action == null)
             return;
 
-        OnActionReceived(action);
+        bool seguir =  OnActionReceived(action);
+
+        if(!seguir)
+            return;
+
         action.worker = this;
 
         manager.actualActions.Add(action);
@@ -267,16 +295,29 @@ public class Personaje : MonoBehaviour, IEquipo {
     }
 
     //Un "evento" que se activa cuando va a realizar una acción.
-    void OnActionReceived (Action action) {
+    bool OnActionReceived (Action action) {
         
         switch (action.tipo) {
             case TIPOACCION.Construir:
                 //Va a buscar el material necesario.
                 Vector3 _pos = manager.PathFinding(this, new PathSetting(action.recursosNecesarios)).finalPosition;
-                AddAction(manager.CreateAction(Mathf.RoundToInt(_pos.x), Mathf.RoundToInt(_pos.y), HERRAMIENTA.Custom, new CustomAction(TIPOACCION.SacarAlmacen, true, action.recursosNecesarios)), 0);
+                AddAction(manager.CreateAction(_pos, HERRAMIENTA.Custom, new CustomAction(TIPOACCION.SacarAlmacen, true, action.recursosNecesarios)), 0);
 
                 break;
+
+            case TIPOACCION.Regar:
+                if (_inventario.aguaTotal.litrosTotales==0) {
+                    _pos = manager.PathFinding(this, new PathSetting(TIPOAGUA.AguaDulce, 0.5f)).finalPosition;
+                    if (_pos != Vector3.zero) {
+                        AddAction(manager.CreateAction(_pos, HERRAMIENTA.Custom, new CustomAction(TIPOACCION.ExtraerAgua, false, null)), 0);
+                    } else {
+                        //Si no encuentra el agua cancela la acción.
+                        return false;
+                    }
+                }
+                break;
         }
+        return true;
     }
 
     public int GetActionsCount () {
@@ -298,10 +339,21 @@ public class Personaje : MonoBehaviour, IEquipo {
     void BuscarAlmacenCercano () {
         Vector3 pos = manager.PathFinding(this, new PathSetting(TIPOPATH.AlmacenEspacio)).finalPosition;
         if(pos != Vector3.zero) {
-            AddAction(manager.CreateAction(Mathf.RoundToInt(pos.x), Mathf.RoundToInt(pos.y), HERRAMIENTA.Custom, new CustomAction(TIPOACCION.Almacenar, true, _inventario.inventario)));
+            AddAction(manager.CreateAction(pos, HERRAMIENTA.Custom, new CustomAction(TIPOACCION.Almacenar, true, _inventario.inventario)));
         } else {
             manager.CrearSaco(transform.position, maxSteps, _inventario.ToArray());
             _inventario.CleanResource();
+        }
+    }
+
+    bool BuscarAguaCercana(TIPOAGUA agua, float minNecesario) {
+        Vector3 pos = manager.PathFinding(this, new PathSetting(agua, minNecesario)).finalPosition;
+        if(pos != Vector3.zero) {
+            AddAction(manager.CreateAction(pos, HERRAMIENTA.Custom, new CustomAction(TIPOACCION.ExtraerAgua, false, null)));
+            return true;
+        } else {
+            //No pasa nada
+            return false;
         }
     }
 

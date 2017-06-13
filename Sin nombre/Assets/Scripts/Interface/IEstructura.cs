@@ -1,6 +1,8 @@
 ﻿public interface IEstructura  {
 
     string OnText();
+    string OnTextGroup(Estructura[] estructuras);
+
     void OnDestroyBuild();
 
 }

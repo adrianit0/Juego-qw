@@ -145,6 +145,11 @@ public class Recurso : Estructura, IEstructura {
         return text;
     }
 
+    public string OnTextGroup(Estructura[] estructuras) {
+
+        return "";
+    }
+
     public void OnDestroyBuild() {
 
     }

@@ -14,6 +14,10 @@ public class Action {
 
     public Personaje worker;
 
+    //Valores de control
+    public bool desactivado = false;
+    public float tiempoNec = 0f;
+
     //Tipos de acciones (Según las diferentes estructuras).
     public Estructura estructure;
     public GameObject prefab;

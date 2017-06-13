@@ -70,6 +70,9 @@ public class Inventario {
     public List<ResourceInfo> inventario = new List<ResourceInfo>();
     public int capacidadTotal = 0;
 
+    public Fluido aguaTotal;
+    public int litrosTotales = 6;
+
     public IEquipo equipo;
 
     //CONSTRUCTORES
@@ -199,6 +202,16 @@ public class Inventario {
 
         if(actualizar) {
             OnValueChange(new ResourceInfo(recurso, -cantidad));
+        }
+    }
+
+    /// <summary>
+    /// Mete una copia de otro inventario en este.
+    /// </summary>
+    /// <param name="otroInventario"></param>
+    public void CopyContent (Inventario otroInventario) {
+        for (int i = 0; i < otroInventario.Lenght; i++) {
+            AddResource(otroInventario.inventario[i].type, otroInventario.inventario[i].quantity);
         }
     }
 

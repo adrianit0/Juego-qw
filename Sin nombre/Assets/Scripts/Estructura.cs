@@ -10,7 +10,6 @@ public class Estructura : MonoBehaviour {
     public ESTRUCTURA tipo;
 
     public string nombre = "";
-    public float estado = 1f;
 
     public bool bloquear = true;
     public GameManager manager;
@@ -40,19 +39,24 @@ public class Estructura : MonoBehaviour {
         render.sortingOrder = manager.SetSortingLayer(transform.position.y);
     }
 
-    public void MostrarInformacion () {
+    public void MostrarInformacion (params Estructura[] estructuras) {
         if(manager == null)
             return;
 
-        manager.panelInformacion.SetActive(true);
+        string texto = "Sin selección.";
 
-        manager.textoInformacion.text =
-            "<b>" + nombre + ".</b>\n\n";
-            /*"<b>Estado: </b>" + Mathf.Round(estado*100) + "%\n\n";*/
+        if(estructura != null) {
+            if(estructuras == null || estructuras.Length <= 1) {
+                texto = "<b>" + nombre + ".</b>\n\n";
+                texto += estructura.OnText();
 
-        if (estructura!=null) {
-            manager.textoInformacion.text += estructura.OnText();
+            } else {
+                texto = "<b>" + tipo + ".</b>\n["+estructuras.Length+" seleccionados]\n\n";
+                texto += estructura.OnTextGroup(estructuras);
+            }
         }
+
+        manager.info.SetText(texto);
     }
 
     public void AlDestuirse () {

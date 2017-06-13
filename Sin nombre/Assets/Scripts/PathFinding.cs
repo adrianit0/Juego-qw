@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public enum TIPOPATH { Posicion, AlmacenEspacio, AlmacenObjeto, huecoLibre }
+public enum TIPOPATH { Posicion, AlmacenEspacio, AlmacenObjeto, huecoLibre, Agua }
 
 public class PathFinding : MonoBehaviour {
 
@@ -160,7 +160,7 @@ public class PathFinding : MonoBehaviour {
                 if(nodo.estructura != null && nodo.estructura.tipo == ESTRUCTURA.Almacen) {
                     Almacen _almacen = nodo.estructura.GetComponent<Almacen>();
 
-                    return (_almacen._inventario.Count<_almacen.capacityTotal);
+                    return (_almacen.inventario.Count<_almacen.capacityTotal);
                 }
                     
 
@@ -170,13 +170,20 @@ public class PathFinding : MonoBehaviour {
                 if(nodo.estructura != null && nodo.estructura.tipo == ESTRUCTURA.Almacen && settings.recursos != null) {
                     Almacen _almacen = nodo.estructura.GetComponent<Almacen>();
 
-                    foreach (ResourceInfo recurso in _almacen._inventario.inventario) {
+                    foreach (ResourceInfo recurso in _almacen.inventario.inventario) {
                         for (int i = 0; i < settings.recursos.Count; i++) {
                             if (recurso.type == settings.recursos[i].type && recurso.quantity > 0) {
                                 return true;
                             }
                         }
                     }
+                }
+
+                return false;
+
+            case TIPOPATH.Agua:
+                if (nodo.estructura != null && nodo.estructura.tipo == ESTRUCTURA.Agua) {
+                    return nodo.estructura.GetComponent<Agua>().agua.GetWater(settings.agua) > settings.minimoNec;
                 }
 
                 return false;
@@ -221,6 +228,9 @@ public class PathSetting {
 
     public List<ResourceInfo> recursos;
 
+    public TIPOAGUA agua;
+    public float minimoNec;
+
     //Busca el mejor camino a una posición en concreto.
     public PathSetting(Vector3 posicion) {
         type = TIPOPATH.Posicion;
@@ -238,6 +248,13 @@ public class PathSetting {
         type = TIPOPATH.AlmacenObjeto;
 
         this.recursos = recursos;
+    }
+
+    public PathSetting (TIPOAGUA agua, float minimoNecesario) {
+        type = TIPOPATH.Agua;
+
+        this.agua = agua;
+        minimoNec = minimoNecesario;
     }
 }
 

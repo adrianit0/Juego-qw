@@ -71,17 +71,19 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   tipo: 1
   nombre: Baul
-  estado: 1
   bloquear: 1
   manager: {fileID: 0}
   esDestruible: 1
   tiempoTotal: 0.25
   tiempoDestruccion: 1
   capacityTotal: 100
-  capacityActual: 0
-  inventario: []
+  _inventario:
+    inventario: []
+    capacidadTotal: 0
   tamLine: 0.75
   yPos: -0.383
+  spriteVaciar: {fileID: 21300014, guid: 186b4be54ef7fce42925d26db9c4d6e1, type: 3}
+  spriteAdmin: {fileID: 21300018, guid: 186b4be54ef7fce42925d26db9c4d6e1, type: 3}
 --- !u!120 &120675247347193650
 LineRenderer:
   m_ObjectHideFlags: 1

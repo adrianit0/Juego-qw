@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System.Collections.Generic;
+using UnityEngine;
 using UnityEngine.EventSystems;
 
 //Es el Update del GameManager.
@@ -9,6 +10,7 @@ public class ControlarJuego : MonoBehaviour {
     bool pulsandoBotonDerecho = false;
 
     Vector2 posInicial, posFinal;
+    Estructura primeraEstructura;
 
     GameManager manager;
     Construccion build;
@@ -72,6 +74,10 @@ public class ControlarJuego : MonoBehaviour {
  
         posInicial = pos;
         posFinal = pos;
+
+        if (manager.herramientaSeleccionada == HERRAMIENTA.Seleccionar) {
+            primeraEstructura = manager.map[Mathf.RoundToInt(pos.x), Mathf.RoundToInt(pos.y)].estructura;
+        }
     }
 
     void ActualizarObjetivo (Vector2 pos) {
@@ -96,12 +102,35 @@ public class ControlarJuego : MonoBehaviour {
     }
 
     void FijarObjetivo () {
-        for (int y = (int) Mathf.Min (posInicial.y, posFinal.y); y < Mathf.Max(posInicial.y, posFinal.y)+1; y++) {
-            for(int x = (int) Mathf.Min(posInicial.x, posFinal.x); x < Mathf.Max(posInicial.x, posFinal.x)+1; x++) {
-                Action _action = manager.CreateAction(x, y, manager.herramientaSeleccionada);
-                if (_action!= null)
-                    manager.actions.Add(_action);
+        if (manager.herramientaSeleccionada != HERRAMIENTA.Seleccionar) {
+            //CREA UNA ACCION
+            for(int y = (int) Mathf.Min(posInicial.y, posFinal.y); y < Mathf.Max(posInicial.y, posFinal.y) + 1; y++) {
+                for(int x = (int) Mathf.Min(posInicial.x, posFinal.x); x < Mathf.Max(posInicial.x, posFinal.x) + 1; x++) {
+                    manager.AddAction(x, y, manager.herramientaSeleccionada);
+                }
             }
+        } else {
+            //MUESTRA LA INFORMACIÓN
+            List<Estructura> estructuras = new List<Estructura>();
+            List<GameObject> selecciones = new List<GameObject>();
+            for(int y = (int) Mathf.Min(posInicial.y, posFinal.y); y < Mathf.Max(posInicial.y, posFinal.y) + 1; y++) {
+                for(int x = (int) Mathf.Min(posInicial.x, posFinal.x); x < Mathf.Max(posInicial.x, posFinal.x) + 1; x++) {
+                    if (primeraEstructura == null && manager.map[x, y].estructura != null) {
+                        primeraEstructura = manager.map[x, y].estructura;
+                    }
+
+                    if (manager.map[x, y].estructura != null && manager.map[x, y].estructura.tipo == primeraEstructura.tipo) {
+                        estructuras.Add(manager.map[x, y].estructura);
+
+                        GameObject _obj = Instantiate (manager.info.seleccionPrefab);
+                        _obj.transform.position = new Vector3(x, y);
+                        selecciones.Add(_obj);
+                    }
+                }
+            }
+
+            manager.info.SeleccionarUnidades(primeraEstructura, estructuras.ToArray(), selecciones.ToArray());
+
         }
 
         CancelarObjetivo();

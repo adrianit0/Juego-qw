@@ -54,11 +54,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   tipo: 4
   nombre: Bolsa
-  estado: 1
   bloquear: 0
   manager: {fileID: 0}
+  esDestruible: 0
   tiempoTotal: 0.1
-  actionType: 11
+  tiempoDestruccion: 1
+  actionType: 12
   fixedContent: 1
   destruirTrasUsarse: 1
   maxQuantity: 25
