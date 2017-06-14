@@ -14,7 +14,9 @@ public class Recurso : Estructura, IEstructura {
 
     new void Awake() {
         base.Awake();
+    }
 
+    public void OnStart () {
         SetSprite();
     }
 

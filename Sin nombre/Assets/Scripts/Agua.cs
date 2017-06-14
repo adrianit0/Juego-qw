@@ -13,8 +13,8 @@ public class Agua : Estructura , IEstructura {
 
     public Sprite spriteExtraer;
 
-    new void Awake() {
-        base.Awake();
+    public void OnStart() {
+
     }
 
     public bool Pescar () {
@@ -22,7 +22,6 @@ public class Agua : Estructura , IEstructura {
     }
 
     public string OnText() {
-
         //EXTRAER AGUA
         manager.info.ActivarBoton(0, spriteExtraer, "Extraer", true, () => {
             manager.AddAction(transform.position, HERRAMIENTA.Custom, new CustomAction(TIPOACCION.ExtraerAgua, false, null));
@@ -82,11 +81,11 @@ public struct Fluido {
     public Fluido (int litros, float porcDulce, float porcSalada, float porcCont) {
         float total = porcDulce + porcSalada + porcCont;
 
-        litrosTotales = litros;
+        litrosTotales = total > 0 ? litros : 0;
 
-        porcAguaDulce = porcDulce / total;
-        porcAguaSalada = porcSalada / total;
-        porcAguaCont = porcCont / total;
+        porcAguaDulce = total>0 ? porcDulce / total : 0;
+        porcAguaSalada = total > 0 ? porcSalada / total : 0;
+        porcAguaCont = total > 0 ? porcCont / total : 0;
     }
 
     public Fluido (float litrosDulce, float litrosSalada, float litrosCont) {

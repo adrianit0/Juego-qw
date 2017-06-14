@@ -189,8 +189,7 @@ public class Personaje : MonoBehaviour, IEquipo {
             case TIPOACCION.Regar:
                 Huerto huerto = action.estructure.GetComponent<Huerto>();
                 if (huerto!=null) {
-                    huerto.Regar();
-                    _inventario.aguaTotal.litrosTotales--;
+                    huerto.Regar(_inventario.aguaTotal);
                 }
 
                 break;

@@ -37,6 +37,10 @@ public class Estructura : MonoBehaviour {
         manager.AddBuildInMap(Mathf.RoundToInt(transform.position.x), Mathf.RoundToInt(transform.position.y), this);
 
         render.sortingOrder = manager.SetSortingLayer(transform.position.y);
+
+        if(estructura != null) {
+            estructura.OnStart();
+        }
     }
 
     public void MostrarInformacion (params Estructura[] estructuras) {

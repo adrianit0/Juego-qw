@@ -1,5 +1,7 @@
 ﻿public interface IEstructura  {
 
+    void OnStart();
+
     string OnText();
     string OnTextGroup(Estructura[] estructuras);
 

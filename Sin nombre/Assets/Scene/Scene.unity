@@ -1685,7 +1685,7 @@ MonoBehaviour:
     cultivoPrefab: {fileID: 0}
     boton: {fileID: 2134117968}
   - semilla: 7
-    tiempoCrecer: 1
+    tiempoCrecer: 5
     litrosPorMinuto: 1
     sprite:
     - {fileID: 21300004, guid: 0f9968415a0fdf84ebc581969a0ceda8, type: 3}

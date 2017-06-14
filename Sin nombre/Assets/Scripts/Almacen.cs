@@ -23,6 +23,10 @@ public class Almacen : Estructura, IEstructura, IEquipo {
         inventario.equipo = (IEquipo) this;
     }
 
+    public void OnStart () {
+
+    }
+
     public void OnCapacityChange (params ResourceInfo[] recursos) {
         manager._inventario.AddResource(recursos);
 
