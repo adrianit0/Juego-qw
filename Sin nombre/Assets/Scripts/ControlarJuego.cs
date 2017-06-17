@@ -6,11 +6,14 @@ using UnityEngine.EventSystems;
 public class ControlarJuego : MonoBehaviour {
 
     public SpriteRenderer seleccion;
+    public Camera secondCamera;
     public bool desactivarBotonDerecho = false;
     bool pulsandoBotonDerecho = false;
 
     Vector2 posInicial, posFinal;
     Estructura primeraEstructura;
+
+    Vector3 lastFramePosition;
 
     GameManager manager;
     Construccion build;
@@ -30,7 +33,15 @@ public class ControlarJuego : MonoBehaviour {
             build.BuildUpdate();
             return;
         }
+        
+        //AsignarAgua();
+        UpdateMoverCamaraBoton();
+        UpdateMoverCamaraMouse();
+        UpdateZoom();
+        InteractuarMapa();
+    }
 
+    void AsignarAgua () {
         if(Input.GetMouseButtonUp(1) && !desactivarBotonDerecho && !pulsandoBotonDerecho && !EventSystem.current.IsPointerOverGameObject()) {
             int _x = Mathf.RoundToInt(Camera.main.ScreenToWorldPoint(Input.mousePosition).x);
             int _y = Mathf.RoundToInt(Camera.main.ScreenToWorldPoint(Input.mousePosition).y);
@@ -40,31 +51,57 @@ public class ControlarJuego : MonoBehaviour {
             manager.map[_x, _y].bloqueado = !manager.map[_x, _y].bloqueado;
             manager.map[_x, _y].coll.isTrigger = !manager.map[_x, _y].bloqueado;
 
-            if (manager.map[_x, _y].bloqueado) {
+            if(manager.map[_x, _y].bloqueado) {
                 manager.CreateBuild(new Vector3(_x, _y), manager.agua);
             } else {
-                if (manager.map[_x, _y].estructura != null && manager.map[_x, _y].estructura.tipo == ESTRUCTURA.Agua)
+                if(manager.map[_x, _y].estructura != null && manager.map[_x, _y].estructura.tipo == ESTRUCTURA.Agua)
                     manager.RemoveBuildInMap(new Vector3(_x, _y));
             }
             //mapa[_x, _y].render.sprite = (!mapa[_x, _y].bloqueado) ? spriteTierra : spriteAgua;
 
             manager.UpdateMap();
         }
+    }
 
-        if (Input.GetMouseButtonDown(0) && !EventSystem.current.IsPointerOverGameObject()) {
+    void UpdateMoverCamaraBoton () {
+        float horizontal = Input.GetAxis("Horizontal");
+        float vertical = Input.GetAxis("Vertical");
+
+        if(horizontal != 0 || vertical != 0) {
+            Camera.main.transform.position += new Vector3(horizontal, vertical, 0) * 0.25f;
+            secondCamera.transform.position += new Vector3(horizontal, 0, vertical) * 0.25f;
+        }
+    }
+
+    void UpdateMoverCamaraMouse () {
+        Vector3 currentPos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+
+        if (Input.GetMouseButton(1)) {
+            Camera.main.transform.Translate (lastFramePosition - currentPos);
+        }
+
+        lastFramePosition = Camera.main.ScreenToWorldPoint(Input.mousePosition); ;
+    }
+
+    void UpdateZoom() {
+        Camera.main.orthographicSize = Mathf.Clamp (Camera.main.orthographicSize - (Camera.main.orthographicSize * Input.GetAxis("Mouse ScrollWheel")), 3, 10);
+
+    } 
+
+    void InteractuarMapa () {
+        if(Input.GetMouseButtonDown(0) && !EventSystem.current.IsPointerOverGameObject()) {
             SeleccionarObjetivo(ScreenToWorldSpaceFixed(Input.mousePosition));
         }
 
-        if (Input.GetMouseButton (0) && pulsandoBotonDerecho) {
-
+        if(Input.GetMouseButton(0) && pulsandoBotonDerecho) {
             ActualizarObjetivo(ScreenToWorldSpaceFixed(Input.mousePosition));
-            
+
             if(Input.GetMouseButtonUp(1)) {
                 CancelarObjetivo();
             }
         }
 
-        if (Input.GetMouseButtonUp(0) && pulsandoBotonDerecho) {
+        if(Input.GetMouseButtonUp(0) && pulsandoBotonDerecho) {
             FijarObjetivo();
         }
     }
