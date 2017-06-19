@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public enum ESTRUCTURA { Vivienda, Almacen, Recurso, Huerto, Bolsa, Agua }
+public enum ESTRUCTURA { Ninguno, Vivienda, Almacen, Recurso, Huerto, Bolsa, Agua }
 
 
 public class Estructura : MonoBehaviour {
@@ -41,6 +41,10 @@ public class Estructura : MonoBehaviour {
         if(estructura != null) {
             estructura.OnStart();
         }
+    }
+
+    public ESTRUCTURA GetBuildType () {
+        return tipo;
     }
 
     public void MostrarInformacion (params Estructura[] estructuras) {

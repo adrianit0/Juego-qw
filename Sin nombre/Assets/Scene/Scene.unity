@@ -1492,7 +1492,6 @@ GameObject:
   - component: {fileID: 162923585}
   - component: {fileID: 162923584}
   - component: {fileID: 162923589}
-  - component: {fileID: 162923586}
   - component: {fileID: 162923587}
   - component: {fileID: 162923588}
   - component: {fileID: 162923590}
@@ -1654,17 +1653,6 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &162923586
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 162923583}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 2dc516f0ae19e2642b07f1cf5085e2d0, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!114 &162923587
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4071,7 +4059,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1808d84d413c8a54eb0d7567e954ab5b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  tipo: 2
+  tipo: 0
   nombre: Arbol
   bloquear: 1
   manager: {fileID: 162923584}
@@ -6691,7 +6679,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1808d84d413c8a54eb0d7567e954ab5b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  tipo: 2
+  tipo: 0
   nombre: Arbol
   bloquear: 1
   manager: {fileID: 162923584}
@@ -9505,7 +9493,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1808d84d413c8a54eb0d7567e954ab5b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  tipo: 2
+  tipo: 0
   nombre: Arbol
   bloquear: 1
   manager: {fileID: 162923584}
@@ -15479,7 +15467,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1808d84d413c8a54eb0d7567e954ab5b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  tipo: 2
+  tipo: 0
   nombre: Arbol
   bloquear: 1
   manager: {fileID: 162923584}
@@ -16136,7 +16124,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1808d84d413c8a54eb0d7567e954ab5b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  tipo: 2
+  tipo: 0
   nombre: Arbol
   bloquear: 1
   manager: {fileID: 162923584}

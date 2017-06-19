@@ -20,7 +20,6 @@ GameObject:
   m_Component:
   - component: {fileID: 4205280215957204}
   - component: {fileID: 212917816112517720}
-  - component: {fileID: 114259909888971652}
   - component: {fileID: 61136518871485912}
   m_Layer: 0
   m_Name: Nodo
@@ -56,23 +55,6 @@ BoxCollider2D:
   m_Offset: {x: 0, y: 0}
   serializedVersion: 2
   m_Size: {x: 1, y: 1}
---- !u!114 &114259909888971652
-MonoBehaviour:
-  m_ObjectHideFlags: 1
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 1333744839474926}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 323ad37a53412464a9c9d35822609b46, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  estructura: {fileID: 0}
-  render: {fileID: 212917816112517720}
-  coll: {fileID: 61136518871485912}
-  teletransporte: {fileID: 0}
-  bloqueado: 0
-  valor: 50
 --- !u!212 &212917816112517720
 SpriteRenderer:
   m_ObjectHideFlags: 1

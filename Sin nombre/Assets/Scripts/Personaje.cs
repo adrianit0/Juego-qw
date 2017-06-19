@@ -2,6 +2,13 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+
+//TODO: Método que sea buscar un camino con una excepcion, tal como:
+//void GetPosition (PathSettings ajustes, UnityAction excepcion);
+
+/// <summary>
+/// Clase que controla al personaje.
+/// </summary>
 public class Personaje : MonoBehaviour, IEquipo {
 
     public float velocity = 5;
@@ -295,20 +302,19 @@ public class Personaje : MonoBehaviour, IEquipo {
 
     //Un "evento" que se activa cuando va a realizar una acción.
     bool OnActionReceived (Action action) {
-        
         switch (action.tipo) {
             case TIPOACCION.Construir:
                 //Va a buscar el material necesario.
-                Vector3 _pos = manager.PathFinding(this, new PathSetting(action.recursosNecesarios)).finalPosition;
-                AddAction(manager.CreateAction(_pos, HERRAMIENTA.Custom, new CustomAction(TIPOACCION.SacarAlmacen, true, action.recursosNecesarios)), 0);
+                IntVector2 _pos = manager.PathFinding(this, new PathSetting(action.recursosNecesarios)).GetFinalPosition(); ;
+                AddAction(manager.CreateAction(_pos.x, _pos.y, HERRAMIENTA.Custom, new CustomAction(TIPOACCION.SacarAlmacen, true, action.recursosNecesarios)), 0);
 
                 break;
 
             case TIPOACCION.Regar:
                 if (_inventario.aguaTotal.litrosTotales==0) {
-                    _pos = manager.PathFinding(this, new PathSetting(TIPOAGUA.AguaDulce, 0.5f)).finalPosition;
+                    _pos = manager.PathFinding(this, new PathSetting(TIPOAGUA.AguaDulce, 0.5f)).GetFinalPosition(); ;
                     if (_pos != Vector3.zero) {
-                        AddAction(manager.CreateAction(_pos, HERRAMIENTA.Custom, new CustomAction(TIPOACCION.ExtraerAgua, false, null)), 0);
+                        AddAction(manager.CreateAction(_pos.x, _pos.y, HERRAMIENTA.Custom, new CustomAction(TIPOACCION.ExtraerAgua, false, null)), 0);
                     } else {
                         //Si no encuentra el agua cancela la acción.
                         return false;
@@ -336,9 +342,9 @@ public class Personaje : MonoBehaviour, IEquipo {
     }
 
     void BuscarAlmacenCercano () {
-        Vector3 pos = manager.PathFinding(this, new PathSetting(TIPOPATH.AlmacenEspacio)).finalPosition;
-        if(pos != Vector3.zero) {
-            AddAction(manager.CreateAction(pos, HERRAMIENTA.Custom, new CustomAction(TIPOACCION.Almacenar, true, _inventario.inventario)));
+        IntVector2 pos = manager.PathFinding(this, new PathSetting(PATHTYPE.AlmacenEspacio)).GetFinalPosition();
+        if(pos != new IntVector2(0, 0)) {
+            AddAction(manager.CreateAction(pos.x, pos.y, HERRAMIENTA.Custom, new CustomAction(TIPOACCION.Almacenar, true, _inventario.inventario)));
         } else {
             manager.CrearSaco(transform.position, maxSteps, _inventario.ToArray());
             _inventario.CleanResource();
@@ -346,9 +352,9 @@ public class Personaje : MonoBehaviour, IEquipo {
     }
 
     bool BuscarAguaCercana(TIPOAGUA agua, float minNecesario) {
-        Vector3 pos = manager.PathFinding(this, new PathSetting(agua, minNecesario)).finalPosition;
-        if(pos != Vector3.zero) {
-            AddAction(manager.CreateAction(pos, HERRAMIENTA.Custom, new CustomAction(TIPOACCION.ExtraerAgua, false, null)));
+        IntVector2 pos = manager.PathFinding(this, new PathSetting(agua, minNecesario)).GetFinalPosition();
+        if(pos != new IntVector2(0, 0)) {
+            AddAction(manager.CreateAction(pos.x, pos.y, HERRAMIENTA.Custom, new CustomAction(TIPOACCION.ExtraerAgua, false, null)));
             return true;
         } else {
             //No pasa nada
@@ -360,12 +366,17 @@ public class Personaje : MonoBehaviour, IEquipo {
         //Pues no pasa nada...
     }
 
-    public void SetPositions (params Vector3[] pos) {
+    public void SetPositions (params IntVector2[] pos) {
         if (pos == null ||pos.Length==0) {
-            pos = new Vector3[1] { Vector3.zero };
+            pos = new IntVector2[1] { new IntVector2(0, 0) };
         }
 
-        _positions = new List<Vector3>(pos);
+        _positions = new List<Vector3>();
+
+        for (int i = 0; i < pos.Length; i++) {
+            _positions.Add((Vector3) pos[i]);
+        }
+
         line.enabled = true;
 
         canWalk = true;

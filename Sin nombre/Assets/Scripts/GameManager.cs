@@ -38,7 +38,7 @@ public class GameManager : MonoBehaviour, IEquipo {
     public GameObject objetivoPrefab;
 
     GameObject objParent;
-    public Nodo[,] map;
+    Node[,] map;
     
     public List<Personaje> characters = new List<Personaje>();
     public List<Action> actions = new List<Action>();       //Lista por de acciones por adjudicar.
@@ -53,7 +53,8 @@ public class GameManager : MonoBehaviour, IEquipo {
     public Informacion info;    //Necesario en las estructuras.
     
 	void Awake () {
-        path = GetComponent<PathFinding>();
+        path = new PathFinding(this);
+
         farm = GetComponent<Agricultura>();
         build = GetComponent<Construccion>();
         info = GetComponent<Informacion>();
@@ -69,7 +70,7 @@ public class GameManager : MonoBehaviour, IEquipo {
     /// <summary>
     /// Devuelve el camino más corto desde la posición del personaje hasta una posición
     /// </summary>
-    public Vector3[] PathFinding(Personaje character, Vector2 position) {
+    public IntVector2[] PathFinding(Personaje character, Vector2 position) {
         return path.PathFind(character, new PathSetting(position)).path;
     }
 
@@ -77,8 +78,15 @@ public class GameManager : MonoBehaviour, IEquipo {
         return path.PathFind(character, settings);
     }
 
-    public PathResult PathFinding(Vector3 position, int maxSteps, PathSetting settings) {
+    public PathResult PathFinding(IntVector2 position, int maxSteps, PathSetting settings) {
         return path.PathFind(position, maxSteps, settings);
+    }
+
+    public Node GetNode (int x, int y) {
+        if(x < 0 || y < 0 || x >= totalSize.x || y >= totalSize.y)
+            return null;
+
+        return map[x, y];
     }
 
     public Action CreateAction (int _x, int _y, HERRAMIENTA herramienta, CustomAction customAction = null) {
@@ -113,23 +121,23 @@ public class GameManager : MonoBehaviour, IEquipo {
 
         switch (herramienta) {
             case HERRAMIENTA.Seleccionar:
-                if(map[_x, _y].estructura == null)
+                if(map[_x, _y].GetBuild() == null)
                     return null;
 
-                map[_x, _y].estructura.MostrarInformacion();
+                map[_x, _y].GetBuild().MostrarInformacion();
 
                 return null;
             case HERRAMIENTA.Recolectar:
-                if(map[_x, _y].estructura == null)
+                if(map[_x, _y].GetBuild() == null)
                     return null;
 
-                Recurso _resource = map[_x, _y].estructura.GetComponent<Recurso>();
+                Recurso _resource = map[_x, _y].GetBuild().GetComponent<Recurso>();
 
                 if(_resource != null) {
                     if(_resource.actualQuantity == 0)   //Si el recurso está vacio no te permite usarlo.
                         return null;
                     accion = _resource.actionType;
-                } else if(map[_x, _y].estructura.tipo == ESTRUCTURA.Agua) {
+                } else if(map[_x, _y].GetBuildType() == ESTRUCTURA.Agua) {
                     accion = TIPOACCION.Pescar;
                 } else {
                     return null;
@@ -137,7 +145,7 @@ public class GameManager : MonoBehaviour, IEquipo {
                 break;
 
             case HERRAMIENTA.Arar:
-                if(map[_x, _y].estructura != null)
+                if(map[_x, _y].GetBuild() != null)
                     return null;
 
                 accion = TIPOACCION.Arar;
@@ -148,7 +156,7 @@ public class GameManager : MonoBehaviour, IEquipo {
                 break;
 
             case HERRAMIENTA.Construir:
-                if(map[_x, _y].estructura != null)
+                if(map[_x, _y].GetBuild() != null)
                     return null;
 
                 accion = TIPOACCION.Construir;
@@ -165,11 +173,11 @@ public class GameManager : MonoBehaviour, IEquipo {
                 break;
 
             case HERRAMIENTA.Destruir:
-                if(map[_x, _y].estructura == null || !map[_x, _y].estructura.esDestruible)
+                if(map[_x, _y].GetBuild() == null || !map[_x, _y].GetBuild().esDestruible)
                     return null;
 
                 accion = TIPOACCION.Destruir;
-                customTime = map[_x, _y].estructura.tiempoDestruccion;
+                customTime = map[_x, _y].GetBuild().tiempoDestruccion;
 
                 break;
 
@@ -202,7 +210,7 @@ public class GameManager : MonoBehaviour, IEquipo {
                         break;
 
                     case TIPOACCION.VaciarAlmacen:
-                        if (map[_x, _y].estructura != null && map[_x, _y].estructura.GetComponent<Almacen>().inventario.Count>0) {
+                        if (map[_x, _y].GetBuild() != null && map[_x, _y].GetBuild().GetComponent<Almacen>().inventario.Count>0) {
                             customTime = 0.5f;
                             customIcon = SearchIcon(TIPOACCION.SacarAlmacen);
                         } else {
@@ -246,7 +254,7 @@ public class GameManager : MonoBehaviour, IEquipo {
         if (accion == TIPOACCION.Construir) {
             actionScript = new Action(customPrefab, build.selectID, new Vector3(_x, _y), customTime, actionRender, recNecesario);
         } else if (customPrefab == null) {
-            actionScript = new Action(map[_x, _y].estructura, accion, new Vector3(_x, _y), customTime > 0 ? customTime : map[_x, _y].estructura.tiempoTotal, actionRender, recNecesario);
+            actionScript = new Action(map[_x, _y].GetBuild(), accion, new Vector3(_x, _y), customTime > 0 ? customTime : map[_x, _y].GetBuild().tiempoTotal, actionRender, recNecesario);
         } else {
             actionScript = new Action(customPrefab, accion, new Vector3(_x, _y), customTime, actionRender, recNecesario);
         }
@@ -339,7 +347,7 @@ public class GameManager : MonoBehaviour, IEquipo {
             }
 
             PathResult resultado = PathFinding(freeWorkers[nearWorkers], new PathSetting(action.position));
-            if (resultado.finalPosition==Vector3.zero) {
+            if (resultado.GetFinalPosition()==Vector3.zero) {
                 action.renderIcon.color = Color.red;
                 action.desactivado = true;
                 return;
@@ -357,7 +365,7 @@ public class GameManager : MonoBehaviour, IEquipo {
     }
 	
     void CrearMapa () {
-        map = new Nodo[(int) totalSize.x, (int) totalSize.y];
+        map = new Node[(int) totalSize.x, (int) totalSize.y];
         objParent = new GameObject();
         objParent.transform.position = Vector3.zero;
         objParent.name = "Nodes";
@@ -367,9 +375,9 @@ public class GameManager : MonoBehaviour, IEquipo {
                 GameObject _obj = Instantiate (nodoPrefab);
                 _obj.transform.position = new Vector3(x, y, 0);
                 _obj.transform.parent = objParent.transform;
-                Nodo _nodo = map[x, y] = _obj.GetComponent<Nodo>();
+                map[x, y] = new Node(x, y, 100, this);
                 
-                _nodo.render.sprite = spriteTierra[4];
+                _obj.GetComponent<SpriteRenderer>().sprite = spriteTierra[4];
             }
         }
     }
@@ -379,7 +387,7 @@ public class GameManager : MonoBehaviour, IEquipo {
     /// </summary>
     public bool ExistBuild (ESTRUCTURA buildType) {
         for (int i = 0; i < builds.Count; i++) {
-            if(builds[i].tipo == buildType)
+            if(builds[i].GetBuildType() == buildType)
                 return true;
         }
 
@@ -393,7 +401,7 @@ public class GameManager : MonoBehaviour, IEquipo {
         Vector2 nearest = Vector3.zero;
         int foundCount = 0;
         for(int i = 0; i < builds.Count; i++) {
-            if(builds[i].tipo == buildType && (foundCount==0 || Vector2.Distance (builds[i].transform.position, initialPos) < Vector2.Distance (nearest, initialPos))) {
+            if(builds[i].GetBuildType() == buildType && (foundCount==0 || Vector2.Distance (builds[i].transform.position, initialPos) < Vector2.Distance (nearest, initialPos))) {
                 nearest = builds[i].transform.position;
 
                 foundCount++;
@@ -410,8 +418,8 @@ public class GameManager : MonoBehaviour, IEquipo {
         build.ShopUpdate();
     }
 
-    public void  CrearSaco (Vector3 pos, int maxSteps, ResourceInfo[] inventario) {
-        pos = PathFinding(pos, maxSteps, new PathSetting(TIPOPATH.huecoLibre)).finalPosition;
+    public void  CrearSaco (IntVector2 pos, int maxSteps, ResourceInfo[] inventario) {
+        pos = PathFinding(pos, maxSteps, new PathSetting(PATHTYPE.huecoLibre)).GetFinalPosition();
 
         Estructura estructura = CreateBuild(pos, sacoObjetos);
         if(estructura != null) {
@@ -421,14 +429,14 @@ public class GameManager : MonoBehaviour, IEquipo {
         }
     }
 
-    public Estructura CreateBuild (Vector3 position, GameObject prefab) {
+    public Estructura CreateBuild (IntVector2 position, GameObject prefab) {
         GameObject _build = Instantiate(prefab);
-        _build.transform.position = position;
+        _build.transform.position = (Vector3) position;
         
         Estructura _buildScript = _build.GetComponent<Estructura>();
         _buildScript.manager = this;
         
-        AddBuildInMap(Mathf.RoundToInt(position.x), Mathf.RoundToInt(position.y), _buildScript);
+        AddBuildInMap(position.x, position.y, _buildScript);
 
         return _buildScript;
     }
@@ -440,8 +448,11 @@ public class GameManager : MonoBehaviour, IEquipo {
         if(x < 0 || y < 0 || x >= totalSize.x || y >= totalSize.y)
             return;
 
-        map[x, y].estructura = estructura;
-        map[x, y].bloqueado = estructura.bloquear;
+        if(!map[x, y].CreateBuild(estructura)) {
+            Debug.LogWarning("No se ha podido crear la estructura.");
+            return;
+        }
+
 
         if (!builds.Contains (estructura))
             builds.Add(estructura);
@@ -452,16 +463,17 @@ public class GameManager : MonoBehaviour, IEquipo {
     }
 
     public void RemoveBuildInMap(int x, int y) {
-        if(x < 0 || y < 0 || x >= totalSize.x || y >= totalSize.y|| map[x, y].estructura==null)
+        Estructura build = map[x, y].GetBuild();
+
+        if(x < 0 || y < 0 || x >= totalSize.x || y >= totalSize.y|| build==null)
             return;
 
-        if(!builds.Contains(map[x, y].estructura))
-            builds.Remove(map[x, y].estructura);
+        if(!builds.Contains(build))
+            builds.Remove(build);
 
-        Destroy(map[x, y].estructura.gameObject);
+        Destroy(build.gameObject);
 
-        map[x, y].estructura = null;
-        map[x, y].bloqueado = false;
+        map[x, y].RemoveBuild();
     }
 
     public void RemoveBuildInMap (Vector3 position) {
@@ -469,7 +481,7 @@ public class GameManager : MonoBehaviour, IEquipo {
     }
 
     ///Actualiza los sprites de todo el mapa.
-    public void UpdateMap() {
+    /*public void UpdateMap() {
         for(int x = 0; x < map.GetLength(0); x++) {
             for(int y = 0; y < map.GetLength(1); y++) {
                 map[x, y].render.sprite = SelectTileset(map[x, y].bloqueado ? 1 : 0, new Vector2(x, y));
@@ -529,7 +541,7 @@ public class GameManager : MonoBehaviour, IEquipo {
             return 15;
 
         return 4;
-    }
+    }*/
     
     public void CambiarPestañaRecursos (int index) {
         for (int i = 0; i < panelesRecursos.Length; i++) {

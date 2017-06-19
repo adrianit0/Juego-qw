@@ -104,15 +104,17 @@ public class Construccion :MonoBehaviour {
 
         if (pos != lastPositionBuild) {
             lastPositionBuild = pos;
-            
-            int x = Mathf.RoundToInt(pos.x), y = Mathf.RoundToInt(pos.y);
+
+            int x = Mathf.RoundToInt(pos.x);
+            int y = Mathf.RoundToInt(pos.y);
             interfazConstructor.transform.position = new Vector3(x, y);
             interfazConstructor.color = new Color(1, 1, 1, 0.75f);
 
             for (int i = 0; i < construcciones[selectID].posicionesExtras.Length; i++) {
                 int x2 = Mathf.RoundToInt(construcciones[selectID].posicionesExtras[i].x), y2 = Mathf.RoundToInt(construcciones[selectID].posicionesExtras[i].y);
 
-                if(x+x2< 0 || y + y2 < 0 || x+x2 >= manager.totalSize.x || y + y2 >= manager.totalSize.y || manager.map[x + x2, y + y2].estructura != null || manager.map[x + x2, y + y2].bloqueado) {
+                Node nodo = manager.GetNode(x + x2, y + y2);
+                if(x+x2< 0 || y + y2 < 0 || x+x2 >= manager.totalSize.x || y + y2 >= manager.totalSize.y || nodo.GetBuildType() != ESTRUCTURA.Ninguno || nodo.GetMovementCost()==0) {
                     interfazConstructor.color = new Color(1, 0, 0, 0.75f);
                     break;
                 }
