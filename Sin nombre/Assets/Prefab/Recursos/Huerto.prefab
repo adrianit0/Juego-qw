@@ -82,7 +82,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ded3ccbd4d266044382114914c3ca721, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  tipo: 3
+  tipo: 4
   nombre: Huerto
   bloquear: 0
   manager: {fileID: 0}
@@ -96,7 +96,13 @@ MonoBehaviour:
     sprite: []
     cultivoPrefab: {fileID: 0}
     boton: {fileID: 0}
-  agua: 0
+  agua:
+    litrosTotales: 0
+    porcAguaDulce: 0
+    porcAguaSalada: 0
+    porcAguaCont: 0
+  tiempoCreciendo: 0
+  tiempoAgua: 0
   renderCultivo: {fileID: 212563378448357772}
   sueloSeco: {fileID: 21300000, guid: 0f9968415a0fdf84ebc581969a0ceda8, type: 3}
   sueloMojado: {fileID: 21300002, guid: 0f9968415a0fdf84ebc581969a0ceda8, type: 3}

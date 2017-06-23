@@ -52,7 +52,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1808d84d413c8a54eb0d7567e954ab5b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  tipo: 4
+  tipo: 5
   nombre: Bolsa
   bloquear: 0
   manager: {fileID: 0}

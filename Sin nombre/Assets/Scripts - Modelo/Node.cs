@@ -22,10 +22,9 @@ public class Node {
         }
     }
 
-    //El manager para acceder directamente ahí
     GameManager manager;
 
-    Estructura build;
+    public Estructura build { get; private set; }
 
     //El valor de movimiento para el pathFinding.
     int movementCost = 100;
@@ -36,6 +35,10 @@ public class Node {
 
         this.manager = manager;
         this.movementCost = movementCost;
+    }
+
+    public bool CanBuild () {
+        return build == null;
     }
 
     public bool CreateBuild (Estructura createdbuild) {
@@ -89,5 +92,9 @@ public class Node {
 
     public bool IsBlocked () {
         return movementCost <= 0;
+    }
+
+    public bool IsEmpty () {
+        return build == null;
     }
 }

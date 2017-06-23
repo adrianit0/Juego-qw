@@ -20,7 +20,7 @@ public class Almacen : Estructura, IEstructura, IEquipo {
 
         line = GetComponent<LineRenderer>();
         inventario = new Inventario(capacityTotal);
-        inventario.equipo = (IEquipo) this;
+        inventario.SetInterface ((IEquipo) this);
     }
 
     public void OnStart () {
@@ -28,7 +28,7 @@ public class Almacen : Estructura, IEstructura, IEquipo {
     }
 
     public void OnCapacityChange (params ResourceInfo[] recursos) {
-        manager._inventario.AddResource(recursos);
+        manager.inventario.AddResource(recursos);
 
         Porcentaje(inventario.GetPerc());
         //Mandar la orden al GameManager para que actualice el panel de recursos.
@@ -41,11 +41,10 @@ public class Almacen : Estructura, IEstructura, IEquipo {
     }
 
     public string OnText() {
+        manager.info.ActivarBoton(0, spriteVaciar, "Vaciar", inventario.Count>0, () => manager.actions.CreateAction (transform.position, HERRAMIENTA.Custom, TIPOACCION.VaciarAlmacen, null, false, null));
+        manager.info.ActivarBoton(1, spriteAdmin, "Gestionar", false, () => { });
 
-        manager.info.ActivarBoton(0, spriteVaciar, "Vaciar", inventario.Count>0, () => manager.AddAction (transform.position, HERRAMIENTA.Custom, new CustomAction (TIPOACCION.VaciarAlmacen, false, null)));
-        manager.info.ActivarBoton(1, spriteAdmin, "Gestionar", false, () => OnDestroyBuild());
-
-        return RecibirTexto(inventario); ;
+        return RecibirTexto(inventario);
     }
 
     public string OnTextGroup(Estructura[] estructuras) {
@@ -60,12 +59,12 @@ public class Almacen : Estructura, IEstructura, IEquipo {
         for (int i = 0; i < almacenes.Length; i++) {
             _inventario.CopyContent(almacenes[i].inventario);
         }
-
+        
         manager.info.ActivarBoton(0, spriteVaciar, "Vaciar", _inventario.Count > 0, () => {
             for (int i = 0; i < almacenes.Length; i++) {
-                manager.AddAction(almacenes[i].transform.position, HERRAMIENTA.Custom, new CustomAction(TIPOACCION.VaciarAlmacen, false, null));
+                manager.actions.CreateAction(almacenes[i].transform.position, HERRAMIENTA.Custom, TIPOACCION.VaciarAlmacen, null, false, null);
             }
-            });
+        });
 
         return RecibirTexto(_inventario); ;
     }
@@ -76,7 +75,7 @@ public class Almacen : Estructura, IEstructura, IEquipo {
         if(_inventario.Lenght > 0) {
             for(int i = 0; i < _inventario.Lenght; i++) {
                 if(_inventario[i] > 0) {
-                    text += "<b>" + _inventario.inventario[i].type.ToString() + ":</b> " + _inventario[i] + "\n";
+                    text += "<b>" + _inventario.GetResourceType(i).ToString() + ":</b> " + _inventario[i] + "\n";
                 }
             }
         } else {

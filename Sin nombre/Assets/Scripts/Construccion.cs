@@ -7,7 +7,9 @@ using UnityEngine.EventSystems;
 public enum CONSTRUCCION { Estructuras = 0, Agricultura = 1, Investigacion = 2, Electricidad = 3, Agua = 4 }
 public enum INVESTIGACION { Ninguno = 0 }
 
-public class Construccion :MonoBehaviour {
+//TODO: Volver a hacer funcional lo de los iconos de los recursos en la construccion
+
+public class Construccion : MonoBehaviour {
 
     public ObjetoTienda[] construcciones = new ObjetoTienda[1];
 
@@ -58,7 +60,7 @@ public class Construccion :MonoBehaviour {
             _button.onClick.AddListener(() => SelectBuild(x));
             createdButtons[i] = _button;
 
-            _obj.transform.GetChild(0).GetComponent<Image>().sprite = construcciones[i].spriteObjeto;  //Aquí no entiendo porque no funciona el GetComponentInChild, por lo que uso GetChild(0).GetComponent que si funciona
+            _obj.transform.GetChild(0).GetComponent<Image>().sprite = construcciones[i].spriteObjeto; 
 
             //CONFIGURAR EL EVENT TRIGGER
             
@@ -84,9 +86,9 @@ public class Construccion :MonoBehaviour {
     public void ShopUpdate() {
         for (int i = 0; i < createdButtons.Length; i++) {
             bool activar = true;
-
+            
             for (int x = 0; x < construcciones[i].recursosNecesarios.Length; x++) {
-                if (construcciones[i].recursosNecesarios[x].cantidadNecesaria > manager._inventario [construcciones[i].recursosNecesarios[x].recurso].quantity) {
+                if (construcciones[i].recursosNecesarios[x].cantidadNecesaria > manager.inventario.GetResourceCount (construcciones[i].recursosNecesarios[x].recurso)) {
                     activar = false;
                     break;
                 }
@@ -140,9 +142,7 @@ public class Construccion :MonoBehaviour {
     }
 
     public void StartBuild () {
-        Action action = manager.CreateAction(Mathf.RoundToInt(interfazConstructor.transform.position.x), Mathf.RoundToInt(interfazConstructor.transform.position.y), HERRAMIENTA.Construir);
-        if (action!=null)
-            manager.actions.Add (action);
+        manager.actions.CreateAction(interfazConstructor.transform.position, HERRAMIENTA.Construir, TIPOACCION.Construir);
 
         CancelBuild();
     }
@@ -169,10 +169,11 @@ public class Construccion :MonoBehaviour {
             if (i < construcciones[ID].recursosNecesarios.Length) {
                 textosRequisitos[i].gameObject.SetActive(true);
                 textosRequisitos[i].text = "x" + construcciones[ID].recursosNecesarios[i].cantidadNecesaria;
-                int _resPos = (int) construcciones[ID].recursosNecesarios[i].recurso;
-                textosRequisitos[i].GetComponentInChildren<Image>().sprite = manager._inventario.inventario [_resPos].sprite;
 
-                textosRequisitos[i].color = (construcciones[ID].recursosNecesarios[i].cantidadNecesaria > manager._inventario[construcciones[ID].recursosNecesarios[i].recurso].quantity) ? Color.red : Color.white;
+                //Pones el sprite necesario para que se pueda mostrar correctamente.
+                textosRequisitos[i].GetComponentInChildren<Image>().sprite = manager.resourceController.GetSprite(construcciones[ID].recursosNecesarios[i].recurso);
+
+                textosRequisitos[i].color = (construcciones[ID].recursosNecesarios[i].cantidadNecesaria > manager.inventario.GetResourceCount(construcciones[ID].recursosNecesarios[i].recurso)) ? Color.red : Color.white;
             } else {
                 textosRequisitos[i].gameObject.SetActive(false);
             }

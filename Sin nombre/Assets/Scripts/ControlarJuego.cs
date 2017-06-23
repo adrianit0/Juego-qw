@@ -143,7 +143,8 @@ public class ControlarJuego : MonoBehaviour {
             //CREA UNA ACCION
             for(int y = (int) Mathf.Min(posInicial.y, posFinal.y); y < Mathf.Max(posInicial.y, posFinal.y) + 1; y++) {
                 for(int x = (int) Mathf.Min(posInicial.x, posFinal.x); x < Mathf.Max(posInicial.x, posFinal.x) + 1; x++) {
-                    manager.AddAction(x, y, manager.herramientaSeleccionada);
+                    //TODO: Arreglar
+                    manager.actions.CreateAction(new IntVector2 (x, y), manager.herramientaSeleccionada, TIPOACCION.Almacenar, null, false);
                 }
             }
         } else {

@@ -26,6 +26,4 @@ public class PathResult {
     public IntVector2 GetFinalPosition () {
         return finalPosition;
     }
-
-
 }

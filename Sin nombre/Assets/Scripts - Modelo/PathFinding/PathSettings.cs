@@ -11,7 +11,7 @@ public class PathSetting {
     IntVector2 position;
     ESTRUCTURA build;
 
-    List<ResourceInfo> recursos;
+    ResourceInfo[] recursos;
 
     TIPOAGUA agua;
     float minimoNec;
@@ -31,7 +31,7 @@ public class PathSetting {
     }
 
     //Busca el mejor camino a un baul con el contenido 
-    public PathSetting(List<ResourceInfo> recursos) {
+    public PathSetting(ResourceInfo[] recursos) {
         type = PATHTYPE.AlmacenObjeto;
 
         this.recursos = recursos;
@@ -65,7 +65,7 @@ public class PathSetting {
         if(recursos == null)
             return 0;
 
-        return recursos.Count;
+        return recursos.Length;
     }
 
     public bool Value(RECURSOS type) {

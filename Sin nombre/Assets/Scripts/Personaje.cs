@@ -28,9 +28,15 @@ public class Personaje : MonoBehaviour, IEquipo {
 
     [Range(-3, 5)]
     public int atlestismo, mineria, recoleccion, construccion, ingenio, carisma, culinario;
-    
-    public Inventario _inventario;
 
+    float tiempoInicialTrabajo = 0;
+    
+    //Inventario, donde lleva los recursos
+    public Inventario inventario { get; private set; }
+
+    //Cantidad de agua que el personaje tiene y puede llevar.
+    public Fluido aguaTotal { get; private set; }
+    
     bool canWalk = false;
 
     //SPRITES
@@ -53,7 +59,7 @@ public class Personaje : MonoBehaviour, IEquipo {
     float distanceFinal = 1.1f;
 
     //ACCION QUE ESTÁ REALIZANDO ACTUALMENTE EL PERSONAJE.
-    List<Action> actions = new List<Action>();
+    List<GameAction> actions;
     public LineRenderer lineAction;
     Animator anim;
     
@@ -63,14 +69,18 @@ public class Personaje : MonoBehaviour, IEquipo {
         if(line == null) {
             line = gameObject.AddComponent<LineRenderer>();
         }
+
+        actions = new List<GameAction>();
     }
     
 	void Start () {
         canWalk = false;
-        _inventario = new Inventario(40);
-        _inventario.equipo = (IEquipo) this;
+        inventario = new Inventario(40);
+        aguaTotal = new Fluido(8);
 
-        manager.characters.Add(this);
+        inventario.SetInterface((IEquipo) this);
+
+        manager.AddCharacter(this);
 
         velocity = 3 + atlestismo;
 	}
@@ -80,45 +90,33 @@ public class Personaje : MonoBehaviour, IEquipo {
         UpdateLine();
         
         if (actions.Count>0) {
-            Action action = actions[0];
-            if(Vector3.Distance(transform.position, action.position) <= distanceFinal) {
+            GameAction action = actions[0];
+            if(Vector3.Distance(transform.position, (Vector3) action.node.GetPosition ()) <= distanceFinal) {
                 
                 if (action == null) {
                     actions.RemoveAt(0);
                     return;
                 }
 
-                if(action.actualTime == 0) {
+                //TODO: Arreglar
+                if(tiempoInicialTrabajo == 0) {
+                    tiempoInicialTrabajo = action.totalTime;
                     lineAction.gameObject.SetActive(true);
                     line.enabled = false;
                     anim.SetBool("Working", true);
 
-                    //Primera vez usa la accion.
-                    switch (action.tipo) {
-                        case TIPOACCION.Talar:
-                        case TIPOACCION.RecogerObjeto:
-                        case TIPOACCION.Cosechar:
-                            if (recoleccion>0) {
-                                action.totalTime *= (1 - (0.15f * recoleccion));
-                            }
-                            
-                            break;
-                        case TIPOACCION.Construir:
-
-                            break;
-                    }
+                    action.RealizeAction(ACTIONEVENT.BeforeStart);
                 }
 
-                action.actualTime += Time.deltaTime;
-                PercentAction(action.actualTime / action.totalTime);
+                action.totalTime -= Time.deltaTime;
+                PercentAction(1- action.totalTime / tiempoInicialTrabajo);
 
-                if (action.actualTime > action.totalTime) {
+                if (action.totalTime<0) {
                     //TERMINA LA ACCION
                     RealizarAccion(action);
-
+                    
                 } else {
                     //Acciones que realiza mientras realiza la acción, actualmente desactivado.
-
                 }
 
             } else {
@@ -132,9 +130,9 @@ public class Personaje : MonoBehaviour, IEquipo {
                     transform.localScale = new Vector3(Mathf.Sign(_positions[0].x - _positions[1].x), 1, 1);
                     contentCharacter.transform.localScale = new Vector3(Mathf.Sign(_positions[0].x - _positions[1].x), 1, 1);
                 } else {
-                    transform.position += (action.position-transform.position).normalized * velocity * Time.deltaTime;
-                    transform.localScale = new Vector3(Mathf.Sign(transform.position.x - action.position.x), 1, 1);
-                    contentCharacter.transform.localScale = new Vector3(Mathf.Sign(transform.position.x - action.position.x), 1, 1);
+                    transform.position += ((Vector3) action.node.GetPosition()-transform.position).normalized * velocity * Time.deltaTime;
+                    transform.localScale = new Vector3(Mathf.Sign(transform.position.x - action.node.GetPosition().x), 1, 1);
+                    contentCharacter.transform.localScale = new Vector3(Mathf.Sign(transform.position.x - action.node.GetPosition().x), 1, 1);
                 }
 
                 body.sortingOrder = manager.SetSortingLayer(transform.position.y);
@@ -148,181 +146,72 @@ public class Personaje : MonoBehaviour, IEquipo {
         }
     }
 
-    void RealizarAccion (Action action) {
+    void RealizarAccion (GameAction action) {
+        action.RealizeAction(ACTIONEVENT.OnCompleted);
+
         RemoveAction(action);
+        tiempoInicialTrabajo = 0;
 
-        switch(action.tipo) {
-            case TIPOACCION.Almacenar:
-                _inventario.CleanResource(action.warehouseAction.inventario);
-                if (_inventario.Count>0) {
-                    BuscarAlmacenCercano();
-                }
-                break;
-
-            case TIPOACCION.SacarAlmacen:
-                for(int i = 0; i < action.recursosNecesarios.Count; i++) {
-                    int restante = action.warehouseAction.inventario.GetResource(action.recursosNecesarios[i].type, action.recursosNecesarios[i].quantity, _inventario);
-                    if (restante>0) {
-                        //Buscarlo en otro almacén
-                    }
-                }
-                break;
-
-            case TIPOACCION.VaciarAlmacen:
-                action.warehouseAction.OnDestroyBuild();
-                break;
-
-            case TIPOACCION.Talar:
-            case TIPOACCION.Minar:
-            case TIPOACCION.Cosechar:
-            case TIPOACCION.RecogerObjeto:
-                _inventario.AddResource(action.resourceAction);
-
-                if(!_inventario.IsFull() && action.resourceAction.actualQuantity > 0) {
-                    AddAction(manager.CreateAction(Mathf.RoundToInt(action.position.x), Mathf.RoundToInt(action.position.y), HERRAMIENTA.Recolectar));
-                } else if(manager.ExistBuild(ESTRUCTURA.Almacen)) {
-                    BuscarAlmacenCercano();
-
-                    if(action.resourceAction.actualQuantity > 0) {
-                        AddAction(manager.CreateAction(Mathf.RoundToInt(action.position.x), Mathf.RoundToInt(action.position.y), HERRAMIENTA.Recolectar));
-                    }
-                }
-                break;
-
-            case TIPOACCION.ExtraerAgua:
-                _inventario.aguaTotal = new Fluido(_inventario.litrosTotales, action.estructure.GetComponent<Agua>().agua);
-                break;
-
-            case TIPOACCION.Regar:
-                Huerto huerto = action.estructure.GetComponent<Huerto>();
-                if (huerto!=null) {
-                    huerto.Regar(_inventario.aguaTotal);
-                }
-
-                break;
-
-            case TIPOACCION.Plantar:
-                huerto = action.estructure.GetComponent<Huerto>();
-
-                if(huerto != null) {
-                    huerto.Cultivar(action.recursosNecesarios[0].type);
-                }
-                break;
-
-            case TIPOACCION.Pescar:
-                Agua agua = action.estructure.GetComponent<Agua>();
-                if (agua != null) {
-                    bool obtenido = agua.Pescar();
-                    if (obtenido) {
-                        _inventario.AddResource(RECURSOS.Sardina, 1);
-                        BuscarAlmacenCercano();
-                    }
-
-                    AddAction(manager.CreateAction(Mathf.RoundToInt(action.position.x), Mathf.RoundToInt(action.position.y), HERRAMIENTA.Recolectar));
-                }
-                break;
-
-            case TIPOACCION.Arar:
-                manager.CreateBuild(action.position, action.prefab);
-                break;
-                
-            case TIPOACCION.Construir:
-                Estructura _build = manager.CreateBuild(action.position, action.prefab);
-                for(int i = 0; i < manager.build.construcciones[action.buildID].posicionesExtras.Length; i++) {
-                    manager.AddBuildInMap(action.position + (Vector3) manager.build.construcciones[action.buildID].posicionesExtras[i], _build);
-                }
-                break;
-
-            case TIPOACCION.Destruir:
-                action.estructure.AlDestuirse();
-
-                if (action.estructure != null)
-                    Destroy(action.estructure.gameObject);
-
-                //Si hubiera alguien realizando alguna acción lo cancelaría automaticamente al destruirse.
-                manager.CreateAction(Mathf.RoundToInt(action.position.x), Mathf.RoundToInt(action.position.y), HERRAMIENTA.Cancelar);
-                break;
-        }
-        
         lineAction.gameObject.SetActive(false);
         line.enabled = true;
 
         anim.SetBool("Working", false);
+
+        //Si se ha quedado sin acciones que busque una entre la lista de acciones.
+        if (actions.Count==0) {
+            manager.actions._actions.AssignActionCharacter(this);
+        }
     }
 
-    public void AddAction(Action action, int insertAt = -1) {
+    public void AddAction(GameAction action, int insertAt = -1) {
         if(action == null)
             return;
 
-        bool seguir =  OnActionReceived(action);
+        action.RealizeAction(ACTIONEVENT.OnAwake);
 
-        if(!seguir)
-            return;
+        if (action.worker == null)
+            action.AssignCharacter(this);
 
-        action.worker = this;
-
-        manager.actualActions.Add(action);
         if (insertAt<=-1)
             actions.Add (action);
         else {
             actions.Insert(insertAt, action);
 
             if (insertAt==0) {
-                SetPositions (manager.PathFinding(this, action.position));
+                tiempoInicialTrabajo = 0;
+                SetPositions (manager.path.PathFind(this, new PathSetting( action.node.GetPosition ())).path);
             }
         }
         
-        action.renderIcon.color = new Color (0.5f, 0.5f, 0.5f, 0.5f);
+        //TODO: Rehacer esto
+        //action.renderIcon.color = new Color (0.5f, 0.5f, 0.5f, 0.5f);
     }
     
-    public void RemoveAction (Action action) {
-        if(action.renderIcon != null)
-            Destroy(action.renderIcon.gameObject);
-        
+    public void RemoveAction (GameAction action, bool removeFromQueue = true) {
         if (actions.Contains (action)) {
             actions.Remove(action);
         }
 
-        if(manager.actualActions.Contains(action))
-            manager.actualActions.Remove(action);
+        if (removeFromQueue)
+            manager.actions.RemoveAction(action);
 
         if (actions.Count == 0) {
             lineAction.gameObject.SetActive(false);
             line.enabled = false;
+            tiempoInicialTrabajo = 0;
 
             anim.SetBool("Working", false);
         }
 
-        if (_inventario.Count>0) {
+        if (inventario.Count>0 && actions.Count==0) {
             BuscarAlmacenCercano();
         }
 
         SiguienteAccion();
     }
 
-    //Un "evento" que se activa cuando va a realizar una acción.
-    bool OnActionReceived (Action action) {
-        switch (action.tipo) {
-            case TIPOACCION.Construir:
-                //Va a buscar el material necesario.
-                IntVector2 _pos = manager.PathFinding(this, new PathSetting(action.recursosNecesarios)).GetFinalPosition(); ;
-                AddAction(manager.CreateAction(_pos.x, _pos.y, HERRAMIENTA.Custom, new CustomAction(TIPOACCION.SacarAlmacen, true, action.recursosNecesarios)), 0);
-
-                break;
-
-            case TIPOACCION.Regar:
-                if (_inventario.aguaTotal.litrosTotales==0) {
-                    _pos = manager.PathFinding(this, new PathSetting(TIPOAGUA.AguaDulce, 0.5f)).GetFinalPosition(); ;
-                    if (_pos != Vector3.zero) {
-                        AddAction(manager.CreateAction(_pos.x, _pos.y, HERRAMIENTA.Custom, new CustomAction(TIPOACCION.ExtraerAgua, false, null)), 0);
-                    } else {
-                        //Si no encuentra el agua cancela la acción.
-                        return false;
-                    }
-                }
-                break;
-        }
-        return true;
+    public bool IsWorking () {
+        return actions != null && actions.Count > 0;
     }
 
     public int GetActionsCount () {
@@ -333,28 +222,29 @@ public class Personaje : MonoBehaviour, IEquipo {
         if(actions.Count == 0) {
             SetPositions(Vector3.zero);
         } else {
-            if(actions[0].pathResult == null) {
-                SetPositions(manager.PathFinding(this, actions[0].position));
-            } else {
+            //TODO: Arreglar el metodo del camino automatico.
+            //if(actions[0].pathResult == null) {
+                SetPositions(manager.path.PathFind(this, actions[0].node.GetPosition()));
+            /*} else {
                 SetPositions(actions[0].pathResult.path);
-            }
+            }*/
         }
     }
 
-    void BuscarAlmacenCercano () {
-        IntVector2 pos = manager.PathFinding(this, new PathSetting(PATHTYPE.AlmacenEspacio)).GetFinalPosition();
+    public void BuscarAlmacenCercano () {
+        IntVector2 pos = manager.path.PathFind(this, new PathSetting(PATHTYPE.AlmacenEspacio)).GetFinalPosition();
         if(pos != new IntVector2(0, 0)) {
-            AddAction(manager.CreateAction(pos.x, pos.y, HERRAMIENTA.Custom, new CustomAction(TIPOACCION.Almacenar, true, _inventario.inventario)));
+            AddAction(manager.actions.CreateAction(pos, HERRAMIENTA.Custom, TIPOACCION.Almacenar, this, true, inventario.ToArray()));
         } else {
-            manager.CrearSaco(transform.position, maxSteps, _inventario.ToArray());
-            _inventario.CleanResource();
+            manager.CrearSaco(transform.position, maxSteps, inventario.ToArray());
+            inventario.CleanResource();
         }
     }
 
     bool BuscarAguaCercana(TIPOAGUA agua, float minNecesario) {
-        IntVector2 pos = manager.PathFinding(this, new PathSetting(agua, minNecesario)).GetFinalPosition();
+        IntVector2 pos = manager.path.PathFind(this, new PathSetting(agua, minNecesario)).GetFinalPosition();
         if(pos != new IntVector2(0, 0)) {
-            AddAction(manager.CreateAction(pos.x, pos.y, HERRAMIENTA.Custom, new CustomAction(TIPOACCION.ExtraerAgua, false, null)));
+            //AddAction(manager.CreateAction(pos.x, pos.y, HERRAMIENTA.Custom, new CustomAction(TIPOACCION.ExtraerAgua, false, null)));
             return true;
         } else {
             //No pasa nada

@@ -60,6 +60,10 @@ public class PathFinding  {
         return PathFind(character.transform.position, character.maxSteps, settings);
     }
 
+    public IntVector2[] PathFind (Personaje character, IntVector2 pos) {
+        return PathFind(character, new PathSetting(pos)).path;
+    }
+
     void SearchNodes(NodePath path, bool firstPath = false) {
         IntVector2 position = path.GetPosition();
 
@@ -154,7 +158,12 @@ public class PathFinding  {
 
             case PATHTYPE.AlmacenEspacio:
                 if(node.GetBuildType () == ESTRUCTURA.Almacen) {
-                    Almacen _almacen = node.GetBuild().GetComponent<Almacen>();
+                    Almacen _almacen = node.build.GetComponent<Almacen>();
+
+                    if (_almacen == null) {
+                        Debug.LogWarning("Ha encontrado una estructura de tipo Almacen, pero no ha podido obtener su valor");
+                        return false;
+                    }
 
                     return (_almacen.inventario.Count<_almacen.capacityTotal);
                 }
@@ -166,10 +175,8 @@ public class PathFinding  {
                 if(node.GetBuildType() == ESTRUCTURA.Almacen && settings.ResourceCount()>0) {
                     Almacen _almacen = node.GetBuild().GetComponent<Almacen>();
 
-                    foreach (ResourceInfo recurso in _almacen.inventario.inventario) {
-                        if(settings.Value(recurso.type))
-                            return true;
-                    }
+                    if(_almacen.inventario.ContainsResource(settings))
+                        return true;
                 }
 
                 return false;
@@ -182,7 +189,7 @@ public class PathFinding  {
                 return false;
 
             case PATHTYPE.huecoLibre:
-                return !node.IsBlocked() && node.GetBuildType() != ESTRUCTURA.Ninguno;
+                return node.IsEmpty();
         }
 
         return false;

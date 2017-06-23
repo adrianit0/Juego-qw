@@ -7,6 +7,14 @@ public struct IntVector2 {
     public int x;
     public int y;
 
+    /// <summary>
+    /// Devuelve el valor IntVector2 (0, 0)
+    /// </summary>
+    public static IntVector2 Zero { get {
+            return new IntVector2(0, 0);
+        }
+    }
+
     public IntVector2(int x = 0, int y = 0) {
         this.x = x;
         this.y = y;

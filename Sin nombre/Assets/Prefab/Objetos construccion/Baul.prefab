@@ -37,7 +37,7 @@ Transform:
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1785868277864010}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 7, y: 8, z: 0}
+  m_LocalPosition: {x: 17, y: 18, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
@@ -69,7 +69,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cbc7f595d4a4e054e8c437a2551f6f01, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  tipo: 1
+  tipo: 2
   nombre: Baul
   bloquear: 1
   manager: {fileID: 0}
@@ -77,9 +77,6 @@ MonoBehaviour:
   tiempoTotal: 0.25
   tiempoDestruccion: 1
   capacityTotal: 100
-  _inventario:
-    inventario: []
-    capacidadTotal: 0
   tamLine: 0.75
   yPos: -0.383
   spriteVaciar: {fileID: 21300014, guid: 186b4be54ef7fce42925d26db9c4d6e1, type: 3}

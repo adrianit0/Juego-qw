@@ -52,9 +52,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7c0cea87f264ada4cb7035e830360538, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  tipo: 0
+  tipo: 1
   nombre: 
-  estado: 1
   bloquear: 1
   manager: {fileID: 0}
   esDestruible: 1

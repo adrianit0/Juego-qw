@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+//TODO: Que vuelva a mostrarse la cantidad de inventario en el menu superior derecho
+
 [System.Serializable]
 public class Inventario {
 
@@ -24,7 +26,7 @@ public class Inventario {
                 }
             }
 
-            //inventario.Add(new ResourceInfo(recurso, value));
+            inventario.Add(new ResourceInfo(recurso, value.quantity));
         }
     }
 
@@ -66,14 +68,12 @@ public class Inventario {
         set { }
     }
 
-    //VARIABLES
-    public List<ResourceInfo> inventario = new List<ResourceInfo>();
-    public int capacidadTotal = 0;
+    //VARIABLES INVENTARIO
+    List<ResourceInfo> inventario = new List<ResourceInfo>();
+    int capacidadTotal = 0;
+    
 
-    public Fluido aguaTotal;
-    public int litrosTotales = 6;
-
-    public IEquipo equipo;
+    IEquipo equipo;
 
     //CONSTRUCTORES
     public Inventario(int capacidadTotal) {
@@ -152,9 +152,22 @@ public class Inventario {
     }
 
     /// <summary>
+    /// Devuelve la cantidad que se tenga de ese recurso en el almacen.
+    /// </summary>
+    public int GetResourceCount (RECURSOS recurso) {
+        for(int i = 0; i < inventario.Count; i++) {
+            if(inventario[i].type == recurso) {
+                return inventario[i].quantity;
+            }
+        }
+
+        return 0;
+    }
+
+    /// <summary>
     /// Coges recursos del inventario, devuelve la cantidad de recursos que no ha podido coger.
     /// </summary>
-    public int GetResource(RECURSOS recurso, int cantidad, Inventario destinatario, bool actualizar = true) {
+    public int MoveResource(RECURSOS recurso, int cantidad, Inventario destinatario, bool actualizar = true) {
         if(cantidad == 0)
             return 0;
 
@@ -176,10 +189,96 @@ public class Inventario {
 
         return faltante;
     }
+
+
+    public bool ContainsResource (PathSetting settings) {
+        foreach(ResourceInfo recurso in inventario) {
+            if(settings.Value(recurso.type))
+                return true;
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    /// Toma una cantidad del inventario.
+    /// Devuelve la cantidad tomada, que puede ser inferior a la que se pide si quantity > cantidad de objetos en ese almacen.
+    /// </summary>
+    public int GetResource (RECURSOS type, int quantity, bool actualizar = true) {
+        if(quantity == 0)
+            return 0;
+
+        ResourceInfo info = this[type];
+        if(info == null)
+            return 0;
+
+        quantity = Mathf.Clamp(quantity, 0, info.quantity);
+        info.quantity -= quantity;
+
+        if(actualizar) {
+            OnValueChange(new ResourceInfo(type, quantity));
+        }
+
+        return quantity;
+    }
     
-    public void GetResources (ResourceInfo[] info, Inventario destinatario) {
-        Debug.Log("Sin programar");
-        //Realizar
+    /// <summary>
+    /// Coge esa cantidad del inventario y lo devuelve.
+    /// </summary>
+    public ResourceInfo[] GetResources (ResourceInfo[] objetos, bool actualizar = true) {
+        if(objetos == null || objetos.Length == 0) {
+            Debug.LogWarning("Inventario::GetResources error: No hay objetos para tomar");
+            return null;
+        }
+            
+
+        ResourceInfo[] cantidad = new ResourceInfo[objetos.Length];
+
+        for (int i = 0; i < objetos.Length; i++) {
+            cantidad[i] = new ResourceInfo(objetos[i].type, GetResource(objetos[i].type, objetos[i].quantity, false));
+        }
+
+        if(actualizar) {
+            OnValueChange(cantidad);
+        }
+
+        return cantidad;
+    }
+
+    /// <summary>
+    /// Vacia el contenido especificado en el método y lo añade en el destinatario.
+    /// La cantidad sobrante se devuelve a este inventario.
+    /// </summary>
+    public void GetResources(ResourceInfo[] objetos, Inventario destinatario, bool actualizar = true) {
+        if(objetos == null || objetos.Length == 0) {
+            Debug.LogWarning("Inventario::GetResources error: No hay objetos para tomar.");
+            return;
+        }
+
+        if (destinatario == null) {
+            Debug.LogWarning("Inventario::GetResources error: No hay destinatario.");
+            return;
+        }
+
+        ResourceInfo[] info = GetResources(objetos, false);
+        if(info != null || info.Length != 0) {
+            for(int i = 0; i < info.Length; i++) {
+                int sobrante = destinatario.AddResource(info[i].type, info[i].quantity, false);
+
+                if(sobrante > 0) {
+                    AddResource(info[i].type, sobrante, false);
+                }
+            }
+        }
+
+        if(actualizar) {
+            destinatario.OnValueChange(info);
+            for (int i = 0; i < info.Length; i++) {
+                info[i].quantity *= -1;
+            }
+
+            OnValueChange(info);
+        }
     }
 
     /// <summary>
@@ -254,9 +353,9 @@ public class Inventario {
     public void OnValueChange (params ResourceInfo[] recursos) {
         for (int i = 0; i < recursos.Length; i++) {
             ResourceInfo info = this[recursos[i].type];
-            if(info != null && info.quantityText != null) {
+            /*if(info != null && info.quantityText != null) {
                 info.quantityText.text = info.quantity.ToString();
-            }
+            }*/
         }
         
         if (equipo!= null) {
@@ -264,7 +363,15 @@ public class Inventario {
         }
     }
 
+    public void SetInterface (IEquipo value) {
+        equipo = value;
+    }
+
     //OTROS METODOS
+    public RECURSOS GetResourceType (int index) {
+        return inventario[index].type;
+    }
+
     public bool IsFull () {
         return Count == capacidadTotal;
     }

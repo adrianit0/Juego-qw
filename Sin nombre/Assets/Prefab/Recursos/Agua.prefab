@@ -52,18 +52,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4c38726eb24620a4488be8186cc37616, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  tipo: 5
+  tipo: 6
   nombre: Agua
   bloquear: 1
   manager: {fileID: 0}
   esDestruible: 0
   tiempoTotal: 1
   tiempoDestruccion: 1
-  agua:
-    litrosTotales: 875
-    porcAguaDulce: 1
-    porcAguaSalada: 0
-    porcAguaCont: 0
   cantPeces: 0
   spriteExtraer: {fileID: 21300026, guid: 186b4be54ef7fce42925d26db9c4d6e1, type: 3}
 --- !u!212 &212164854326093538
@@ -95,7 +90,7 @@ SpriteRenderer:
   m_AutoUVMaxDistance: 0.5
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
-  m_SortingLayerID: 0
+  m_SortingLayerID: 288048593
   m_SortingOrder: 0
   m_Sprite: {fileID: 21300000, guid: 69cc6e07d5de1b7488c03d5d76152147, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}

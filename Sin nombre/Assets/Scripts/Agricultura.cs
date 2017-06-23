@@ -42,8 +42,8 @@ public class Agricultura : MonoBehaviour {
                 continue;
 
             if (huertos[i].cultivo==null) {
-                //PLANTAR
-                manager.AddAction(huertos[i].transform.position, HERRAMIENTA.Custom, new CustomAction(TIPOACCION.Plantar, false, new List<ResourceInfo>() { new ResourceInfo(semillas[id].semilla, 1) }));
+                //Planta el cultivo seleccionado
+                manager.actions.CreateAction(huertos[i].transform.position, HERRAMIENTA.Custom, TIPOACCION.Plantar, null, false, new ResourceInfo[] { new ResourceInfo(semillas[id].semilla, 1) } );
             }
         }
     }
@@ -56,9 +56,9 @@ public class Agricultura : MonoBehaviour {
     public void Actualizar (int necesarias) {
         textoNecesario.text = necesarias.ToString();
         for (int i = 0; i < semillas.Length; i++) {
-            int actual = manager._inventario[semillas[i].semilla].quantity;
+            int actual = manager.inventario.GetResourceCount(semillas[i].semilla);
             semillas[i].boton.cantidad.text = actual.ToString();
-            semillas[i].boton.cantidad.color = (actual >= necesarias) ? Color.white : Color.red;
+            semillas[i].boton.cantidad.color = (actual >= necesarias) ? Color.black : Color.red;
             semillas[i].boton.boton.interactable = actual >= necesarias;
         }
     }
@@ -73,10 +73,6 @@ public class Cultivo {
     public GameObject cultivoPrefab;
 
     public BotonCultivo boton;
-
-    public Cultivo () {
-        //HACER SI HACE FALTA
-    }
 
     public Cultivo (Cultivo otroCultivo) {
         semilla = otroCultivo.semilla;

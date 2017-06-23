@@ -35,7 +35,9 @@ public class Huerto : Estructura, IEstructura {
 
             if (tiempoAgua > (60/cultivo.litrosPorMinuto)) {
                 tiempoAgua = 0;
-                agua.litrosTotales -= 1;
+                if (agua.ConsumirAgua (1)) {
+                    renderCultivo.sprite = sueloSeco;
+                }
             }
 
             SetSprite(Mathf.Clamp(tiempoCreciendo / cultivo.tiempoCrecer, 0, 1));
@@ -49,7 +51,6 @@ public class Huerto : Estructura, IEstructura {
         renderCultivo.sprite = cultivo.sprite[pos];
 
         if(porc == 1) {
-            //manager.RemoveBuildInMap(transform.position);
             Debug.Log("Ya ha crecido");
             manager.RemoveBuildInMap(transform.position);
 
@@ -99,7 +100,7 @@ public class Huerto : Estructura, IEstructura {
 
         //REGAR
         manager.info.ActivarBoton(1, spriteRegar, "Regar", true, () => {
-            manager.AddAction(transform.position, HERRAMIENTA.Custom, new CustomAction(TIPOACCION.Regar, false, null));
+            manager.actions.CreateAction(transform.position, HERRAMIENTA.Custom, TIPOACCION.Regar, null, false, null);
         });
 
         return "";
@@ -131,7 +132,7 @@ public class Huerto : Estructura, IEstructura {
         //REGAR
         manager.info.ActivarBoton(1, spriteRegar, "Regar", true, () => {
             for(int i = 0; i < huertos.Length; i++) {
-                manager.AddAction(huertos[i].transform.position, HERRAMIENTA.Custom, new CustomAction(TIPOACCION.Regar, false, null));
+                manager.actions.CreateAction(huertos[i].transform.position, HERRAMIENTA.Custom, TIPOACCION.Regar, null, false, null);
             }
         });
 
