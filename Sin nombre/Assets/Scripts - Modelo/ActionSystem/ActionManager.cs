@@ -94,7 +94,7 @@ public class ActionManager {
                 action.RegisterAction(ACTIONEVENT.OnAwake, (gameAction) => { methods.ComprobarInventarioAction(gameAction); });
                 action.RegisterAction(ACTIONEVENT.BeforeStart, (gameAction) => { methods.ComprobarInventarioAction(gameAction); });
                 action.RegisterAction(ACTIONEVENT.OnCompleted, (gameAction) => { methods.Construir(id, gameAction); });
-                action.RegisterAction(ACTIONEVENT.OnCanceled, (gameAction) => { methods.CancelarConstruccion(gameAction); });
+                action.RegisterAction(ACTIONEVENT.OnCanceled, (gameAction) => { methods.DevolverRecursos(gameAction); });
 
                 break;
 
@@ -188,6 +188,17 @@ public class ActionManager {
                         action.RegisterAction(ACTIONEVENT.BeforeStart, (gameAction) => { methods.ComprobarAgua(gameAction); });
 
                         action.RegisterAction(ACTIONEVENT.OnCompleted, (gameAction) => { methods.Regar(build, gameAction); });
+
+                        break;
+
+                    case TIPOACCION.Craftear:
+
+                        customIcon = SearchIcon(TIPOACCION.Investigar);
+
+                        action.RegisterAction(ACTIONEVENT.OnAwake, (gameAction) => { methods.ComprobarInventarioAction(gameAction); });
+                        action.RegisterAction(ACTIONEVENT.BeforeStart, (gameAction) => { methods.ComprobarInventarioAction(gameAction); });
+                        action.RegisterAction(ACTIONEVENT.OnCompleted, (gameAction) => { methods.Craftear (build, gameAction); });
+                        action.RegisterAction(ACTIONEVENT.OnCanceled, (gameAction) => { methods.DevolverRecursos(gameAction); });
 
                         break;
                 }

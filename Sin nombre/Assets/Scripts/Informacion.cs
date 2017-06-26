@@ -15,7 +15,12 @@ public class Informacion : MonoBehaviour {
     public GameObject seleccionPrefab;
     public Estructura[] LastSelectionBuild;
     public GameObject[] LastSelection;
-    
+
+    GameManager manager;
+
+    void Awake() {
+        manager = GetComponent<GameManager>();
+    }
 
     void Start () {
         panelInformacion.SetActive(false);
@@ -43,6 +48,9 @@ public class Informacion : MonoBehaviour {
         for (int i = 0; i < botones.Length; i++) {
             botones[i].boton.gameObject.SetActive(false);
         }
+
+        manager.farm.panelCultivo.SetActive(false);
+        manager.craft.panel.SetActive(false);
     }
 
     public void ActivarBoton (int boton, Sprite icono, string texto, bool activado, UnityAction accion) {

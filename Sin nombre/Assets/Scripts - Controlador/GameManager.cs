@@ -7,9 +7,11 @@ public enum RECURSOS {
     //RECURSOS
     Madera, Piedra, Cobre, Plata, Oro,
     //COMIDA
-    Manzana, ManzanaDorada, Zanahoria, Pescado
+    Manzana, ManzanaDorada, Zanahoria, Pescado,
+    //OTROS OBJETOS
+    Tabla, Ladrillo
 }
-public enum TIPOACCION { Talar, Construir, Investigar, Cocinar, Minar, Cosechar, Almacenar, Pescar, Socializar, Arar, SacarAlmacen, VaciarAlmacen, RecogerObjeto, Destruir, ExtraerAgua, Regar, Plantar }
+public enum TIPOACCION { Talar, Construir, Investigar, Cocinar, Minar, Cosechar, Almacenar, Pescar, Socializar, Arar, SacarAlmacen, VaciarAlmacen, RecogerObjeto, Destruir, ExtraerAgua, Regar, Plantar, Craftear }
 public enum HERRAMIENTA { Seleccionar = 0, Recolectar = 1, Arar = 2, Priorizar = 3, Destruir = 4, Cancelar = 5, Construir = 6, Custom = 7 }
 
 public class GameManager : MonoBehaviour, IEquipo {
@@ -46,13 +48,14 @@ public class GameManager : MonoBehaviour, IEquipo {
     //CLASES SERIALIZADAS
     //Clases sin monoBehaviour.
     public GameManager manager { get; private set; }
-    public PathFinding path;
-    public ActionManager actions;
+    public PathFinding path { get; private set; }
+    public ActionManager actions { get; private set; }
 
     //Clases con monoBehaviour.
-    public Agricultura farm;
-    public Construccion build;  //Necesario en el personaje.
-    public Informacion info;    //Necesario en las estructuras.
+    public Agricultura farm { get; private set; }
+    public Construccion build { get; private set; }
+    public Artesania craft { get; private set; }
+    public Informacion info { get; private set; }
     public ResourceController resourceController { get; private set; }
 
 
@@ -69,6 +72,11 @@ public class GameManager : MonoBehaviour, IEquipo {
 
         builds = new List<Estructura>();
         characters = new List<Personaje>();
+
+        farm = GetComponent<Agricultura>();
+        build = GetComponent<Construccion>();
+        craft = GetComponent<Artesania>();
+        info = GetComponent<Informacion>();
 
         resourceController = FindObjectOfType<ResourceController>();
     }
@@ -147,7 +155,10 @@ public class GameManager : MonoBehaviour, IEquipo {
             resourceController.ModifyResource(recursos[i]);
         }
 
+        //Actualiza el panel de construcción
         build.ShopUpdate();
+        //Actualiza el panel de crafteo.
+        craft.UpdateCraft();
     }
 
     public void  CrearSaco (IntVector2 pos, int maxSteps, ResourceInfo[] inventario) {

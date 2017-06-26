@@ -97,11 +97,12 @@ public class GameAction {
         if(recursos == null)
             return;
 
-        recursosNecesarios = recursos;
+        recursosNecesarios = new ResourceInfo[recursos.Length];
+        recursosActuales = new ResourceInfo[recursos.Length];
 
-        recursosActuales = new ResourceInfo[recursosNecesarios.Length];
         for (int i = 0; i < recursosActuales.Length; i++) {
-            recursosActuales[i] = new ResourceInfo(recursosNecesarios[i].type, 0);
+            recursosNecesarios[i] = new ResourceInfo(recursos[i].type, recursos[i].quantity);
+            recursosActuales[i] = new ResourceInfo(recursos[i].type, 0);
         }
     }
 

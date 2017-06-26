@@ -22,7 +22,7 @@ public class ActionMethods  {
         }
 
         if(action.worker == null) {
-            Debug.LogWarning("ExtraerRecursos error: No tiene asignado ningún trabajador.");
+            Debug.LogWarning("ExtraerRecursos error: No tiene asignado ningún trabajador. ActionType: " + action.tipo + " ActionHerramienta: " + action.herramienta);
             return true;
         }
 
@@ -176,15 +176,16 @@ public class ActionMethods  {
         //Si aún te falta va a buscar los objetos necesarios.
         //Recuperas los recursos sobrantes.
         ResourceInfo[] info = worker.inventario.GetResources(action.recursosNecesarios);
-        if (info != null || info.Length!=0) {
-            for (int i = 0; i < info.Length; i++) {
+        if(info != null || info.Length != 0) {
+            for(int i = 0; i < info.Length; i++) {
                 int sobrante = action.AddResource(info[i].type, info[i].quantity);
 
-                if (sobrante > 0) {
+                if(sobrante > 0) {
                     worker.inventario.AddResource(info[i].type, sobrante);
                 }
             }
         }
+        
 
         if (!action.CanBuild ()) {
             IntVector2 _pos = manager.path.PathFind(worker, new PathSetting(action.recursosNecesarios)).GetFinalPosition();
@@ -196,7 +197,6 @@ public class ActionMethods  {
                 actions._actions.ReturnAction(action);
             }
         }
-        
     }
 
     /// <summary>
@@ -217,11 +217,42 @@ public class ActionMethods  {
     /// Cancelar la construcción, devolviendo todo los recursos usados para la creación del mismo.
     /// </summary>
     /// <param name="action"></param>
-    public void CancelarConstruccion (GameAction action) {
+    public void DevolverRecursos (GameAction action) {
         if(ComprobarAcceso(action))
             return;
 
         manager.CrearSaco(action.node.GetPosition(), 10, action.recursosActuales);
+    }
+
+    /// <summary>
+    /// Craftea el objeto que estuviera en cola.
+    /// </summary>
+    public void Craftear (Estructura build, GameAction action) {
+        if(ComprobarAcceso(action) || build == null)
+            return;
+
+        Crafteable craftTable = build.GetComponent<Crafteable>();
+
+        if (craftTable == null) {
+            Debug.LogWarning("Craftear::ActionMethods error: Eso no es mesa de crafteo...");
+            return;
+        }
+
+        Craft crafteo = craftTable.GetThisCraft();
+        if (crafteo==null) {
+            return;
+        }
+
+        foreach (ResourceInfo info in crafteo.requisitos) {
+            action.worker.inventario.RemoveResource(info.type, info.quantity);
+        }
+        action.worker.inventario.AddResource(crafteo.obtencion.type, crafteo.obtencion.quantity);
+
+        craftTable.CancelCraft(0, false);
+
+        if (craftTable.HasMoreCrafts ()) {
+            actions.CreateAction(action, action.worker, true, craftTable.GetThisCraft ().requisitos);
+        }
     }
 
 

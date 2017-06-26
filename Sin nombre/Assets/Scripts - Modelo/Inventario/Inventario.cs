@@ -86,8 +86,8 @@ public class Inventario {
     /// Añade recursos al almacen, y devuelve la cantidad de sobra (La que no puede almacenar).
     /// </summary>
     public int AddResource(RECURSOS recurso, int cantidad, bool actualizar = true) {
-        if(cantidad == 0)
-            return 0;
+        if(cantidad <= 0)
+            return cantidad;
 
         int sobrante = 0;
         int freeSpace = FreeSpace;
@@ -198,6 +198,24 @@ public class Inventario {
         }
 
         return false;
+    }
+
+    /// <summary>
+    /// Te dice si tienes esos materiales.
+    /// Con que te falte alguno de los materiales expuestos devolverá false.
+    /// </summary>
+    public bool ContainsResource (params ResourceInfo [] resourceList) {
+        //Si la lista está vacía eso significa que si tienes todos los ingredientes a falta de ella.
+        if (resourceList == null ||resourceList.Length==0) {
+            return true;
+        }
+        for (int i = 0; i < resourceList.Length; i++) {
+            if (GetResourceCount (resourceList[i].type) < resourceList[i].quantity) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     /// <summary>

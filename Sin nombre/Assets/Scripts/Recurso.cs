@@ -113,7 +113,7 @@ public class Recurso : Estructura, IEstructura {
     }
 
     public string OnText() {
-        string text = "<b>Estado:</b> " + Mathf.Round(((float) actualQuantity) / ((float) maxQuantity)*100) + "%\n";
+        string text = "<b>Estado:</b> " + Mathf.Round(((float) actualQuantity) / ((float) maxQuantity)*100) + "%\n\n";
         text += "<b>Contiene:</b>\n";
 
         if (fixedContent) {
