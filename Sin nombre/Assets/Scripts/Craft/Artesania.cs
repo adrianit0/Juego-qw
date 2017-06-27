@@ -1,7 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-
+using UnityEngine.UI;
 
 
 public class Artesania : MonoBehaviour {
@@ -17,10 +17,11 @@ public class Artesania : MonoBehaviour {
 
     //Panel donde irán los botones pregenerador.
     public GameObject panelInterior;
+    public Toggle toggleRepetir;
 
     //Los botones de la cola.
     public CrafteoQueueBoton[] botonesCola;
-
+    
     Crafteable actualTable;
 
     //MOTOR (No creado aún )
@@ -34,6 +35,8 @@ public class Artesania : MonoBehaviour {
 	void Start () {
         panel.SetActive(false);
 
+        toggleRepetir.onValueChanged.AddListener((toggle) => { SetRepeatable(toggle); });
+
         CrearBotones ( 
             //Crea 5 tablas a partir de 1 de madera.
             new Craft( CRAFTTYPE.Mesa,
@@ -43,7 +46,7 @@ public class Artesania : MonoBehaviour {
             //Crea 3 bloques de piedras a partir de 1 de roca.
             new Craft (CRAFTTYPE.Mesa, 
                 new ResourceInfo[] { new ResourceInfo (RECURSOS.Piedra, 1) },
-                new ResourceInfo (RECURSOS.Ladrillo, 3), 10, 1f),
+                new ResourceInfo (RECURSOS.Ladrillo, 3), 1, 1f),
 
             //Este último es de coña y solo de pruebas.
             new Craft (CRAFTTYPE.Mesa,
@@ -114,6 +117,8 @@ public class Artesania : MonoBehaviour {
             }
         }
 
+        toggleRepetir.isOn = actualTable.repetir;
+
         UpdateCraft();
     }
 
@@ -138,6 +143,15 @@ public class Artesania : MonoBehaviour {
         }
 
         actualTable.CancelCraft(id);
+    }
+
+    void SetRepeatable (bool value) {
+        if(actualTable == null) {
+            Debug.LogWarning("Artesania::SetRepeatable error: No hay ninguna mesa vinculado, por lo que no se puede cancelar.");
+            return;
+        }
+
+        actualTable.SetRepeatable(toggleRepetir.isOn);
     }
 
     //Actualiza la lista de cosas que puede construir a partir de tus recursos actuales

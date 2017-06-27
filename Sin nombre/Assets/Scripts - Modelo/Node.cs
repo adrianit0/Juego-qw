@@ -27,14 +27,21 @@ public class Node {
     public Estructura build { get; private set; }
 
     //El valor de movimiento para el pathFinding.
-    int movementCost = 100;
+    public float movementCost {
+        get {
+            if (build==null) {
+                return 1;
+            }
 
-    public Node (int x, int y, int movementCost, GameManager manager) {
+            return build.bloquear ? 0 : 1;
+        }
+    }
+
+    public Node (int x, int y, GameManager manager) {
         X = x;
         Y = y;
 
         this.manager = manager;
-        this.movementCost = movementCost;
     }
 
     public bool CanBuild () {
@@ -71,10 +78,6 @@ public class Node {
         return true;
     }
 
-    public int GetMovementCost () {
-        return movementCost * ((build != null && build.bloquear) ? 0 : 1);
-    }
-
     public IntVector2 GetPosition () {
         return new IntVector2(x, y);
     }
@@ -91,7 +94,8 @@ public class Node {
     }
 
     public bool IsBlocked () {
-        return movementCost <= 0;
+        return false;
+        //return movementCost <= 0;
     }
 
     public bool IsEmpty () {

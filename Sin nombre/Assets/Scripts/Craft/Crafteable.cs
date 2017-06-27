@@ -11,6 +11,8 @@ public class Crafteable : Estructura, IEstructura {
     /// </summary>
     public CRAFTTYPE tipoCrafteador;
     public Sprite spriteCraftear;
+
+    public bool repetir { get; private set; }
     
     public void OnStart () {
         crafteos = new List<Craft>();
@@ -46,7 +48,32 @@ public class Crafteable : Estructura, IEstructura {
         }
     }
 
-    public void CancelCraft (int id, bool cancelAction = true) {
+    /// <summary>
+    /// Termina el trabajo actual.
+    /// </summary>
+    public void FinishCraft () {
+        if (crafteos == null || crafteos.Count==0) {
+            Debug.LogWarning("Crafteable::FinishCraft: No se puede terminar este crafteo porque no existe.");
+            return;
+        }
+
+        Craft _craft = crafteos[0];
+
+        crafteos.RemoveAt(0);
+        if (repetir) {
+            AddCraft(_craft);
+        } else {
+            if(manager.craft.panel.activeSelf) {
+                manager.craft.SetCraftableTable(this);
+            }
+        }
+
+        if (crafteos.Count>0) {
+            tiempoTotal = crafteos[0].tiempo;
+        }
+    }
+
+    public void CancelCraft (int id) {
         if (id >= crafteos.Count) {
             //No pasa nada porque no hay nada que cancelar.
             Debug.LogWarning("Crafteable::CancelCraft: No se puede cancelar este crafteo porque no existe.");
@@ -61,13 +88,23 @@ public class Crafteable : Estructura, IEstructura {
         //TODO:
         //Si quitas la acción que se está realizando. 
         //Eliminas la acción y la vuelves a activar si tiene más crafteos en la cola (Para que el personaje lo haga desde 0.
-        if (id==0 && cancelAction) {
+        if (id==0) {
             manager.actions.CreateAction((IntVector2) transform.position, HERRAMIENTA.Cancelar, TIPOACCION.Cocinar);
 
             if (crafteos.Count>0) {
+                tiempoTotal = crafteos[0].tiempo;
+
                 manager.actions.CreateAction((IntVector2) transform.position, HERRAMIENTA.Custom, TIPOACCION.Craftear, null, false, crafteos[0].requisitos);
             }
         }
+    }
+
+    public void SetRepeatable (bool value) {
+        if(repetir == value) {
+            return;
+        }
+
+        repetir = value;
     }
 
     public string OnText () {

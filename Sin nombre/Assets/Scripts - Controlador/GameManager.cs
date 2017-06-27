@@ -111,7 +111,7 @@ public class GameManager : MonoBehaviour, IEquipo {
                 GameObject _obj = Instantiate (nodoPrefab);
                 _obj.transform.position = new Vector3(x, y, 0);
                 _obj.transform.parent = this.transform;
-                map[x, y] = new Node(x, y, 100, this);
+                map[x, y] = new Node(x, y, this);
                 
                 _obj.GetComponent<SpriteRenderer>().sprite = spriteTierra[4];
             }

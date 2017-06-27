@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public enum ESTRUCTURA { Ninguno, Vivienda, Almacen, Recurso, Huerto, Bolsa, Agua }
+public enum ESTRUCTURA { Ninguno, Vivienda, Almacen, Recurso, Huerto, Bolsa, Agua, Muro }
 
 
 public class Estructura : MonoBehaviour {
@@ -58,6 +58,10 @@ public class Estructura : MonoBehaviour {
 
     public ESTRUCTURA GetBuildType () {
         return tipo;
+    }
+
+    public void ChangeSprite (Sprite sprite) {
+        render.sprite = sprite;
     }
 
     public void MostrarInformacion (params Estructura[] estructuras) {

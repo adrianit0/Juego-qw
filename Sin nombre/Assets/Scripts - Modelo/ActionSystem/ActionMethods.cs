@@ -191,7 +191,8 @@ public class ActionMethods  {
             IntVector2 _pos = manager.path.PathFind(worker, new PathSetting(action.recursosNecesarios)).GetFinalPosition();
             
             if(_pos != IntVector2.Zero) {
-                worker.AddAction(manager.actions.CreateAction(_pos, HERRAMIENTA.Custom, TIPOACCION.SacarAlmacen, worker, true, action.recursosNecesarios), 0);
+                worker.AddAction(manager.actions.CreateAction(_pos, HERRAMIENTA.Custom, TIPOACCION.Almacenar, worker, true, null), 0);
+                worker.AddAction(manager.actions.CreateAction(_pos, HERRAMIENTA.Custom, TIPOACCION.SacarAlmacen, worker, true, action.recursosNecesarios), 1);
             } else {
                 Debug.LogWarning("ActionMethods::ComprobarConstruccion error: No ha encontrado los recursos necesarios en los baules actuales. La acción se detendrá.");
                 actions._actions.ReturnAction(action);
@@ -210,6 +211,10 @@ public class ActionMethods  {
         Estructura _build = manager.CreateBuild(pos, manager.build.construcciones[buildID].prefab);
         for(int i = 0; i < manager.build.construcciones[buildID].posicionesExtras.Length; i++) {
             manager.AddBuildInMap(pos + manager.build.construcciones[buildID].posicionesExtras[i], _build);
+        }
+
+        if (manager.build.construcciones[buildID].spriteObjeto.Length>1) {
+            _build.ChangeSprite(manager.build.CompareNeighbour(pos, true));
         }
     }
 
@@ -248,7 +253,7 @@ public class ActionMethods  {
         }
         action.worker.inventario.AddResource(crafteo.obtencion.type, crafteo.obtencion.quantity);
 
-        craftTable.CancelCraft(0, false);
+        craftTable.FinishCraft();
 
         if (craftTable.HasMoreCrafts ()) {
             actions.CreateAction(action, action.worker, true, craftTable.GetThisCraft ().requisitos);

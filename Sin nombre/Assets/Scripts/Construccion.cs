@@ -60,10 +60,10 @@ public class Construccion : MonoBehaviour {
             _button.onClick.AddListener(() => SelectBuild(x));
             createdButtons[i] = _button;
 
-            _obj.transform.GetChild(0).GetComponent<Image>().sprite = construcciones[i].spriteObjeto; 
+            _obj.transform.GetChild(0).GetComponent<Image>().sprite = ShowSprite(i, construcciones[i].showSprite);
 
             //CONFIGURAR EL EVENT TRIGGER
-            
+
             EventTrigger trigger = _obj.GetComponent<EventTrigger>();
             //Entrar
             EventTrigger.Entry entry = new EventTrigger.Entry();
@@ -116,7 +116,7 @@ public class Construccion : MonoBehaviour {
                 int x2 = Mathf.RoundToInt(construcciones[selectID].posicionesExtras[i].x), y2 = Mathf.RoundToInt(construcciones[selectID].posicionesExtras[i].y);
 
                 Node nodo = manager.GetNode(x + x2, y + y2);
-                if(x+x2< 0 || y + y2 < 0 || x+x2 >= manager.totalSize.x || y + y2 >= manager.totalSize.y || nodo.GetBuildType() != ESTRUCTURA.Ninguno || nodo.GetMovementCost()==0) {
+                if(x+x2< 0 || y + y2 < 0 || x+x2 >= manager.totalSize.x || y + y2 >= manager.totalSize.y || nodo.GetBuildType() != ESTRUCTURA.Ninguno || nodo.movementCost==0) {
                     interfazConstructor.color = new Color(1, 0, 0, 0.75f);
                     break;
                 }
@@ -144,7 +144,8 @@ public class Construccion : MonoBehaviour {
     public void StartBuild () {
         manager.actions.CreateAction(interfazConstructor.transform.position, HERRAMIENTA.Construir, TIPOACCION.Construir);
 
-        CancelBuild();
+        if (!construcciones[selectID].seguirConstruyendo)
+            CancelBuild();
     }
 
     public void CancelBuild () {
@@ -180,6 +181,79 @@ public class Construccion : MonoBehaviour {
         }
     }
 
+    public Sprite CompareNeighbour (IntVector2 position, bool compareNeighbours = true) {
+        ObjetoTienda objeto = construcciones[selectID];
+        ESTRUCTURA thisType = manager.GetNode(position).build.GetBuildType();
+
+        
+
+        //Si no dispone de sprite, devuelve error.
+        if(objeto.spriteObjeto == null || objeto.spriteObjeto.Length==0) {
+            Debug.LogWarning("Construccion::CompareNeighbour error: "+ objeto.nombre +" no tiene sprites asignados.");
+            return null;
+        }
+
+        if (objeto.spriteObjeto.Length==1) {
+            return objeto.spriteObjeto[0];
+        }
+
+        if(thisType == ESTRUCTURA.Ninguno) {
+            Debug.LogWarning("Construccion::CompareNeighbour error: No es ningun tipo de estructura.");
+            return objeto.spriteObjeto[0];
+        }
+
+        string name = objeto.nombre + "_";
+        Node node = manager.GetNode(position.x, position.y+1);
+        if (node != null && node.build != null && node.build.GetBuildType() == thisType) {
+            name += "N";
+            if (compareNeighbours) {
+                node.build.ChangeSprite(CompareNeighbour(node.GetPosition(), false));
+            }
+        }
+
+        node = manager.GetNode(position.x+1, position.y);
+        if(node != null && node.build != null && node.build.GetBuildType() == thisType) {
+            name += "E";
+            if(compareNeighbours) {
+                node.build.ChangeSprite(CompareNeighbour(node.GetPosition(), false));
+            }
+        }
+
+        node = manager.GetNode(position.x, position.y - 1);
+        if(node != null && node.build != null && node.build.GetBuildType() == thisType) {
+            name += "S";
+            if(compareNeighbours) {
+                node.build.ChangeSprite(CompareNeighbour(node.GetPosition(), false));
+            }
+        }
+
+        node = manager.GetNode(position.x - 1, position.y);
+        if(node != null && node.build != null && node.build.GetBuildType() == thisType) {
+            name += "W";
+            if(compareNeighbours) {
+                node.build.ChangeSprite(CompareNeighbour(node.GetPosition(), false));
+            }
+        }
+
+        for (int i = 0;i < objeto.spriteObjeto.Length; i++) {
+            if (objeto.spriteObjeto[i].name == name) {
+                return objeto.spriteObjeto[i];
+            }
+        }
+
+        return objeto.spriteObjeto[0];
+    }
+
+    Sprite ShowSprite (int selectID, int id) {
+        //Si no dispone de sprite, devuelve error.
+        if(construcciones[selectID].spriteObjeto == null || construcciones[selectID].spriteObjeto.Length == 0 || id >= construcciones[selectID].spriteObjeto.Length) {
+            Debug.LogWarning("Construccion::CompareNeighbour error: " + construcciones[selectID].nombre + " no tiene sprites asignados.");
+            return null;
+        }
+        
+        return construcciones[selectID].spriteObjeto[id];
+    }
+
     /// <summary>
     /// Oculta la información
     /// </summary>
@@ -195,7 +269,8 @@ public class ObjetoTienda {
     public string descripcion;
 
     [Space(5)]
-    public Sprite spriteObjeto;
+    public Sprite[] spriteObjeto;
+    public int showSprite;
     public Sprite spriteModelo;
 
     [Space (5)]
@@ -203,6 +278,7 @@ public class ObjetoTienda {
 
     [Space(5)]
     public int tiempo = 5;
+    public bool seguirConstruyendo;
     public CONSTRUCCION categoria;
     public INVESTIGACION investigacionNec;
 
