@@ -159,7 +159,7 @@ public class Personaje : MonoBehaviour, IEquipo {
 
         //Si se ha quedado sin acciones que busque una entre la lista de acciones.
         if (actions.Count==0) {
-            manager.actions._actions.AssignActionCharacter(this);
+            manager.actions.actionsQueue.AssignActionCharacter(this);
         }
     }
 
@@ -234,7 +234,7 @@ public class Personaje : MonoBehaviour, IEquipo {
     public void BuscarAlmacenCercano () {
         IntVector2 pos = manager.path.PathFind(this, new PathSetting(PATHTYPE.AlmacenEspacio)).GetFinalPosition();
         if(pos != new IntVector2(0, 0)) {
-            AddAction(manager.actions.CreateAction(pos, HERRAMIENTA.Custom, TIPOACCION.Almacenar, this, true, inventario.ToArray()));
+            AddAction(manager.actions.CreateAction(pos, HERRAMIENTA.Custom, TIPOACCION.Almacenar, this, true, -1, inventario.ToArray()));
         } else {
             manager.CrearSaco(transform.position, maxSteps, inventario.ToArray());
             inventario.CleanResource();

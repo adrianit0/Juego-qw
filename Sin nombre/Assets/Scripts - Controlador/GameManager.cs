@@ -19,7 +19,11 @@ public class GameManager : MonoBehaviour, IEquipo {
 
     //CONTENIDO PARTIDA
     public Inventario inventario;
+
+    //Iconos de construccion
     public IconInfo[] iconos = new IconInfo[9];
+    public Sprite[] iconosPrioridad;
+    public Slider barraprioridad;
 
     public List<Estructura> builds { get; private set; }
 
@@ -47,7 +51,6 @@ public class GameManager : MonoBehaviour, IEquipo {
     
     //CLASES SERIALIZADAS
     //Clases sin monoBehaviour.
-    public GameManager manager { get; private set; }
     public PathFinding path { get; private set; }
     public ActionManager actions { get; private set; }
 
@@ -305,12 +308,28 @@ public class GameManager : MonoBehaviour, IEquipo {
     }
 
     public void SeleccionarHerramienta(int herramienta) {
+        int antiguo = (int) herramientaSeleccionada;
+        if (antiguo == herramienta) {
+            return;
+        }
+
         if (herramientaSeleccionada == HERRAMIENTA.Seleccionar) {
             info.EliminarSeleccion();
         }
 
         herramientaSeleccionada = (HERRAMIENTA) herramienta;
         imagenCentral.sprite = iconosHerramientas[herramienta];
+
+        //3 es el de prioridad
+        //Cuando cambias a Prioridad, las acciones se mostrará la prioridad, no el valor.
+        //Vuelve a cambiar esos gráficos a cambiar de herramienta.
+        if (herramienta == 3) {
+            actions.actionsQueue.ChangeIconToPriority();
+        } else if (antiguo == 3) {
+            actions.actionsQueue.ChangeIconToOriginal();
+        }
+
+        barraprioridad.value = 2;
     }
 
     public int SetSortingLayer (float yPos) {

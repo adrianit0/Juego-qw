@@ -4,8 +4,7 @@ using UnityEngine;
 
 public class ActionsQueue {
 
-    public List<GameAction> actions { get; private set; }
-    public Dictionary<GameAction, GameObject> iconList { get; private set; }
+    public Dictionary<GameAction, SpriteRenderer> actions { get; private set; }
 
     GameManager manager;
 
@@ -13,17 +12,15 @@ public class ActionsQueue {
 
     public ActionsQueue(GameManager manager) {
         this.manager = manager;
-
-        actions = new List<GameAction>();
-        iconList = new Dictionary<GameAction, GameObject>();
+        
+        actions = new Dictionary<GameAction, SpriteRenderer>();
     }
 
-    public void AddAction (GameAction action, GameObject icon) {
+    public void AddAction (GameAction action, SpriteRenderer icon) {
         if(action == null)
             return;
-
-        actions.Add(action);
-        iconList.Add(action, icon);
+        
+        actions.Add(action, icon);
 
         SearchCharacter();
 
@@ -35,11 +32,8 @@ public class ActionsQueue {
     /// </summary>
     /// <param name="action"></param>
     public void RemoveAction (GameAction action) {
-        if(actions.Contains(action)) {
-            //TODO: Arreglar esto
-            if(iconList.ContainsKey (action)) {
-                GameObject.Destroy(iconList[action]);
-            }
+        if(actions.ContainsKey (action)) {
+            GameObject.Destroy(actions[action].gameObject);
 
             actions.Remove(action);
         }
@@ -53,7 +47,7 @@ public class ActionsQueue {
     /// Utilizado cuando se devuelve una acción DESACTIVADA a la cola a la espera de que se active.
     /// </summary>
     public void ReturnAction(GameAction action) {
-        if(actions.Contains(action)) {
+        if(actions.ContainsKey(action)) {
             //TODO: Arreglar esto
             action.worker.RemoveAction(action, false);
             action.UnassingCharacter();
@@ -78,6 +72,36 @@ public class ActionsQueue {
     }
 
     /// <summary>
+    /// Cambia los iconos de las acciones al de prioridad.
+    /// </summary>
+    public void ChangeIconToPriority () {
+        foreach(KeyValuePair<GameAction, SpriteRenderer> action in actions) {
+            action.Value.sprite = manager.iconosPrioridad[action.Key.prioridad];
+        }
+    }
+
+    /// <summary>
+    /// Cambia un único icono de las acciones al de prioridad.
+    /// </summary>
+    public void ChangeSingleIconToPriority (GameAction action) {
+        if (!actions.ContainsKey (action)) {
+            Debug.LogWarning("ActionsQueue::ChangeSingleIconToPriority error: Acción no encontrado.");
+            return;
+        }
+
+        actions[action].sprite = manager.iconosPrioridad[action.prioridad];
+    }
+
+    /// <summary>
+    /// Cambia los iconos de las acciones al original.
+    /// </summary>
+    public void ChangeIconToOriginal () {
+        foreach (KeyValuePair<GameAction, SpriteRenderer> action in actions) {
+            action.Key.ChangeSpriteToOriginal(action.Value);
+        }
+    }
+
+    /// <summary>
     /// Asigna una acción al personaje de manera automatica de todas las que haya. De momento el criterio a seguir será el siguiente:
     /// - Prioridad más alta.
     /// - Distancia más cercana al personaje.
@@ -92,27 +116,33 @@ public class ActionsQueue {
         }
 
         //Ahora buscará la mejor acción para el personaje.
-        int bestChoice = -1;
+        GameAction ChosenAction = null;
+        int priority = 0;
         float distance = 10000;
-        for(int i = 0; i < actions.Count; i++) {
-            if (actions[i].worker != null || actions[i].desactivado) {
+        int i = 0;
+        foreach (GameAction action in actions.Keys) {
+            if (action.worker != null || action.desactivado) {
                 continue;
             }
 
-            float thisDistance = Vector3.Distance(character.transform.position, (Vector3) actions[i].node.GetPosition());
-            if (thisDistance < distance) {
-                bestChoice = i;
+            float thisDistance = Vector3.Distance(character.transform.position, (Vector3) action.node.GetPosition());
+            if (action.prioridad>priority) {
+                priority = action.prioridad;
+                ChosenAction = action;
+                distance = thisDistance;
+            } else if(thisDistance < distance) {
+                ChosenAction = action;
                 distance = thisDistance;
             }
+
+            i++;
         }
 
         //No ha encontrado una acción
-        if (bestChoice == -1) {
+        if (ChosenAction == null) {
             Debug.Log("AssignActionCharacter error: No ha encontrado una buena acción para el personaje.");
             return;
         }
-
-        GameAction ChosenAction = actions[bestChoice];
 
         //Devuelve el camino más cercano entre el personaje y el nodo donde se encuentra la acción.
         //De no encontrar el lugar devolverá [0, 0] y desactivará la acción durante 5s.
@@ -128,8 +158,8 @@ public class ActionsQueue {
     }
     
     public bool IsActionCreated (IntVector2 pos) {
-        for(int i = 0; i < actions.Count; i++) {
-            if(actions[i] != null && actions[i].node.GetPosition() == pos) {
+        foreach(GameAction action in actions.Keys) {
+            if(action != null && action.node.GetPosition() == pos) {
                 return true;
             }
         }

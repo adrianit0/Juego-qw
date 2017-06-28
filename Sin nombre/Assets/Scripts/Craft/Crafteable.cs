@@ -44,7 +44,7 @@ public class Crafteable : Estructura, IEstructura {
         if (crafteos.Count == 1) {
             tiempoTotal = crafteos[0].tiempo;
 
-            manager.actions.CreateAction((IntVector2) transform.position, HERRAMIENTA.Custom, TIPOACCION.Craftear, null, false, crafteos[0].requisitos);
+            manager.actions.CreateAction((IntVector2) transform.position, HERRAMIENTA.Custom, TIPOACCION.Craftear, null, false, -1, crafteos[0].requisitos);
         }
     }
 
@@ -94,7 +94,7 @@ public class Crafteable : Estructura, IEstructura {
             if (crafteos.Count>0) {
                 tiempoTotal = crafteos[0].tiempo;
 
-                manager.actions.CreateAction((IntVector2) transform.position, HERRAMIENTA.Custom, TIPOACCION.Craftear, null, false, crafteos[0].requisitos);
+                manager.actions.CreateAction((IntVector2) transform.position, HERRAMIENTA.Custom, TIPOACCION.Craftear, null, false, -1, crafteos[0].requisitos);
             }
         }
     }

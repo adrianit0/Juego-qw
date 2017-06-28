@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class ActionManager {
     
-    public ActionsQueue _actions { get; private set;}
+    public ActionsQueue actionsQueue { get; private set;}
 
     GameManager manager;
     ActionMethods methods;
@@ -12,28 +12,34 @@ public class ActionManager {
     public ActionManager (GameManager manager) {
         this.manager = manager;
         
-        _actions = new ActionsQueue(manager);
+        actionsQueue = new ActionsQueue(manager);
 
         methods = new ActionMethods(manager, this);
     }
 
-    public GameAction CreateAction(IntVector2 pos, HERRAMIENTA herramienta, TIPOACCION type, Personaje character = null, bool repeatable = false, ResourceInfo[] recNecesarios = null) {
+    public GameAction CreateAction(IntVector2 pos, HERRAMIENTA herramienta, TIPOACCION type, Personaje character = null, bool repeatable = false, int prioridad = -1, ResourceInfo[] recNecesarios = null) {
         if(pos.x < 0 || pos.y < 0 || pos.x >= manager.totalSize.x || pos.y >= manager.totalSize.y)
             return null;
 
-        if(herramienta == HERRAMIENTA.Cancelar)
+        if(herramienta == HERRAMIENTA.Cancelar || herramienta == HERRAMIENTA.Priorizar)
             repeatable = true;
 
         //Mira si esta acción ya ha sido seleccionada por una acción anterior.
         //Se puede crear la acción para que se pueda realizar la misma acción con más de un personaje al mismo tiempo.
-        if(!repeatable && _actions.IsActionCreated (pos)) {
+        if(!repeatable && actionsQueue.IsActionCreated (pos)) {
             return null;
+        }
+
+        if (prioridad == -1) {
+            prioridad = (int) manager.barraprioridad.value;
+        } else {
+            prioridad = Mathf.Clamp(prioridad, 0, 4);
         }
 
         Node nodo = manager.GetNode(pos);
         Estructura build = (nodo!=null) ? nodo.GetBuild() : null;
 
-        GameAction action = new GameAction(type, herramienta, manager.GetNode(pos), null, 0);
+        GameAction action = new GameAction(type, herramienta, manager.GetNode(pos), null, 0, prioridad, actionsQueue);
 
         float customTime = (build!=null) ? build.tiempoTotal : 1;
         Sprite customIcon = null;
@@ -98,6 +104,19 @@ public class ActionManager {
 
                 break;
 
+            case HERRAMIENTA.Priorizar:
+                foreach(GameAction _action in actionsQueue.actions.Keys) {
+                    if(_action != null && (Vector2) _action.node.GetPosition() == pos) {
+
+                        _action.ChangePriority(prioridad);
+                        actionsQueue.ChangeSingleIconToPriority(_action);
+
+                        return null;
+                    }
+                }
+
+                return null;
+
             case HERRAMIENTA.Destruir:
                 if(build == null || !build.esDestruible)
                     return null;
@@ -111,7 +130,7 @@ public class ActionManager {
 
 
             case HERRAMIENTA.Cancelar:
-                foreach (GameAction _action in _actions.actions) { 
+                foreach (GameAction _action in actionsQueue.actions.Keys) { 
                     if(_action != null && (Vector2) _action.node.GetPosition () == pos) {
                         _action.RealizeAction(ACTIONEVENT.OnCanceled);
                         RemoveAction(_action);
@@ -216,22 +235,22 @@ public class ActionManager {
 
         actionRender.sprite = (customIcon==null) ? SearchIcon(type) : customIcon;
 
-        action.SetTime(customTime);
-        action.AddRender(actionRender);
-        action.SetResources(recNecesarios);
-
         action.AssignCharacter(character);
-        _actions.AddAction(action, action.renderIcon.gameObject);
+        actionsQueue.AddAction(action, actionRender);
+
+        action.SetTime(customTime);
+        action.SetSprite(actionRender.sprite);
+        action.SetResources(recNecesarios);
 
         return action;
     }
 
-    public GameAction CreateAction (GameAction clon, Personaje character, bool repeatable, ResourceInfo[] recNecesarios = null) {
-        return CreateAction(clon.node.GetPosition(), clon.herramienta, clon.tipo, character, repeatable, recNecesarios);
+    public GameAction CreateAction (GameAction clon, Personaje character, bool repeatable, int prioridad = -1, ResourceInfo[] recNecesarios = null) {
+        return CreateAction(clon.node.GetPosition(), clon.herramienta, clon.tipo, character, repeatable, prioridad, recNecesarios);
     }
     
     public void RemoveAction(GameAction action) {
-        _actions.RemoveAction(action);
+        actionsQueue.RemoveAction(action);
     }
 
     public Sprite SearchIcon(TIPOACCION tipoAccion) {

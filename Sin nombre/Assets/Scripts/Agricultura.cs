@@ -43,7 +43,7 @@ public class Agricultura : MonoBehaviour {
 
             if (huertos[i].cultivo==null) {
                 //Planta el cultivo seleccionado
-                manager.actions.CreateAction(huertos[i].transform.position, HERRAMIENTA.Custom, TIPOACCION.Plantar, null, false, new ResourceInfo[] { new ResourceInfo(semillas[id].semilla, 1) } );
+                manager.actions.CreateAction(huertos[i].transform.position, HERRAMIENTA.Custom, TIPOACCION.Plantar, null, false, -1, new ResourceInfo[] { new ResourceInfo(semillas[id].semilla, 1) } );
             }
         }
     }

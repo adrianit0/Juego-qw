@@ -11,9 +11,10 @@ public enum ACTIONEVENT { OnAwake, BeforeStart, OnCompleted, OnCanceled }
 public class GameAction {
     public float totalTime;
 
-    public SpriteRenderer renderIcon { get; private set; }
+    public Sprite originalSprite { get; private set; }
     public HERRAMIENTA herramienta { get; private set; }
     public TIPOACCION tipo { get; private set; }
+    public int prioridad { get; private set; }
     public Node node { get; private set; }
 
     public Personaje worker { get; private set; }   // Personaje asignado esta acción
@@ -30,11 +31,15 @@ public class GameAction {
     public bool desactivado { get; private set; }
     float tiempoNec = 0f;
 
+    ActionsQueue queue;
+
     // El genérico para la mayoria de las acciones.
-    public GameAction(TIPOACCION tipoAccion, HERRAMIENTA herramienta, Node node, Personaje worker, float duration) {
+    public GameAction(TIPOACCION tipoAccion, HERRAMIENTA herramienta, Node node, Personaje worker, float duration, int prioridad, ActionsQueue queue) {
         this.node = node;
         this.tipo = tipoAccion;
         this.herramienta = herramienta;
+        this.prioridad = prioridad;
+        this.queue = queue;
 
         totalTime = duration;
 
@@ -56,8 +61,8 @@ public class GameAction {
         //Añade la acción directamente a su cola de acciones.
         character.AddAction(this);
 
-        if (renderIcon != null)
-            renderIcon.color = new Color(0.6f, 0.6f, 0.6f, 0.8f);
+        if (originalSprite != null)
+            queue.actions[this].color = new Color(0.6f, 0.6f, 0.6f, 0.8f);
     }
 
     public void UnassingCharacter() {
@@ -74,22 +79,26 @@ public class GameAction {
         totalTime = newTime;
     }
 
-    public void AddRender (SpriteRenderer render) {
+    public void SetSprite (Sprite sprite) {
+        if(sprite == null) {
+            Debug.Log("GameAction::SetSprite error: No hay ningún sprite para añadir a la acción.");
+        }
+
+        originalSprite = sprite;
+    }
+
+    public void ChangeSpriteToOriginal (SpriteRenderer render) {
         if (render == null) {
             Debug.Log("GameAction::AddRender error: No hay ningún render para añadir a la acción.");
         }
-        renderIcon = render;
 
-        renderIcon.color = new Color(1, 1, 1, 0.8f);
+        render.sprite = originalSprite;
+        //render.color = new Color(1, 1, 1, 0.8f);
     }
 
-    public void RemoveRender () {
-        if (renderIcon==null) {
-            Debug.LogWarning("Actualmente esta acción no tiene render");
-            return;
-        }
-
-        GameObject.Destroy(renderIcon.gameObject);
+    public void ChangePriority (int newPriority) {
+        newPriority = Mathf.Clamp(newPriority, 0, 4);
+        prioridad = newPriority;
     }
     
     //Añade el contenido
@@ -139,8 +148,8 @@ public class GameAction {
         desactivado = true;
         tiempoNec = tiempo;
 
-        if(renderIcon != null)
-            renderIcon.color = new Color(1, 0, 0, 0.8f);
+        if(originalSprite != null)
+            queue.actions[this].color = new Color(1, 0, 0, 0.8f);
     }
 
     //Actualiza cada cierto tiempo hasta volver 
@@ -149,8 +158,8 @@ public class GameAction {
         if (tiempoNec<0) {
             desactivado = false;
 
-            if(renderIcon != null)
-                renderIcon.color = new Color(0.6f, 0.6f, 0.6f, 0.8f);
+            if(originalSprite != null)
+                queue.actions[this].color = new Color(0.6f, 0.6f, 0.6f, 0.8f);
         }
     }
 

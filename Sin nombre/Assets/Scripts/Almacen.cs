@@ -41,7 +41,7 @@ public class Almacen : Estructura, IEstructura, IEquipo {
     }
 
     public string OnText() {
-        manager.info.ActivarBoton(0, spriteVaciar, "Vaciar", inventario.Count>0, () => manager.actions.CreateAction (transform.position, HERRAMIENTA.Custom, TIPOACCION.VaciarAlmacen, null, false, null));
+        manager.info.ActivarBoton(0, spriteVaciar, "Vaciar", inventario.Count>0, () => manager.actions.CreateAction (transform.position, HERRAMIENTA.Custom, TIPOACCION.VaciarAlmacen, null, false));
         manager.info.ActivarBoton(1, spriteAdmin, "Gestionar", false, () => { });
 
         return RecibirTexto(inventario);
@@ -62,7 +62,7 @@ public class Almacen : Estructura, IEstructura, IEquipo {
         
         manager.info.ActivarBoton(0, spriteVaciar, "Vaciar", _inventario.Count > 0, () => {
             for (int i = 0; i < almacenes.Length; i++) {
-                manager.actions.CreateAction(almacenes[i].transform.position, HERRAMIENTA.Custom, TIPOACCION.VaciarAlmacen, null, false, null);
+                manager.actions.CreateAction(almacenes[i].transform.position, HERRAMIENTA.Custom, TIPOACCION.VaciarAlmacen, null, false);
             }
         });
 

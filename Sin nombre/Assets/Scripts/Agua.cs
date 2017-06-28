@@ -34,7 +34,7 @@ public class Agua : Estructura , IEstructura {
     public string OnText() {
         //EXTRAER AGUA
         manager.info.ActivarBoton(0, spriteExtraer, "Extraer", true, () => {
-            manager.actions.CreateAction(transform.position, HERRAMIENTA.Custom, TIPOACCION.ExtraerAgua, null, false, null);
+            manager.actions.CreateAction(transform.position, HERRAMIENTA.Custom, TIPOACCION.ExtraerAgua, null, false, -1, null);
         });
 
         return

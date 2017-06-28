@@ -100,7 +100,7 @@ public class Huerto : Estructura, IEstructura {
 
         //REGAR
         manager.info.ActivarBoton(1, spriteRegar, "Regar", true, () => {
-            manager.actions.CreateAction(transform.position, HERRAMIENTA.Custom, TIPOACCION.Regar, null, false, null);
+            manager.actions.CreateAction(transform.position, HERRAMIENTA.Custom, TIPOACCION.Regar, null, false);
         });
 
         return "";
@@ -132,7 +132,7 @@ public class Huerto : Estructura, IEstructura {
         //REGAR
         manager.info.ActivarBoton(1, spriteRegar, "Regar", true, () => {
             for(int i = 0; i < huertos.Length; i++) {
-                manager.actions.CreateAction(huertos[i].transform.position, HERRAMIENTA.Custom, TIPOACCION.Regar, null, false, null);
+                manager.actions.CreateAction(huertos[i].transform.position, HERRAMIENTA.Custom, TIPOACCION.Regar, null, false);
             }
         });
 

@@ -132,11 +132,11 @@ public class ActionMethods  {
         if (action.worker.aguaTotal.litrosTotales == 0) {
             IntVector2 pos = manager.path.PathFind(action.worker, new PathSetting(TIPOAGUA.AguaDulce, 0.5f)).GetFinalPosition(); ;
             if(pos != IntVector2.Zero) {
-                action.worker.AddAction (actions.CreateAction(pos, HERRAMIENTA.Custom, TIPOACCION.ExtraerAgua, null, false, null), 0);
+                action.worker.AddAction (actions.CreateAction(pos, HERRAMIENTA.Custom, TIPOACCION.ExtraerAgua, null, false, action.prioridad, null), 0);
             } else {
                 //Si no encuentra el agua cancela la acción.
                 Debug.LogWarning("ActionMethods::ComprobarAgua error: No ha encontrado agua en las proximidades del personaje. La acción se detendrá.");
-                actions._actions.ReturnAction(action);
+                actions.actionsQueue.ReturnAction(action);
             }
         }
     }
@@ -191,11 +191,11 @@ public class ActionMethods  {
             IntVector2 _pos = manager.path.PathFind(worker, new PathSetting(action.recursosNecesarios)).GetFinalPosition();
             
             if(_pos != IntVector2.Zero) {
-                worker.AddAction(manager.actions.CreateAction(_pos, HERRAMIENTA.Custom, TIPOACCION.Almacenar, worker, true, null), 0);
-                worker.AddAction(manager.actions.CreateAction(_pos, HERRAMIENTA.Custom, TIPOACCION.SacarAlmacen, worker, true, action.recursosNecesarios), 1);
+                worker.AddAction(manager.actions.CreateAction(_pos, HERRAMIENTA.Custom, TIPOACCION.Almacenar, worker, true, action.prioridad, null), 0);
+                worker.AddAction(manager.actions.CreateAction(_pos, HERRAMIENTA.Custom, TIPOACCION.SacarAlmacen, worker, true, action.prioridad, action.recursosNecesarios), 1);
             } else {
                 Debug.LogWarning("ActionMethods::ComprobarConstruccion error: No ha encontrado los recursos necesarios en los baules actuales. La acción se detendrá.");
-                actions._actions.ReturnAction(action);
+                actions.actionsQueue.ReturnAction(action);
             }
         }
     }
@@ -256,7 +256,7 @@ public class ActionMethods  {
         craftTable.FinishCraft();
 
         if (craftTable.HasMoreCrafts ()) {
-            actions.CreateAction(action, action.worker, true, craftTable.GetThisCraft ().requisitos);
+            actions.CreateAction(action, action.worker, true, action.prioridad, craftTable.GetThisCraft ().requisitos);
         }
     }
 
