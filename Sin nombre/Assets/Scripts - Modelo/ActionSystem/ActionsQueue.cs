@@ -101,6 +101,14 @@ public class ActionsQueue {
         }
     }
 
+    public void ChangeColor (GameAction action, Color color) {
+        if (actions.ContainsKey (action)) {
+            actions[action].color = color;
+        } else {
+            Debug.LogWarning("ActionsQueue::ChangeColor error: SpriteRenderer no encontrado en la acción " +action.tipo);
+        }
+    }
+
     /// <summary>
     /// Asigna una acción al personaje de manera automatica de todas las que haya. De momento el criterio a seguir será el siguiente:
     /// - Prioridad más alta.

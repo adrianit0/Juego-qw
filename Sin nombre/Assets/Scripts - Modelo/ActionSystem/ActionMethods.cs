@@ -176,7 +176,7 @@ public class ActionMethods  {
         //Si aún te falta va a buscar los objetos necesarios.
         //Recuperas los recursos sobrantes.
         ResourceInfo[] info = worker.inventario.GetResources(action.recursosNecesarios);
-        if(info != null || info.Length != 0) {
+        if(info != null && info.Length != 0) {
             for(int i = 0; i < info.Length; i++) {
                 int sobrante = action.AddResource(info[i].type, info[i].quantity);
 
@@ -208,14 +208,32 @@ public class ActionMethods  {
             return;
 
         IntVector2 pos = action.node.GetPosition();
-        Estructura _build = manager.CreateBuild(pos, manager.build.construcciones[buildID].prefab);
-        for(int i = 0; i < manager.build.construcciones[buildID].posicionesExtras.Length; i++) {
-            manager.AddBuildInMap(pos + manager.build.construcciones[buildID].posicionesExtras[i], _build);
-        }
+    
+        switch (manager.build.construcciones[buildID].tipoConstruccion) {
+            case TIPOCONSTRUCCION.Estructura:
+                //Para construir estructuras.
+                Estructura _build = manager.CreateBuild(pos, manager.build.construcciones[buildID].prefab);
+                for(int i = 0; i < manager.build.construcciones[buildID].posicionesExtras.Length; i++) {
+                    manager.AddBuildInMap(pos + manager.build.construcciones[buildID].posicionesExtras[i], _build);
+                }
 
-        if (manager.build.construcciones[buildID].spriteObjeto.Length>1) {
-            _build.ChangeSprite(manager.build.CompareNeighbour(pos, true));
+                if(manager.build.construcciones[buildID].spriteObjeto.Length > 1) {
+                    _build.ChangeSprite(manager.build.CompareNeighbour(pos, buildID, true));
+                }
+                break;
+
+            case TIPOCONSTRUCCION.Suelo:
+                //Para construir suelo
+                action.node.ChangeFloorName(manager.build.construcciones[buildID].nombre);
+                action.node.ChangeFloorSprite (manager.build.CompareNeighbourFloor(pos, buildID, true), true);
+                break;
+
+            default:
+                Debug.LogWarning("ActionMethods::Construir aviso: Sistema de construcción de objetos no programado aún");
+                break;
+
         }
+        
     }
 
     /// <summary>

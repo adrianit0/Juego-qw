@@ -84,8 +84,8 @@ public class ControlarJuego : MonoBehaviour {
     }
 
     void UpdateZoom() {
-        Camera.main.orthographicSize = Mathf.Clamp (Camera.main.orthographicSize - (Camera.main.orthographicSize * Input.GetAxis("Mouse ScrollWheel")), 3, 10);
-
+        if (!EventSystem.current.IsPointerOverGameObject())
+            Camera.main.orthographicSize = Mathf.Clamp (Camera.main.orthographicSize - (Camera.main.orthographicSize * Input.GetAxis("Mouse ScrollWheel")), 3, 10);
     } 
 
     void InteractuarMapa () {

@@ -26,6 +26,8 @@ public class Node {
 
     public Estructura build { get; private set; }
 
+    public string floorName { get; private set; }
+
     //El valor de movimiento para el pathFinding.
     public float movementCost {
         get {
@@ -76,6 +78,39 @@ public class Node {
         build = null;
 
         return true;
+    }
+
+    /// <summary>
+    /// Pregunta si puede construir suelo.
+    /// No se podrá construir suelo debajo de los huertos, agua ni paredes.
+    /// </summary>
+    /// <returns></returns>
+    public bool CanBuildFloor () {
+        if(build == null)
+            return true;
+
+        if(build.tipo == ESTRUCTURA.Agua || build.tipo == ESTRUCTURA.Huerto || build.tipo == ESTRUCTURA.Muro)
+            return false;
+
+        return true;
+    }
+
+    /// <summary>
+    /// Cambia el sprite del suelo. Usado para poner suelos personalizados como el de madera.
+    /// </summary>
+    public void ChangeFloorSprite (Sprite sprite, bool isCarpetFloor) {
+        if(sprite == null) {
+            Debug.LogWarning("Node::ChangeFloorSprite error 404: Sprite not found.");
+            return;
+        }
+        
+        SpriteRenderer render = manager.tiles[this];
+        render.sprite = sprite;
+        render.sortingLayerName = (isCarpetFloor) ? "Alfombra" : "Suelo";
+    }
+
+    public void ChangeFloorName (string name) {
+        floorName = name;
     }
 
     public IntVector2 GetPosition () {

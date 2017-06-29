@@ -5,6 +5,7 @@ using UnityEngine.UI;
 using UnityEngine.EventSystems;
 
 public enum CONSTRUCCION { Estructuras = 0, Agricultura = 1, Investigacion = 2, Electricidad = 3, Agua = 4 }
+public enum TIPOCONSTRUCCION { Estructura, Suelo, Cableado, Tuberia }
 public enum INVESTIGACION { Ninguno = 0 }
 
 //TODO: Volver a hacer funcional lo de los iconos de los recursos en la construccion
@@ -112,15 +113,32 @@ public class Construccion : MonoBehaviour {
             interfazConstructor.transform.position = new Vector3(x, y);
             interfazConstructor.color = new Color(1, 1, 1, 0.75f);
 
-            for (int i = 0; i < construcciones[selectID].posicionesExtras.Length; i++) {
-                int x2 = Mathf.RoundToInt(construcciones[selectID].posicionesExtras[i].x), y2 = Mathf.RoundToInt(construcciones[selectID].posicionesExtras[i].y);
 
-                Node nodo = manager.GetNode(x + x2, y + y2);
-                if(x+x2< 0 || y + y2 < 0 || x+x2 >= manager.totalSize.x || y + y2 >= manager.totalSize.y || nodo.GetBuildType() != ESTRUCTURA.Ninguno || nodo.movementCost==0) {
-                    interfazConstructor.color = new Color(1, 0, 0, 0.75f);
+            switch (construcciones[selectID].tipoConstruccion) {
+                case TIPOCONSTRUCCION.Estructura:
+                    for(int i = 0; i < construcciones[selectID].posicionesExtras.Length; i++) {
+                        int x2 = Mathf.RoundToInt(construcciones[selectID].posicionesExtras[i].x), y2 = Mathf.RoundToInt(construcciones[selectID].posicionesExtras[i].y);
+
+                        Node nodo = manager.GetNode(x + x2, y + y2);
+                        if(x + x2 < 0 || y + y2 < 0 || x + x2 >= manager.totalSize.x || y + y2 >= manager.totalSize.y || nodo.GetBuildType() != ESTRUCTURA.Ninguno || nodo.movementCost == 0) {
+                            interfazConstructor.color = new Color(1, 0, 0, 0.75f);
+                            break;
+                        }
+                    }
                     break;
-                }
+
+                case TIPOCONSTRUCCION.Suelo:
+                    if(x < 0 || y < 0 || x >= manager.totalSize.x || y >= manager.totalSize.y || !manager.GetNode(x, y).CanBuildFloor ()) {
+                        interfazConstructor.color = new Color(1, 0, 0, 0.75f);
+                        break;
+                    }
+                    break;
+
+                default:
+                    Debug.LogWarning("Herramienta no programada.");
+                    break;
             }
+            
         }
 
         if(Input.GetMouseButtonUp(0) && !EventSystem.current.IsPointerOverGameObject()) {
@@ -181,12 +199,11 @@ public class Construccion : MonoBehaviour {
         }
     }
 
-    public Sprite CompareNeighbour (IntVector2 position, bool compareNeighbours = true) {
+    public Sprite CompareNeighbour (IntVector2 position, int selectID, bool compareNeighbours = true) {
         ObjetoTienda objeto = construcciones[selectID];
         ESTRUCTURA thisType = manager.GetNode(position).build.GetBuildType();
 
         
-
         //Si no dispone de sprite, devuelve error.
         if(objeto.spriteObjeto == null || objeto.spriteObjeto.Length==0) {
             Debug.LogWarning("Construccion::CompareNeighbour error: "+ objeto.nombre +" no tiene sprites asignados.");
@@ -207,7 +224,7 @@ public class Construccion : MonoBehaviour {
         if (node != null && node.build != null && node.build.GetBuildType() == thisType) {
             name += "N";
             if (compareNeighbours) {
-                node.build.ChangeSprite(CompareNeighbour(node.GetPosition(), false));
+                node.build.ChangeSprite(CompareNeighbour(node.GetPosition(), selectID, false));
             }
         }
 
@@ -215,7 +232,7 @@ public class Construccion : MonoBehaviour {
         if(node != null && node.build != null && node.build.GetBuildType() == thisType) {
             name += "E";
             if(compareNeighbours) {
-                node.build.ChangeSprite(CompareNeighbour(node.GetPosition(), false));
+                node.build.ChangeSprite(CompareNeighbour(node.GetPosition(), selectID, false));
             }
         }
 
@@ -223,7 +240,7 @@ public class Construccion : MonoBehaviour {
         if(node != null && node.build != null && node.build.GetBuildType() == thisType) {
             name += "S";
             if(compareNeighbours) {
-                node.build.ChangeSprite(CompareNeighbour(node.GetPosition(), false));
+                node.build.ChangeSprite(CompareNeighbour(node.GetPosition(), selectID, false));
             }
         }
 
@@ -231,12 +248,73 @@ public class Construccion : MonoBehaviour {
         if(node != null && node.build != null && node.build.GetBuildType() == thisType) {
             name += "W";
             if(compareNeighbours) {
-                node.build.ChangeSprite(CompareNeighbour(node.GetPosition(), false));
+                node.build.ChangeSprite(CompareNeighbour(node.GetPosition(), selectID, false));
             }
         }
 
         for (int i = 0;i < objeto.spriteObjeto.Length; i++) {
             if (objeto.spriteObjeto[i].name == name) {
+                return objeto.spriteObjeto[i];
+            }
+        }
+
+        return objeto.spriteObjeto[0];
+    }
+
+    public Sprite CompareNeighbourFloor(IntVector2 position, int selectID, bool compareNeighbours = true) {
+        ObjetoTienda objeto = construcciones[selectID];
+        string thisFloor = objeto.nombre;
+
+        //Si no dispone de sprite, devuelve error.
+        if(objeto.spriteObjeto == null || objeto.spriteObjeto.Length == 0) {
+            Debug.LogWarning("Construccion::CompareNeighbour error: " + objeto.nombre + " no tiene sprites asignados.");
+            return null;
+        }
+
+        if(objeto.spriteObjeto.Length == 1) {
+            return objeto.spriteObjeto[0];
+        }
+
+        if(thisFloor == "") {
+            Debug.LogWarning("Construccion::CompareNeighbourFloor error: No tiene ningún suelo.");
+            return objeto.spriteObjeto[0];
+        }
+
+        string name = thisFloor + "_";
+        Node node = manager.GetNode(position.x, position.y + 1);
+        if(node != null && node.floorName == thisFloor) {
+            name += "N";
+            if(compareNeighbours) {
+                node.ChangeFloorSprite(CompareNeighbourFloor(node.GetPosition(), selectID, false), true);
+            }
+        }
+
+        node = manager.GetNode(position.x + 1, position.y);
+        if(node != null && node.floorName == thisFloor) {
+            name += "E";
+            if(compareNeighbours) {
+                node.ChangeFloorSprite(CompareNeighbourFloor(node.GetPosition(), selectID, false), true);
+            }
+        }
+
+        node = manager.GetNode(position.x, position.y - 1);
+        if(node != null && node.floorName == thisFloor) {
+            name += "S";
+            if(compareNeighbours) {
+                node.ChangeFloorSprite(CompareNeighbourFloor(node.GetPosition(), selectID, false), true);
+            }
+        }
+
+        node = manager.GetNode(position.x - 1, position.y);
+        if(node != null && node.floorName == thisFloor) {
+            name += "W";
+            if(compareNeighbours) {
+                node.ChangeFloorSprite(CompareNeighbourFloor(node.GetPosition(), selectID, false), true);
+            }
+        }
+
+        for(int i = 0; i < objeto.spriteObjeto.Length; i++) {
+            if(objeto.spriteObjeto[i].name == name) {
                 return objeto.spriteObjeto[i];
             }
         }
@@ -273,14 +351,16 @@ public class ObjetoTienda {
     public int showSprite;
     public Sprite spriteModelo;
 
-    [Space (5)]
-    public GameObject prefab;
-
     [Space(5)]
     public int tiempo = 5;
     public bool seguirConstruyendo;
     public CONSTRUCCION categoria;
+    public TIPOCONSTRUCCION tipoConstruccion;
     public INVESTIGACION investigacionNec;
+
+    [Header ("Prefab. Si es suelo se cambiará directamente del render.")]
+    [Space(5)]
+    public GameObject prefab;
 
     [Space(5)]
     public ObjetoRecursos[] recursosNecesarios;

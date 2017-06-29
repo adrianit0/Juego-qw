@@ -235,12 +235,12 @@ public class ActionManager {
 
         actionRender.sprite = (customIcon==null) ? SearchIcon(type) : customIcon;
 
-        action.AssignCharacter(character);
-        actionsQueue.AddAction(action, actionRender);
-
         action.SetTime(customTime);
         action.SetSprite(actionRender.sprite);
         action.SetResources(recNecesarios);
+
+        action.AssignCharacter(character);
+        actionsQueue.AddAction(action, actionRender);
 
         return action;
     }

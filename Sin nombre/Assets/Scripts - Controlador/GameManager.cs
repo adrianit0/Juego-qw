@@ -45,6 +45,7 @@ public class GameManager : MonoBehaviour, IEquipo {
     public GameObject[] panelesRecursos = new GameObject[2];
     
     Node[,] map;
+    public Dictionary<Node, SpriteRenderer> tiles { get; private set; }
     
     public Sprite[] spriteTierra = new Sprite[16];
     public Sprite spriteAgua;
@@ -71,8 +72,6 @@ public class GameManager : MonoBehaviour, IEquipo {
     }*/
 
     void Awake() {
-        CrearMapa();
-
         builds = new List<Estructura>();
         characters = new List<Personaje>();
 
@@ -82,6 +81,12 @@ public class GameManager : MonoBehaviour, IEquipo {
         info = GetComponent<Informacion>();
 
         resourceController = FindObjectOfType<ResourceController>();
+
+        //TODO: 
+        //Poner esto en el Start cuando no haya estructuras pregeneradas.
+        tiles = new Dictionary<Node, SpriteRenderer>();
+
+        CrearMapa();
     }
 
     void Start () {
@@ -114,9 +119,14 @@ public class GameManager : MonoBehaviour, IEquipo {
                 GameObject _obj = Instantiate (nodoPrefab);
                 _obj.transform.position = new Vector3(x, y, 0);
                 _obj.transform.parent = this.transform;
-                map[x, y] = new Node(x, y, this);
-                
-                _obj.GetComponent<SpriteRenderer>().sprite = spriteTierra[4];
+
+                Node node = new Node(x, y, this);
+                map[x, y] = node;
+
+                SpriteRenderer render = _obj.GetComponent<SpriteRenderer>();
+                render.sprite = spriteTierra[4];
+
+                tiles.Add(node, render);
             }
         }
     }

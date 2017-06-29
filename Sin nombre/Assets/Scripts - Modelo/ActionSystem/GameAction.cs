@@ -62,7 +62,7 @@ public class GameAction {
         character.AddAction(this);
 
         if (originalSprite != null)
-            queue.actions[this].color = new Color(0.6f, 0.6f, 0.6f, 0.8f);
+            queue.ChangeColor (this, new Color(0.6f, 0.6f, 0.6f, 0.8f));
     }
 
     public void UnassingCharacter() {
@@ -79,12 +79,16 @@ public class GameAction {
         totalTime = newTime;
     }
 
-    public void SetSprite (Sprite sprite) {
+    public void SetSprite (Sprite sprite, SpriteRenderer render = null) {
         if(sprite == null) {
             Debug.Log("GameAction::SetSprite error: No hay ningún sprite para añadir a la acción.");
         }
 
         originalSprite = sprite;
+
+        if (render != null) {
+            render.sprite = sprite;
+        }
     }
 
     public void ChangeSpriteToOriginal (SpriteRenderer render) {
@@ -134,6 +138,11 @@ public class GameAction {
     }
 
     public bool CanBuild () {
+        if (recursosNecesarios==null) {
+            Debug.LogWarning("GameAction::CanBuild: No puede saber si se quiere construir algo porque no te pide ningún objeto");
+            return false;
+        }
+
         for(int i = 0; i < recursosNecesarios.Length; i++) {
             if(recursosNecesarios[i].quantity > 0) {
                 return false;
@@ -149,7 +158,7 @@ public class GameAction {
         tiempoNec = tiempo;
 
         if(originalSprite != null)
-            queue.actions[this].color = new Color(1, 0, 0, 0.8f);
+            queue.ChangeColor(this, new Color(1, 0, 0, 0.8f));
     }
 
     //Actualiza cada cierto tiempo hasta volver 
@@ -159,7 +168,7 @@ public class GameAction {
             desactivado = false;
 
             if(originalSprite != null)
-                queue.actions[this].color = new Color(0.6f, 0.6f, 0.6f, 0.8f);
+                queue.ChangeColor(this, new Color(0.6f, 0.6f, 0.6f, 0.8f));
         }
     }
 
