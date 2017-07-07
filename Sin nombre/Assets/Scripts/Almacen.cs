@@ -6,7 +6,7 @@ public class Almacen : Estructura, IEstructura, IEquipo {
 
     public int capacityTotal = 100;
 
-    public Inventario inventario;
+    public Inventario inventario { get; private set; }
 
     public float tamLine = 0.750f;
     public float yPos = -0.383f;
@@ -19,12 +19,11 @@ public class Almacen : Estructura, IEstructura, IEquipo {
         base.Awake();
 
         line = GetComponent<LineRenderer>();
-        inventario = new Inventario(capacityTotal);
-        inventario.SetInterface ((IEquipo) this);
     }
 
     public void OnStart () {
-
+        inventario = new Inventario(capacityTotal, manager);
+        inventario.SetInterface((IEquipo) this);
     }
 
     public void OnCapacityChange (params ResourceInfo[] recursos) {
@@ -41,9 +40,10 @@ public class Almacen : Estructura, IEstructura, IEquipo {
     }
 
     public string OnText() {
-        manager.info.ActivarBoton(0, spriteVaciar, "Vaciar", inventario.Count>0, () => manager.actions.CreateAction (transform.position, HERRAMIENTA.Custom, TIPOACCION.VaciarAlmacen, null, false));
-        manager.info.ActivarBoton(1, spriteAdmin, "Gestionar", false, () => { });
-
+        manager.management.AbrirBaul(this);
+        manager.info.ActivarBoton(0, spriteAdmin, "Gestionar", true, () => { manager.management.AbrirBaul(this); });
+        manager.info.ActivarBoton(1, spriteVaciar, "Vaciar", inventario.Count>0, () => manager.actions.CreateAction (transform.position, HERRAMIENTA.Custom, TIPOACCION.VaciarAlmacen, null, false));
+        
         return RecibirTexto(inventario);
     }
 
@@ -52,9 +52,9 @@ public class Almacen : Estructura, IEstructura, IEquipo {
         Almacen[] almacenes = new Almacen[estructuras.Length];
         for (int i = 0; i < estructuras.Length; i++) {
             almacenes[i] = estructuras[i].GetComponent<Almacen>();
-            capTotal += almacenes[i].inventario.Count;
+            capTotal += almacenes[i].inventario.MaxCapacity;
         }
-        Inventario _inventario = new Inventario(capTotal);
+        Inventario _inventario = new Inventario(capTotal, manager);
 
         for (int i = 0; i < almacenes.Length; i++) {
             _inventario.CopyContent(almacenes[i].inventario);
@@ -70,7 +70,7 @@ public class Almacen : Estructura, IEstructura, IEquipo {
     }
 
     string RecibirTexto (Inventario _inventario) {
-        string text = "<b>Contenido:</b> [" + _inventario.Count + "/" + capacityTotal + "]\n";
+        string text = "<b>Contenido:</b> [" + _inventario.Count + "/" + _inventario.MaxCapacity + "]\n";
 
         if(_inventario.Lenght > 0) {
             for(int i = 0; i < _inventario.Lenght; i++) {

@@ -60,6 +60,16 @@ public class Inventario {
         set { }
     }
 
+    public int MaxCapacity {
+        get {
+            return capacidadTotal;
+        }
+
+        set {
+            Debug.Log("No se puede modificar la capacidad total de un inventario. Cree en su lugar un nuevo inventario.");
+        }
+    }
+
     public int FreeSpace {
         get {
             return capacidadTotal - Count;
@@ -71,14 +81,20 @@ public class Inventario {
     //VARIABLES INVENTARIO
     List<ResourceInfo> inventario = new List<ResourceInfo>();
     int capacidadTotal = 0;
-    
+
+    //LIMITE DEL INVENTARIO, ACTUALMENTE UNICAMENTE SIRVE PARA LOS ALMACENES.
+    public ResourceManagement limiteInventario { get; private set; }
 
     IEquipo equipo;
+    GameManager manager;
 
     //CONSTRUCTORES
-    public Inventario(int capacidadTotal) {
+    public Inventario(int capacidadTotal, GameManager manager) {
         inventario = new List<ResourceInfo>();
         this.capacidadTotal = capacidadTotal;
+        this.manager = manager;
+
+        limiteInventario = new ResourceManagement(manager);
     }
 
     //MÉTODOS
@@ -89,6 +105,11 @@ public class Inventario {
         if(cantidad <= 0)
             return cantidad;
 
+        //Si está bloqueado el objeto no lo deja añadir.
+        if(!limiteInventario.GetBool(recurso)) {
+            return cantidad;
+        }
+
         int sobrante = 0;
         int freeSpace = FreeSpace;
         if(cantidad > (freeSpace)) {
@@ -98,12 +119,13 @@ public class Inventario {
 
         if(cantidad == 0)
             return sobrante;
-
+        
         bool encontrado = false;
         for(int i = 0; i < inventario.Count; i++) {
             if(inventario[i].type == recurso) {
                 inventario[i].quantity += cantidad;
                 encontrado = true;
+                break;
             }
         }
 
@@ -122,7 +144,10 @@ public class Inventario {
             return;
 
         for(int i = 0; i < recursos.Length; i++) {
-            AddResource(recursos[i].type, recursos[i].quantity, false);
+            int sobrante = AddResource(recursos[i].type, recursos[i].quantity, false);
+            if (sobrante > 0) {
+                Debug.LogWarning("Se han perdido " + sobrante + " del recurso " + recursos[i].type +". Arregarlo cuanto antes.");
+            }
         }
 
         if(actualizar) {
@@ -143,7 +168,10 @@ public class Inventario {
             return;
 
         for(int i = 0; i < recursos.Length; i++) {
-            AddResource(recursos[i].type, recursos[i].quantity, false);
+            int sobrante = AddResource(recursos[i].type, recursos[i].quantity, false);
+            if(sobrante > 0) {
+                Debug.LogWarning("Se han perdido " + sobrante + " del recurso " + recursos[i].type + ". Arregarlo cuanto antes.");
+            }
         }
 
         if(actualizar) {
@@ -162,6 +190,20 @@ public class Inventario {
         }
 
         return 0;
+    }
+
+    /// <summary>
+    /// Devuelve la cantidad de ese tipo que se tenga en el almacen.
+    /// </summary>
+    public int GetResourceTypeCount (TIPORECURSO tipo) {
+        int cantidad = 0;
+        for(int i = 0; i < manager.resourceController.panelRecurso.Length; i++) {
+            if(manager.resourceController.panelRecurso[i].tipo == tipo) {
+                cantidad += GetResourceCount(manager.resourceController.panelRecurso[i].resource);
+            }
+        }
+
+        return cantidad;
     }
 
     /// <summary>
@@ -184,7 +226,7 @@ public class Inventario {
         RemoveResource(recurso, cantidad-devuelto);
 
         if (actualizar) {
-            OnValueChange(new ResourceInfo(recurso, cantidad));
+            OnValueChange(new ResourceInfo(recurso, -cantidad));
         }
 
         return faltante;

@@ -36,6 +36,8 @@ public class ResourcePanel {
     public string name;
 
     public RECURSOS resource;
+    public TIPORECURSO tipo;
+
     public Sprite image;
     public Text text;
     public int quantity;

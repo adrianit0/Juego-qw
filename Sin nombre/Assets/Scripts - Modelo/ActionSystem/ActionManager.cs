@@ -182,8 +182,6 @@ public class ActionManager {
 
                     case TIPOACCION.Plantar:
                         customTime = 0.50f;
-                        customIcon = SearchIcon(TIPOACCION.Almacenar);
-
                         action.RegisterAction(ACTIONEVENT.OnAwake, (gameAction) => { methods.ComprobarInventarioAction(gameAction); });
                         action.RegisterAction(ACTIONEVENT.BeforeStart, (gameAction) => { methods.ComprobarInventarioAction(gameAction); });
 
@@ -193,16 +191,12 @@ public class ActionManager {
 
                     case TIPOACCION.ExtraerAgua:
                         customTime = 0.5f;
-                        customIcon = SearchIcon(TIPOACCION.SacarAlmacen);
-
                         action.RegisterAction(ACTIONEVENT.OnCompleted, (gameAction) => { methods.ExtraerAgua(build, gameAction); });
 
                         break;
 
                     case TIPOACCION.Regar:
                         customTime = 0.25f;
-                        customIcon = SearchIcon(TIPOACCION.Almacenar);
-
                         action.RegisterAction(ACTIONEVENT.OnAwake, (gameAction) => { methods.ComprobarAgua(gameAction); });
                         action.RegisterAction(ACTIONEVENT.BeforeStart, (gameAction) => { methods.ComprobarAgua(gameAction); });
 
@@ -211,9 +205,7 @@ public class ActionManager {
                         break;
 
                     case TIPOACCION.Craftear:
-
-                        customIcon = SearchIcon(TIPOACCION.Investigar);
-
+                        
                         action.RegisterAction(ACTIONEVENT.OnAwake, (gameAction) => { methods.ComprobarInventarioAction(gameAction); });
                         action.RegisterAction(ACTIONEVENT.BeforeStart, (gameAction) => { methods.ComprobarInventarioAction(gameAction); });
                         action.RegisterAction(ACTIONEVENT.OnCompleted, (gameAction) => { methods.Craftear (build, gameAction); });
@@ -262,10 +254,4 @@ public class ActionManager {
         //Si no encuentra el icono devuelve el primero.
         return manager.iconos[0].sprite;
     }
-}
-
-[System.Serializable]
-public class IconInfo {
-    public TIPOACCION type;
-    public Sprite sprite;
 }

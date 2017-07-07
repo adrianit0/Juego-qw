@@ -11,6 +11,12 @@ public enum RECURSOS {
     //OTROS OBJETOS
     Tabla, Ladrillo
 }
+
+public enum TIPORECURSO {
+    Bruto, Refinado, Comida
+}
+
+
 public enum TIPOACCION { Talar, Construir, Investigar, Cocinar, Minar, Cosechar, Almacenar, Pescar, Socializar, Arar, SacarAlmacen, VaciarAlmacen, RecogerObjeto, Destruir, ExtraerAgua, Regar, Plantar, Craftear }
 public enum HERRAMIENTA { Seleccionar = 0, Recolectar = 1, Arar = 2, Priorizar = 3, Destruir = 4, Cancelar = 5, Construir = 6, Custom = 7 }
 
@@ -59,6 +65,7 @@ public class GameManager : MonoBehaviour, IEquipo {
     public Agricultura farm { get; private set; }
     public Construccion build { get; private set; }
     public Artesania craft { get; private set; }
+    public ManagementManager management { get; private set; }
     public Informacion info { get; private set; }
     public ResourceController resourceController { get; private set; }
 
@@ -77,8 +84,12 @@ public class GameManager : MonoBehaviour, IEquipo {
 
         farm = GetComponent<Agricultura>();
         build = GetComponent<Construccion>();
+        management = GetComponent<ManagementManager>();
         craft = GetComponent<Artesania>();
         info = GetComponent<Informacion>();
+
+        path = new PathFinding(this);
+        actions = new ActionManager(this);
 
         resourceController = FindObjectOfType<ResourceController>();
 
@@ -87,13 +98,8 @@ public class GameManager : MonoBehaviour, IEquipo {
         tiles = new Dictionary<Node, SpriteRenderer>();
 
         CrearMapa();
-    }
 
-    void Start () {
-        path = new PathFinding(this);
-        actions = new ActionManager(this);
-
-        inventario = new Inventario(int.MaxValue);
+        inventario = new Inventario(int.MaxValue, this);
         inventario.SetInterface((IEquipo) this);
     }
 
@@ -345,4 +351,10 @@ public class GameManager : MonoBehaviour, IEquipo {
     public int SetSortingLayer (float yPos) {
         return Mathf.RoundToInt(yPos*1000 * -1);
     }
+}
+
+[System.Serializable]
+public class IconInfo {
+    public TIPOACCION type;
+    public Sprite sprite;
 }

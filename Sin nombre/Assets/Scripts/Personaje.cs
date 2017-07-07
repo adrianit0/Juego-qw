@@ -75,7 +75,7 @@ public class Personaje : MonoBehaviour, IEquipo {
     
 	void Start () {
         canWalk = false;
-        inventario = new Inventario(40);
+        inventario = new Inventario(40, manager);
         aguaTotal = new Fluido(8);
 
         inventario.SetInterface((IEquipo) this);
@@ -244,7 +244,7 @@ public class Personaje : MonoBehaviour, IEquipo {
     bool BuscarAguaCercana(TIPOAGUA agua, float minNecesario) {
         IntVector2 pos = manager.path.PathFind(this, new PathSetting(agua, minNecesario)).GetFinalPosition();
         if(pos != new IntVector2(0, 0)) {
-            //AddAction(manager.CreateAction(pos.x, pos.y, HERRAMIENTA.Custom, new CustomAction(TIPOACCION.ExtraerAgua, false, null)));
+            AddAction(manager.actions.CreateAction(pos, HERRAMIENTA.Custom, TIPOACCION.ExtraerAgua, this, false, -1, null));
             return true;
         } else {
             //No pasa nada

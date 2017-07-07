@@ -51,6 +51,7 @@ public class Informacion : MonoBehaviour {
 
         manager.farm.panelCultivo.SetActive(false);
         manager.craft.panel.SetActive(false);
+        manager.management.panelPrincipal.SetActive(false);
     }
 
     public void ActivarBoton (int boton, Sprite icono, string texto, bool activado, UnityAction accion) {

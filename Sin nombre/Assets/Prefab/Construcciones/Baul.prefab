@@ -37,7 +37,7 @@ Transform:
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1785868277864010}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 17, y: 18, z: 0}
+  m_LocalPosition: {x: 22, y: 18, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
@@ -78,7 +78,7 @@ MonoBehaviour:
   tiempoDestruccion: 1
   capacityTotal: 100
   tamLine: 0.75
-  yPos: -0.383
+  yPos: -0.3284
   spriteVaciar: {fileID: 21300014, guid: 186b4be54ef7fce42925d26db9c4d6e1, type: 3}
   spriteAdmin: {fileID: 21300018, guid: 186b4be54ef7fce42925d26db9c4d6e1, type: 3}
 --- !u!120 &120675247347193650
@@ -113,11 +113,11 @@ LineRenderer:
   m_SortingLayerID: 0
   m_SortingOrder: 2
   m_Positions:
-  - {x: -0.375, y: -0.383, z: 0}
-  - {x: -0.375, y: -0.383, z: 0}
+  - {x: -0.375, y: -0.3284, z: 0}
+  - {x: -0.375, y: -0.3284, z: 0}
   m_Parameters:
     serializedVersion: 2
-    widthMultiplier: 0.08
+    widthMultiplier: 0.093
     widthCurve:
       serializedVersion: 2
       m_Curve:

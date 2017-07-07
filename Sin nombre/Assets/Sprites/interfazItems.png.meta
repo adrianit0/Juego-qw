@@ -1,6 +1,6 @@
 fileFormatVersion: 2
 guid: ab1f069602aa4ff498d5a585ad6d71cc
-timeCreated: 1497255605
+timeCreated: 1498782359
 licenseType: Free
 TextureImporter:
   fileIDToRecycleName:
@@ -29,6 +29,7 @@ TextureImporter:
     21300044: interfazItems_22
     21300046: interfazItems_23
     21300048: InterfazItems_0
+    21300050: InterfazItems_1
   serializedVersion: 4
   mipmaps:
     mipMapMode: 0
@@ -436,6 +437,19 @@ TextureImporter:
         serializedVersion: 2
         x: 64
         y: 0
+        width: 64
+        height: 64
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      tessellationDetail: 0
+    - serializedVersion: 2
+      name: InterfazItems_1
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 192
         width: 64
         height: 64
       alignment: 0

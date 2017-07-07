@@ -129,8 +129,7 @@ public class Node {
     }
 
     public bool IsBlocked () {
-        return false;
-        //return movementCost <= 0;
+        return movementCost <= 0;
     }
 
     public bool IsEmpty () {

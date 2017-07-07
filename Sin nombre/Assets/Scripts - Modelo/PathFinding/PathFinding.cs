@@ -141,7 +141,7 @@ public class PathFinding  {
             return node;
         }
 
-        if(!node.IsBlocked() && (!manager.GetNode (_x, actual.y).IsBlocked() || camino.x == 0) && (!manager.GetNode(actual.y, _y).IsBlocked() || camino.y == 0))
+        if(!node.IsBlocked() && (!manager.GetNode (_x, actual.y).IsBlocked() || camino.x == 0) && (!manager.GetNode(actual.x, _y).IsBlocked() || camino.y == 0))
             return node;
 
         return null;
