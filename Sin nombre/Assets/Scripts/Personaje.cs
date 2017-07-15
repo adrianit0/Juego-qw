@@ -14,20 +14,8 @@ public class Personaje : MonoBehaviour, IEquipo {
     public float velocity = 5;
     public int maxSteps = 0;
 
-    [Header("Valores básicos")]
-    [Space (10)]
-    public int nivel = 0;
-
-    [Range(-3, 5)]
-    public int salud, estress;
-
-    [Header ("Atributos:")]
-    [Space (10)]
-    [Range(-3, 5)]
-    public int constitucion;
-
-    [Range(-3, 5)]
-    public int atlestismo, mineria, recoleccion, construccion, ingenio, carisma, culinario;
+    public string nombre = "";
+    public CharacterAttribute attributes { get; private set; }
 
     float tiempoInicialTrabajo = 0;
     
@@ -64,6 +52,13 @@ public class Personaje : MonoBehaviour, IEquipo {
     Animator anim;
     
     void Awake() {
+        if (manager == null) {
+            manager = FindObjectOfType<GameManager>();
+            if (manager == null) {
+                Debug.LogError("Se necesita un Gamemanager para hacer funcionar el juego.");
+            }
+        }
+
         line = GetComponent<LineRenderer>();
         anim = GetComponent<Animator>();
         if(line == null) {
@@ -71,6 +66,8 @@ public class Personaje : MonoBehaviour, IEquipo {
         }
 
         actions = new List<GameAction>();
+
+        attributes = new CharacterAttribute(manager);
     }
     
 	void Start () {
@@ -82,7 +79,7 @@ public class Personaje : MonoBehaviour, IEquipo {
 
         manager.AddCharacter(this);
 
-        velocity = 3 + atlestismo;
+        velocity = 3 + attributes[ATRIBUTO.Atletismo];
 	}
     
     void Update() {
@@ -254,6 +251,10 @@ public class Personaje : MonoBehaviour, IEquipo {
 
     public void OnCapacityChange(params ResourceInfo[] recursos) {
         //Pues no pasa nada...
+    }
+
+    public ESTADOANIMO GetMood () {
+        return ESTADOANIMO.Contento;
     }
 
     public void SetPositions (params IntVector2[] pos) {

@@ -16,7 +16,6 @@ public enum TIPORECURSO {
     Bruto, Refinado, Comida
 }
 
-
 public enum TIPOACCION { Talar, Construir, Investigar, Cocinar, Minar, Cosechar, Almacenar, Pescar, Socializar, Arar, SacarAlmacen, VaciarAlmacen, RecogerObjeto, Destruir, ExtraerAgua, Regar, Plantar, Craftear }
 public enum HERRAMIENTA { Seleccionar = 0, Recolectar = 1, Arar = 2, Priorizar = 3, Destruir = 4, Cancelar = 5, Construir = 6, Custom = 7 }
 
@@ -46,7 +45,7 @@ public class GameManager : MonoBehaviour, IEquipo {
 
     public GameObject sackPrefab;
     public GameObject waterPrefab;
-
+    
     //PANEL RECURSOS
     public GameObject[] panelesRecursos = new GameObject[2];
     
@@ -67,9 +66,10 @@ public class GameManager : MonoBehaviour, IEquipo {
     public Artesania craft { get; private set; }
     public ManagementManager management { get; private set; }
     public Informacion info { get; private set; }
+    public CharacterInterfaceController characterController { get; private set; }
+
     public ResourceController resourceController { get; private set; }
-
-
+    
     /*public GameManager (int width = 100, int height = 100) {
         totalSize = new IntVector2(width, height);
         CrearMapa();
@@ -87,6 +87,7 @@ public class GameManager : MonoBehaviour, IEquipo {
         management = GetComponent<ManagementManager>();
         craft = GetComponent<Artesania>();
         info = GetComponent<Informacion>();
+        characterController = GetComponent<CharacterInterfaceController>();
 
         path = new PathFinding(this);
         actions = new ActionManager(this);
@@ -105,6 +106,8 @@ public class GameManager : MonoBehaviour, IEquipo {
 
     public void AddCharacter(Personaje character) {
         characters.Add(character);
+
+        characterController.characters.AñadirPersonaje(character);
     }
 
     public Node GetNode (int x, int y) {
