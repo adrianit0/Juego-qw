@@ -26,9 +26,9 @@ public class ActionManager {
 
         //Mira si esta acción ya ha sido seleccionada por una acción anterior.
         //Se puede crear la acción para que se pueda realizar la misma acción con más de un personaje al mismo tiempo.
-        if(!repeatable && actionsQueue.IsActionCreated (pos)) {
+        if(!repeatable && actionsQueue.IsActionCreated (pos))
             return null;
-        }
+
 
         if (prioridad == -1) {
             prioridad = (int) manager.barraprioridad.value;
@@ -56,10 +56,21 @@ public class ActionManager {
                         return null;
                     type = _resource.actionType;
 
+                    switch (type) {
+                        case TIPOACCION.Minar:
+                            action.SetExperience(ATRIBUTO.Mineria, 5);
+                            break;
+                        case TIPOACCION.Talar:
+                            action.SetExperience(ATRIBUTO.Recoleccion, 3);
+                            break;
+                    }
+
                     action.RegisterAction(ACTIONEVENT.OnCompleted, (gameAction) => { methods.ExtraerRecursos(_resource, gameAction); });
 
                 } else if(build.GetBuildType() == ESTRUCTURA.Agua) {
                     type = TIPOACCION.Pescar;
+
+                    action.SetExperience(ATRIBUTO.Recoleccion, 1);
 
                     action.RegisterAction(ACTIONEVENT.OnCompleted, (gameAction) => { methods.Pescar(build, gameAction); });
 
@@ -77,6 +88,8 @@ public class ActionManager {
                 customTime = manager.farm.tiempoArar;
 
                 action.RegisterAction(ACTIONEVENT.OnCompleted, (gameAction) => { methods.ArarTierra(manager.farm.huertoPrefab, gameAction); });
+
+                action.SetExperience(ATRIBUTO.Constitucion, 1);
                 
                 break;
 
@@ -87,6 +100,9 @@ public class ActionManager {
                 type = TIPOACCION.Construir;
 
                 int id = manager.build.selectID;
+
+                //TODO: Poner personalizado la cantidad de experiencia ha recibir.
+                action.SetExperience(ATRIBUTO.Construccion, 5);
 
                 //Almacena los recursos necesarios para la construcción de la estructura.
                 recNecesarios = new ResourceInfo[manager.build.construcciones[id].recursosNecesarios.Length];
@@ -124,7 +140,7 @@ public class ActionManager {
                 type = TIPOACCION.Destruir;
                 customTime = build.tiempoDestruccion;
 
-
+                action.SetExperience(ATRIBUTO.Construccion, 1);
 
                 break;
 
@@ -205,7 +221,9 @@ public class ActionManager {
                         break;
 
                     case TIPOACCION.Craftear:
-                        
+
+                        action.SetExperience(ATRIBUTO.Ingenio, 1);
+
                         action.RegisterAction(ACTIONEVENT.OnAwake, (gameAction) => { methods.ComprobarInventarioAction(gameAction); });
                         action.RegisterAction(ACTIONEVENT.BeforeStart, (gameAction) => { methods.ComprobarInventarioAction(gameAction); });
                         action.RegisterAction(ACTIONEVENT.OnCompleted, (gameAction) => { methods.Craftear (build, gameAction); });

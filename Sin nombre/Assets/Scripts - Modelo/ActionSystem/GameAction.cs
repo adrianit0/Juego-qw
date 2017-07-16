@@ -19,6 +19,10 @@ public class GameAction {
 
     public Personaje worker { get; private set; }   // Personaje asignado esta acción
 
+    //Experiencia
+    public ATRIBUTO atributo { get; private set; }
+    public int experience { get; private set; }
+
     Action<GameAction> actionOnStart;               // Justo en el momento de asignar la acción a algún personaje.
     Action<GameAction> actionBeforeStart;           // Que hacer justo antes de empezar la mision. Ejemplo, mira si tienes los recursos necesarios para construir una base.
     Action<GameAction> actionCompleted;             // Que hacer tras completar la acción
@@ -41,10 +45,18 @@ public class GameAction {
         this.prioridad = prioridad;
         this.queue = queue;
 
+        experience = 0;
+
         totalTime = duration;
 
         if(worker != null)
             AssignCharacter(worker);
+    }
+
+    // Añade la experiencia a la acción.
+    public void SetExperience (ATRIBUTO attribute, int quantity) {
+        atributo = attribute;
+        experience = quantity;
     }
     
     public void AssignCharacter (Personaje character) {

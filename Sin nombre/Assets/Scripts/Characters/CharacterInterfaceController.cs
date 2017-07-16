@@ -74,6 +74,22 @@ public class CharacterInterfaceController : MonoBehaviour {
         panelCharacter.SetActive(true);
     }
 
+    public void Actualizar () {
+        if (panelCharacter.activeSelf) {
+            textoNivel.text = personajeLigado.attributes.GetLevel().ToString();
+
+            imagenAnimo.sprite = GetMood(personajeLigado.GetMood());
+
+            for(int i = 0; i < barraAtributo.Length; i++) {
+                barraAtributo[i].GetValue(personajeLigado.attributes.GetLevel(barraAtributo[i].estado), personajeLigado.attributes.GetPorc(barraAtributo[i].estado));
+            }
+        }
+
+        if (personajeLigado==null) {
+            return;
+        }
+    }
+
     void OnNameChange (string newName) {
         if (personajeLigado == null) {
             return;
@@ -121,6 +137,6 @@ public class BarraAtributo {
         }
         
         if (experiencia!=null)
-            experiencia.rectTransform.SetSizeWithCurrentAnchors  (RectTransform.Axis.Horizontal, 490*porc);
+            experiencia.rectTransform.SetSizeWithCurrentAnchors  (RectTransform.Axis.Horizontal, 490*Mathf.Clamp(porc, 0, 1));
     }
 }

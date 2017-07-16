@@ -143,21 +143,33 @@ public class Personaje : MonoBehaviour, IEquipo {
         }
     }
 
+    // Si el contador de la acción llega al 100%, da por realizada la acción.
     void RealizarAccion (GameAction action) {
         action.RealizeAction(ACTIONEVENT.OnCompleted);
 
+        //Otorga la experiencia correspondiente
+        if (action.experience>0)
+            attributes.AddExperiencia(action.atributo, action.experience);
+
+        //Borra la accion
         RemoveAction(action);
+
+        //Pone el contador de nuevo a 0
+        Ajustar();
+
+        //Si se ha quedado sin acciones que busque una entre la lista de acciones.
+        if (actions.Count==0) {
+            manager.actions.actionsQueue.AssignActionCharacter(this);
+        }
+    }
+
+    void Ajustar () {
         tiempoInicialTrabajo = 0;
 
         lineAction.gameObject.SetActive(false);
         line.enabled = true;
 
         anim.SetBool("Working", false);
-
-        //Si se ha quedado sin acciones que busque una entre la lista de acciones.
-        if (actions.Count==0) {
-            manager.actions.actionsQueue.AssignActionCharacter(this);
-        }
     }
 
     public void AddAction(GameAction action, int insertAt = -1) {

@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public enum ATRIBUTO { Salud, Estres, Hambre, Constitucion, Atletismo, Mineria, Recoleccion, Construccion, Investigacion, Carisma, Culinario }
+public enum ATRIBUTO { Salud, Estres, Hambre, Constitucion, Atletismo, Mineria, Recoleccion, Construccion, Ingenio, Carisma, Culinario }
 
 public class CharacterAttribute {
 
@@ -41,6 +41,8 @@ public class CharacterAttribute {
         }
 
         level = 0;
+
+        actionUpdate += () => manager.characterController.Actualizar();
     }
 
     public int GetLevel () {
@@ -66,6 +68,8 @@ public class CharacterAttribute {
         CharAttribute atribute = attributes[atributo];
         int thisExperience = GetFixedExperience(level);
         atribute.AddExperiencie(experiencia);
+
+        Debug.Log("Has ganado " + experiencia + " de experiencia en el atributo " + atributo.ToString() + ". Total experiencia: " + atribute.experiencia + "/" + thisExperience);
 
         if (atribute.experiencia > thisExperience) {
             int newExperience = GetFixedExperience(level + 1);
@@ -101,7 +105,7 @@ public class CharacterAttribute {
             return 1;
         }
 
-        return (actualExperience / (nextLevel));
+        return (((float) actualExperience) / ((float) nextLevel));
     }
 
     public int GetFixedExperience (int level) {
