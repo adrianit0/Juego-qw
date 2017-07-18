@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 public enum ESTADOANIMO { Feliz, Contento, Neutral, Descontento, Enfermo, Enfadado, Desmayado, Muerto }
@@ -23,7 +24,12 @@ public class CharacterInterfaceController : MonoBehaviour {
     public Image imagenMascara;
     public Image imagenAnimo;
 
+    //Texto
+    public GameObject panel;
+    public Text textoInformacion;
+
     Personaje personajeLigado;
+    bool canUpdate = true;
 
 
     public CharacterUpdate characters { get; private set; }
@@ -37,6 +43,27 @@ public class CharacterInterfaceController : MonoBehaviour {
 
     void Start() {
         textoNombre.onValueChanged.AddListener((value) => { OnNameChange(value); });
+
+        for(int i = 0; i < barraAtributo.Length; i++) {
+            int x = i;
+
+            if (barraAtributo[i].toggleActivado != null) {
+                barraAtributo[i].toggleActivado.onValueChanged.AddListener((boolean) => { OnValueChange(boolean, barraAtributo[x]); });
+            }
+
+            if (barraAtributo[i].trigger != null) {
+                //Entrar
+                EventTrigger.Entry entry = new EventTrigger.Entry();
+                entry.eventID = EventTriggerType.PointerEnter;
+                entry.callback.AddListener((eventData) => { OnPointerEnter(barraAtributo[x]); });
+                barraAtributo[i].trigger.triggers.Add(entry);
+                //Salir
+                EventTrigger.Entry exit = new EventTrigger.Entry();
+                exit.eventID = EventTriggerType.PointerExit;
+                exit.callback.AddListener((eventData) => { OnPointerExit(); });
+                barraAtributo[i].trigger.triggers.Add(exit);
+            }
+        }
 
         panelCharacter.SetActive(false);
     }
@@ -52,8 +79,19 @@ public class CharacterInterfaceController : MonoBehaviour {
         return null;
     }
 
+    public bool CanDoAction (ATRIBUTO atributo) {
+        for (int i = 0; i < barraAtributo.Length; i++) {
+            if (barraAtributo[i].estado == atributo && barraAtributo[i].toggleActivado != null) {
+                return barraAtributo[i].toggleActivado.isOn;
+            }
+        }
+
+        return true;
+    }
+
     public void Actualizar (Personaje personaje) {
         personajeLigado = null;
+
         textoNombre.text = personaje.nombre;
         textoNivel.text = personaje.attributes.GetLevel().ToString();
 
@@ -67,6 +105,8 @@ public class CharacterInterfaceController : MonoBehaviour {
 
         for (int i = 0; i < barraAtributo.Length; i++) {
             barraAtributo[i].GetValue(personaje.attributes.GetLevel(barraAtributo[i].estado), personaje.attributes.GetPorc (barraAtributo[i].estado));
+            if (barraAtributo[i].toggleActivado!=null)
+                barraAtributo[i].toggleActivado.isOn = personaje.attributes.IsActive(barraAtributo[i].estado);
         }
 
         personajeLigado = personaje;
@@ -91,13 +131,32 @@ public class CharacterInterfaceController : MonoBehaviour {
     }
 
     void OnNameChange (string newName) {
-        if (personajeLigado == null) {
+        if (personajeLigado == null || !canUpdate) {
             return;
         }
 
         personajeLigado.nombre = newName;
 
         characters.ActualizarPersonaje(personajeLigado);
+    }
+
+    void OnValueChange (bool change, BarraAtributo atributo) {
+        if(personajeLigado == null || !canUpdate)
+            return;
+
+        personajeLigado.attributes.SetActive(atributo.estado, change);
+    }
+
+    void OnPointerEnter (BarraAtributo atributo) {
+        panel.SetActive(true);
+        RectTransform _rect = panel.GetComponent<RectTransform>();
+        _rect.position = new Vector2(_rect.position.x, atributo.textoNivel.transform.parent.GetComponent<RectTransform>().position.y);
+
+        textoInformacion.text = atributo.textoInformacion;
+    }
+
+    void OnPointerExit () {
+        panel.SetActive(false);
     }
 }
 
@@ -114,6 +173,12 @@ public class BarraAtributo {
     public Image[] imagen;
     public Text textoNivel;
     public Image experiencia;
+
+    public Toggle toggleActivado;
+    public EventTrigger trigger;
+
+    [TextArea(6, 10)]
+    public string textoInformacion;
 
     public void GetValue (int nivel, float porc) {
         textoNivel.text = nivel.ToString();

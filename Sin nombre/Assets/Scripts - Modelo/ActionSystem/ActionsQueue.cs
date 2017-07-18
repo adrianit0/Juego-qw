@@ -129,7 +129,7 @@ public class ActionsQueue {
         float distance = 10000;
         int i = 0;
         foreach (GameAction action in actions.Keys) {
-            if (action.worker != null || action.desactivado) {
+            if (action.worker != null || action.desactivado || (action.atributo != ATRIBUTO.Salud && !character.attributes.IsActive (action.atributo))) {
                 continue;
             }
 

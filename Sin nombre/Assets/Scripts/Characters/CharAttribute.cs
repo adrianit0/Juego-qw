@@ -9,11 +9,15 @@ public class CharAttribute {
 
     public bool hasExperience { get; private set; }
 
+    public bool isActive { get; private set; }
+
     public CharAttribute(ATRIBUTO atributo, int nivel,  int experiencia) {
         this.atributo = atributo;
         this.experiencia = experiencia;
         level = nivel;
         hasExperience = true;
+
+        isActive = true;
     }
 
     public CharAttribute(ATRIBUTO atributo) {
@@ -21,6 +25,12 @@ public class CharAttribute {
         experiencia = 0;
         level = 5;
         hasExperience = false;
+
+        isActive = true;
+    }
+
+    public void SetActive (bool boolean) {
+        isActive = boolean;
     }
 
     public void AddExperiencie(int amount) {

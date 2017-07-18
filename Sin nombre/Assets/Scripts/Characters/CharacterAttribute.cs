@@ -45,6 +45,14 @@ public class CharacterAttribute {
         actionUpdate += () => manager.characterController.Actualizar();
     }
 
+    public void SetActive (ATRIBUTO atributo, bool actived) {
+        attributes[atributo].SetActive(actived);
+    }
+
+    public bool IsActive (ATRIBUTO atributo) {
+        return attributes[atributo].isActive;
+    }
+
     public int GetLevel () {
         int quantity = 0;
         foreach (KeyValuePair<ATRIBUTO, CharAttribute> value in attributes) {

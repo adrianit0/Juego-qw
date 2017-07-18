@@ -49,6 +49,8 @@ public class GameAction {
 
         totalTime = duration;
 
+        atributo = ATRIBUTO.Salud;
+
         if(worker != null)
             AssignCharacter(worker);
     }

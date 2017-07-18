@@ -1,6 +1,6 @@
 fileFormatVersion: 2
 guid: bf15bcf6ad3406d41b786380fc075b0a
-timeCreated: 1499561684
+timeCreated: 1500312977
 licenseType: Free
 TextureImporter:
   fileIDToRecycleName:
@@ -19,6 +19,7 @@ TextureImporter:
     21300024: interfaz personaje_12
     21300026: interfaz personaje_13
     21300028: interfaz personaje_14
+    21300030: interfaz personaje_15
   serializedVersion: 4
   mipmaps:
     mipMapMode: 0
@@ -301,6 +302,19 @@ TextureImporter:
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 10, y: 3, z: 10, w: 3}
+      outline: []
+      tessellationDetail: 0
+    - serializedVersion: 2
+      name: interfaz personaje_15
+      rect:
+        serializedVersion: 2
+        x: 64
+        y: 0
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       tessellationDetail: 0
     outline: []
