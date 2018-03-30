@@ -13,8 +13,10 @@ public enum INVESTIGACION { Ninguno = 0 }
 public class Construccion : MonoBehaviour {
 
     public ObjetoTienda[] construcciones = new ObjetoTienda[1];
-
     public GameObject[] panelesConstruccion = new GameObject[5];
+
+    //Panel
+    public GameObject panelConstruir;
 
     //Construyendo
     public bool construyendo = false;

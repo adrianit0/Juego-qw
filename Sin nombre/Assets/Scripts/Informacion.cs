@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.Events;
+using System.Collections.Generic;
 
 public class Informacion : MonoBehaviour {
 
@@ -13,8 +14,10 @@ public class Informacion : MonoBehaviour {
 
     //SELECCION
     public GameObject seleccionPrefab;
-    public Estructura[] LastSelectionBuild;
-    public GameObject[] LastSelection;
+    private Estructura[] LastSelectionBuild;
+    private GameObject[] LastSelection;
+
+    private List<GameObject> poolSeleccionar;
 
     GameManager manager;
 
@@ -24,6 +27,7 @@ public class Informacion : MonoBehaviour {
 
     void Start () {
         panelInformacion.SetActive(false);
+        poolSeleccionar = new List<GameObject>();
     }
 
     public void SeleccionarUnidades (Estructura firstSelection, Estructura[] builds, GameObject[] selections) {
@@ -36,6 +40,46 @@ public class Informacion : MonoBehaviour {
         EliminarSeleccion();
 
         LastSelectionBuild = builds;
+        LastSelection = selections;
+    }
+
+    public void SeleccionarTerreno(GameObject[] selections) {
+        DesactivarBotones();
+
+        textoInformacion.text = "";
+        
+        //Muestra el texto
+        if(manager == null)
+            return;
+
+        string texto = "Sin selección.";
+
+        //TODO:
+        //Hacer que especifique el tipo de suelo que es
+        if(selections != null) {
+            if(selections == null || selections.Length <= 1) {
+                texto = "<b>Suelo.</b>\n\n";
+                texto += "Suelo fertil";
+            } else {
+                texto = "<b>Suelo.</b>\n[" + selections.Length + " seleccionados]\n\n";
+                texto += "Suelo fertil";
+            }
+        }
+
+        ActivarBoton(0, null, "Construir", true, () => { manager.interfaz.ActivarDesactivar(manager.build.panelConstruir); });
+        ActivarBoton(1, null, "Arar la tierra", true, () => {
+            for(int i = 0; i < selections.Length; i++) {
+                manager.actions.CreateAction(selections[i].transform.position, HERRAMIENTA.Arar, TIPOACCION.Almacenar);
+            }
+        });
+        ActivarBoton(2, null, "Cavar", false, () => { });
+
+        SetText(texto);
+
+        //CONTINUA POR AQUÍ
+        EliminarSeleccion();
+
+        LastSelectionBuild = new Estructura[0];
         LastSelection = selections;
     }
 
@@ -67,10 +111,30 @@ public class Informacion : MonoBehaviour {
         botones[boton].texto.text = texto;
     }
 
+    public Estructura[] GetSelectedBuild() {
+        return LastSelectionBuild;
+    }
+
+    public GameObject GetSeleccion() {
+        if(poolSeleccionar.Count == 0) {
+            return Instantiate(seleccionPrefab);
+        }
+
+        GameObject sel = poolSeleccionar[0];
+        poolSeleccionar.RemoveAt(0);
+        sel.SetActive(true);
+        return sel;
+    }
+
     public void EliminarSeleccion() {
+        if(LastSelection == null)
+            return;
+
         for(int i = 0; i < LastSelection.Length; i++) {
-            if (LastSelection[i] != null)
-                Destroy(LastSelection[i]);
+            if(LastSelection[i] != null) {
+                LastSelection[i].SetActive(false);
+                poolSeleccionar.Add(LastSelection[i]);
+            }
         }
     }
 }

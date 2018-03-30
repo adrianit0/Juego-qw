@@ -30,9 +30,12 @@ public class GameManager : MonoBehaviour, IEquipo {
     public Sprite[] iconosPrioridad;
     public Slider barraprioridad;
 
-    public List<Estructura> builds { get; private set; }
-
-    public List<Personaje> characters { get; private set; }         //Lista de personajes
+    //Lista de construcciones en el juego
+    private Dictionary<ESTRUCTURA, List<Estructura>> builds;
+    //Lista de personajes jugables
+    public List<Personaje> characters;
+    //Lista de NPC
+    //public List<Personaje> NPC;
 
     //PANEL HERRAMIENTAS
     public HERRAMIENTA herramientaSeleccionada = HERRAMIENTA.Seleccionar;
@@ -69,6 +72,7 @@ public class GameManager : MonoBehaviour, IEquipo {
     public CharacterInterfaceController characterController { get; private set; }
 
     public ResourceController resourceController { get; private set; }
+    public UIManager interfaz { get; private set; }
     
     /*public GameManager (int width = 100, int height = 100) {
         totalSize = new IntVector2(width, height);
@@ -79,7 +83,7 @@ public class GameManager : MonoBehaviour, IEquipo {
     }*/
 
     void Awake() {
-        builds = new List<Estructura>();
+        builds = new Dictionary<ESTRUCTURA, List<Estructura>>();
         characters = new List<Personaje>();
 
         farm = GetComponent<Agricultura>();
@@ -93,6 +97,7 @@ public class GameManager : MonoBehaviour, IEquipo {
         actions = new ActionManager(this);
 
         resourceController = FindObjectOfType<ResourceController>();
+        interfaz = FindObjectOfType<UIManager>();
 
         //TODO: 
         //Poner esto en el Start cuando no haya estructuras pregeneradas.
@@ -134,6 +139,8 @@ public class GameManager : MonoBehaviour, IEquipo {
 
                 SpriteRenderer render = _obj.GetComponent<SpriteRenderer>();
                 render.sprite = spriteTierra[4];
+                
+                render.receiveShadows = true;
 
                 tiles.Add(node, render);
             }
@@ -144,18 +151,28 @@ public class GameManager : MonoBehaviour, IEquipo {
     /// Busca una estructura y dice si existe o no.
     /// </summary>
     public bool ExistBuild (ESTRUCTURA buildType) {
-        for (int i = 0; i < builds.Count; i++) {
+        if(!builds.ContainsKey(buildType) || builds[buildType]==null)
+            return false;
+
+        return builds[buildType].Count>0;
+
+        // Antigua manera de hacerlo
+        /* for (int i = 0; i < builds.Count; i++) {
             if(builds[i].GetBuildType() == buildType)
                 return true;
         }
 
-        return false;
+        return false;*/
     }
 
     /// <summary>
     /// Busca la construcción más cercana.
     /// </summary>
     public Vector2 _GetNearBuild (Vector2 initialPos, ESTRUCTURA buildType) {
+        if(!ExistBuild(buildType))
+            return Vector3.zero;
+
+        List<Estructura> builds = this.builds[buildType];
         Vector2 nearest = Vector3.zero;
         int foundCount = 0;
         for(int i = 0; i < builds.Count; i++) {
@@ -172,6 +189,9 @@ public class GameManager : MonoBehaviour, IEquipo {
         return nearest;
     }
 
+    /// <summary>
+    /// En caso de que la capacidad cambie, se ejecuta este método
+    /// </summary>
     public void OnCapacityChange(params ResourceInfo[] recursos) {
         for (int i = 0; i < recursos.Length; i++) {
             resourceController.ModifyResource(recursos[i]);
@@ -183,6 +203,12 @@ public class GameManager : MonoBehaviour, IEquipo {
         craft.UpdateCraft();
     }
 
+    /// <summary>
+    /// Crea un saco con objetos proximo
+    /// Este saco no sirve para almacenar de manera persistente los objetos
+    /// Cuando se hace de noche este saco desaparece (Por lo que necesita ser almacenado
+    /// en un baul antes de que eso ocurra).
+    /// </summary>
     public void  CrearSaco (IntVector2 pos, int maxSteps, ResourceInfo[] inventario) {
         int count = 0; 
 
@@ -230,9 +256,16 @@ public class GameManager : MonoBehaviour, IEquipo {
             return;
         }
 
-
-        if (!builds.Contains (estructura))
-            builds.Add(estructura);
+        //Busca si existe el tipo a crear
+        //Si no existe, lo crea
+        ESTRUCTURA _tipo = estructura.GetBuildType();
+        if(builds.ContainsKey(_tipo)) {
+            if(!builds[_tipo].Contains(estructura))
+                builds[_tipo].Add(estructura);
+        } else {
+            builds.Add(_tipo, new List<Estructura>());
+        }
+        
     }
 
     public void AddBuildInMap(IntVector2 position, Estructura estructura) {
@@ -245,12 +278,13 @@ public class GameManager : MonoBehaviour, IEquipo {
         if(build==null)
             return;
 
-        if(!builds.Contains(build))
-            builds.Remove(build);
+        ESTRUCTURA _tipo = build.GetBuildType();
+        if(ExistBuild(_tipo) && builds[_tipo]!=null && builds[_tipo].Contains(build))
+            builds[_tipo].Remove(build);
+        
+        map[x, y].RemoveBuild();
 
         Destroy(build.gameObject);
-
-        map[x, y].RemoveBuild();
     }
 
     public void RemoveBuildInMap (Vector3 position) {

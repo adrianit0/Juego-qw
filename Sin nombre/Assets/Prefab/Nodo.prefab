@@ -20,7 +20,6 @@ GameObject:
   m_Component:
   - component: {fileID: 4205280215957204}
   - component: {fileID: 212917816112517720}
-  - component: {fileID: 61136518871485912}
   m_Layer: 0
   m_Name: Nodo
   m_TagString: Untagged
@@ -41,20 +40,6 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!61 &61136518871485912
-BoxCollider2D:
-  m_ObjectHideFlags: 1
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 1333744839474926}
-  m_Enabled: 1
-  m_Density: 1
-  m_Material: {fileID: 0}
-  m_IsTrigger: 1
-  m_UsedByEffector: 0
-  m_Offset: {x: 0, y: 0}
-  serializedVersion: 2
-  m_Size: {x: 1, y: 1}
 --- !u!212 &212917816112517720
 SpriteRenderer:
   m_ObjectHideFlags: 1
@@ -68,7 +53,7 @@ SpriteRenderer:
   m_LightProbeUsage: 0
   m_ReflectionProbeUsage: 0
   m_Materials:
-  - {fileID: 10754, guid: 0000000000000000f000000000000000, type: 0}
+  - {fileID: 2100000, guid: 16ea70bb3e0217f489a44f02f2eb529a, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0

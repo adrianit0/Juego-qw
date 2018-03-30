@@ -68,6 +68,7 @@ public class Estructura : MonoBehaviour {
         if(manager == null)
             return;
 
+        manager.build.panelConstruir.SetActive(false);
         string texto = "Sin selección.";
 
         if(estructura != null) {

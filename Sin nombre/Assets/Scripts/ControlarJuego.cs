@@ -138,21 +138,28 @@ public class ControlarJuego : MonoBehaviour {
         }
     }
 
+    /// <summary>
+    /// Fija el objetivo
+    /// Actualmente desactivado todo lo que no sea la herramienta "SELECCIONAR"
+    /// </summary>
     void FijarObjetivo () {
+        int maxY = Mathf.Max(posInicial.y, posFinal.y) + 1;
+        int maxX = Mathf.Max(posInicial.x, posFinal.x) + 1;
         if (manager.herramientaSeleccionada != HERRAMIENTA.Seleccionar) {
             //CREA UNA ACCION
-            for(int y = (int) Mathf.Min(posInicial.y, posFinal.y); y < Mathf.Max(posInicial.y, posFinal.y) + 1; y++) {
-                for(int x = (int) Mathf.Min(posInicial.x, posFinal.x); x < Mathf.Max(posInicial.x, posFinal.x) + 1; x++) {
+            for(int y = (int) Mathf.Min(posInicial.y, posFinal.y); y < maxY; y++) {
+                for(int x = (int) Mathf.Min(posInicial.x, posFinal.x); x < maxX; x++) {
                     //TODO: Arreglar
                     manager.actions.CreateAction(new IntVector2 (x, y), manager.herramientaSeleccionada, TIPOACCION.Almacenar, null, false);
                 }
             }
-        } else {
+        } else { 
             //MUESTRA LA INFORMACIÓN
             List<Estructura> estructuras = new List<Estructura>();
             List<GameObject> selecciones = new List<GameObject>();
-            for(int y = (int) Mathf.Min(posInicial.y, posFinal.y); y < Mathf.Max(posInicial.y, posFinal.y) + 1; y++) {
-                for(int x = (int) Mathf.Min(posInicial.x, posFinal.x); x < Mathf.Max(posInicial.x, posFinal.x) + 1; x++) {
+            
+            for(int y = Mathf.Min(posInicial.y, posFinal.y); y < maxY; y++) {
+                for(int x = Mathf.Min(posInicial.x, posFinal.x); x < maxX; x++) {
                     Estructura build = manager.GetNode(x, y).GetBuild();
 
                     if (primeraEstructura == null && build != null) {
@@ -162,15 +169,28 @@ public class ControlarJuego : MonoBehaviour {
                     if (build != null && build.GetBuildType() == primeraEstructura.GetBuildType()) {
                         estructuras.Add(build);
 
-                        GameObject _obj = Instantiate (manager.info.seleccionPrefab);
+                        GameObject _obj = manager.info.GetSeleccion();
                         _obj.transform.position = new Vector3(x, y);
                         selecciones.Add(_obj);
                     }
                 }
             }
 
-            manager.info.SeleccionarUnidades(primeraEstructura, estructuras.ToArray(), selecciones.ToArray());
+            //Si ha encontrado alguna estructura mostrará su información
+            //Si no mostrará la información del suelo.
+            if(selecciones.Count > 0) {
+                manager.info.SeleccionarUnidades(primeraEstructura, estructuras.ToArray(), selecciones.ToArray());
+            } else {
+                for(int y = Mathf.Min(posInicial.y, posFinal.y); y < maxY; y++) {
+                    for(int x = Mathf.Min(posInicial.x, posFinal.x); x < maxX; x++) {
+                        GameObject _obj = manager.info.GetSeleccion();
+                        _obj.transform.position = new Vector3(x, y);
+                        selecciones.Add(_obj);
+                    }
+                }
 
+                manager.info.SeleccionarTerreno(selecciones.ToArray());
+            }
         }
 
         CancelarObjetivo();

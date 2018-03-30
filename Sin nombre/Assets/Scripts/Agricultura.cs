@@ -33,17 +33,16 @@ public class Agricultura : MonoBehaviour {
 
     public void Cultivar (int id) {
         panelCultivo.SetActive(false);
-        Estructura[] objetos = manager.info.LastSelectionBuild;
-        Huerto[] huertos = new Huerto[objetos.Length];
+        Estructura[] objetos = manager.info.GetSelectedBuild();
 
-        for (int i = 0; i < huertos.Length; i++) {
-            huertos[i] = objetos[i].GetComponent<Huerto>();
-            if(huertos[i] == null)
+        for (int i = 0; i < objetos.Length; i++) {
+            Huerto _huerto = objetos[i].GetComponent<Huerto>();
+            if(_huerto == null)
                 continue;
 
-            if (huertos[i].cultivo==null) {
+            if (_huerto.cultivo==null) {
                 //Planta el cultivo seleccionado
-                manager.actions.CreateAction(huertos[i].transform.position, HERRAMIENTA.Custom, TIPOACCION.Plantar, null, false, -1, new ResourceInfo[] { new ResourceInfo(semillas[id].semilla, 1) } );
+                manager.actions.CreateAction(_huerto.transform.position, HERRAMIENTA.Custom, TIPOACCION.Plantar, null, false, -1, new ResourceInfo[] { new ResourceInfo(semillas[id].semilla, 1) } );
             }
         }
     }

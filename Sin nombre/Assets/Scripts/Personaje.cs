@@ -303,13 +303,13 @@ public class Personaje : MonoBehaviour, IEquipo {
         }
         
         if (cambiar) {
-            line.numPositions = _positions.Count;
+            line.positionCount = _positions.Count;
             line.SetPositions(_positions.ToArray());
         }
     }
 
     void ReiniciarLine () {
-        line.numPositions = _positions.Count;
+        line.positionCount = _positions.Count;
         line.SetPositions(_positions.ToArray());
     }
 

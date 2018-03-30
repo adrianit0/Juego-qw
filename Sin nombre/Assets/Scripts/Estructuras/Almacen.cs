@@ -40,7 +40,7 @@ public class Almacen : Estructura, IEstructura, IEquipo {
     }
 
     public string OnText() {
-        manager.management.AbrirBaul(this);
+        //manager.management.AbrirBaul(this);
         manager.info.ActivarBoton(0, spriteAdmin, "Gestionar", true, () => { manager.management.AbrirBaul(this); });
         manager.info.ActivarBoton(1, spriteVaciar, "Vaciar", inventario.Count>0, () => manager.actions.CreateAction (transform.position, HERRAMIENTA.Custom, TIPOACCION.VaciarAlmacen, null, false));
         
