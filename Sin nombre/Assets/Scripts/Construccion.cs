@@ -174,6 +174,29 @@ public class Construccion : MonoBehaviour {
         interfazConstructor.gameObject.SetActive(false);
     }
 
+    public ResourceInfo[] getObjetoConstrucción(string nombre) {
+        for(int i = 0; i < construcciones.Length; i++) {
+            if(construcciones[i].nombre == nombre)
+                return getObjetoConstrucción(i);
+        }
+
+        Debug.Log("Construccion::GetObjetoConstrucción: "+nombre + " no encontrado.");
+        return null;
+    }
+
+    public ResourceInfo[] getObjetoConstrucción(int id) {
+        if(id < 0 || id >= construcciones.Length)
+            return null;
+
+        ResourceInfo[] _info = new ResourceInfo[construcciones[id].recursosNecesarios.Length];
+
+        for(int i = 0; i < construcciones[id].recursosNecesarios.Length; i++) {
+            _info[i] = construcciones[id].recursosNecesarios[i].getResourceInfo();
+        }
+
+        return _info;
+    }
+
     /// <summary>
     /// Muestra la información en un cartel emergente
     /// </summary>
@@ -376,4 +399,8 @@ public class ObjetoTienda {
 public class ObjetoRecursos {
     public RECURSOS recurso;
     public int cantidadNecesaria;
+
+    public ResourceInfo getResourceInfo() {
+        return new ResourceInfo(recurso, cantidadNecesaria);
+    }
 }

@@ -10,7 +10,6 @@ public class Crafteable : Estructura, IEstructura {
     /// Si el crafteador es una mesa de trabajo, horno o cocina, por ejemplo.
     /// </summary>
     public CRAFTTYPE tipoCrafteador;
-    public Sprite spriteCraftear;
 
     public bool repetir { get; private set; }
     
@@ -109,7 +108,7 @@ public class Crafteable : Estructura, IEstructura {
 
     public string OnText () {
         AbrirPanel();
-        manager.info.ActivarBoton(0, spriteCraftear, "Fabricar", true, () => {
+        manager.info.AddActionButton(manager.GetIconSprite(TIPOACCION.Craftear), "Fabricar", true, () => {
             AbrirPanel();
         });
 
@@ -122,7 +121,7 @@ public class Crafteable : Estructura, IEstructura {
     }
 
     public string OnTextGroup (Estructura[] builds) {
-        manager.info.ActivarBoton(0, spriteCraftear, "Fabricar", false, () => {
+        manager.info.AddActionButton(manager.GetIconSprite(TIPOACCION.Craftear), "Fabricar", false, () => {
             //No pasa nada ya que los crafteos tienen que ser seleccionando solo 1 mesa.
         });
 

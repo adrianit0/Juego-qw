@@ -10,7 +10,8 @@ public class Informacion : MonoBehaviour {
     public Text textoInformacion;
 
     //BOTONES
-    public BotonInfo[] botones = new BotonInfo[2];
+    public BotonInfo[] botones;
+    private int autoButton;         //Para no tener que saber su posición, se pondrá automaticamente
 
     //SELECCION
     public GameObject seleccionPrefab;
@@ -59,20 +60,20 @@ public class Informacion : MonoBehaviour {
         if(selections != null) {
             if(selections == null || selections.Length <= 1) {
                 texto = "<b>Suelo.</b>\n\n";
-                texto += "Suelo fertil";
+                texto += "Suelo fertil, es posible arar y cultivar";
             } else {
                 texto = "<b>Suelo.</b>\n[" + selections.Length + " seleccionados]\n\n";
-                texto += "Suelo fertil";
+                texto += "Suelo fertil, es posible arar y cultivar";
             }
         }
 
-        ActivarBoton(0, null, "Construir", true, () => { manager.interfaz.ActivarDesactivar(manager.build.panelConstruir); });
-        ActivarBoton(1, null, "Arar la tierra", true, () => {
+        AddActionButton(manager.GetIconSprite(TIPOACCION.Construir), "Construir", true, () => { manager.interfaz.ActivarDesactivar(manager.build.panelConstruir); });
+        AddActionButton(manager.GetIconSprite(TIPOACCION.Arar), "Arar la tierra", true, () => {
             for(int i = 0; i < selections.Length; i++) {
                 manager.actions.CreateAction(selections[i].transform.position, HERRAMIENTA.Arar, TIPOACCION.Almacenar);
             }
         });
-        ActivarBoton(2, null, "Cavar", false, () => { });
+        AddActionButton(manager.GetIconSprite(TIPOACCION.Construir), "Cavar", false, () => { });
 
         SetText(texto);
 
@@ -93,14 +94,21 @@ public class Informacion : MonoBehaviour {
             botones[i].boton.gameObject.SetActive(false);
         }
 
+        autoButton = 0;
         manager.farm.panelCultivo.SetActive(false);
         manager.craft.panel.SetActive(false);
         manager.management.panelPrincipal.SetActive(false);
     }
 
-    public void ActivarBoton (int boton, Sprite icono, string texto, bool activado, UnityAction accion) {
-        if(boton < 0 || boton >= botones.Length)
+    public void AddActionButton(Sprite icono, string texto, bool activado, UnityAction accion) {
+        int boton = autoButton;
+
+        if(boton >= botones.Length) {
+            //TODO:
+            //CREAR UN NUEVO BOTON
+            //DE MOMENTO SIMPLEMENTE IMPIDE QUE SE PUEDA REALIZAR ESTA ACCION
             return;
+        }
 
         botones[boton].boton.gameObject.SetActive(true);
         botones[boton].boton.onClick.RemoveAllListeners();
@@ -109,6 +117,8 @@ public class Informacion : MonoBehaviour {
 
         botones[boton].icono.sprite = icono;
         botones[boton].texto.text = texto;
+
+        autoButton++;
     }
 
     public Estructura[] GetSelectedBuild() {

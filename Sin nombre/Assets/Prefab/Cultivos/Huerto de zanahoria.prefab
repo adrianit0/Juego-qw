@@ -82,7 +82,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1808d84d413c8a54eb0d7567e954ab5b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  tipo: 2
+  tipo: 4
   nombre: Cultivo de zanahorias
   bloquear: 0
   manager: {fileID: 0}
@@ -134,11 +134,18 @@ SpriteRenderer:
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: 288048593
+  m_SortingLayer: -1
   m_SortingOrder: 3
   m_Sprite: {fileID: 21300010, guid: 0f9968415a0fdf84ebc581969a0ceda8, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
+  m_DrawMode: 0
+  m_Size: {x: 1, y: 1}
+  m_AdaptiveModeThreshold: 0.5
+  m_SpriteTileMode: 0
+  m_WasSpriteAssigned: 1
+  m_MaskInteraction: 0
 --- !u!212 &212713873714153744
 SpriteRenderer:
   m_ObjectHideFlags: 1
@@ -169,8 +176,15 @@ SpriteRenderer:
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: 288048593
+  m_SortingLayer: -1
   m_SortingOrder: -7001
   m_Sprite: {fileID: 21300000, guid: 0f9968415a0fdf84ebc581969a0ceda8, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
+  m_DrawMode: 0
+  m_Size: {x: 1, y: 1}
+  m_AdaptiveModeThreshold: 0.5
+  m_SpriteTileMode: 0
+  m_WasSpriteAssigned: 1
+  m_MaskInteraction: 0

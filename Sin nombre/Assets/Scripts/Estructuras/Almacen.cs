@@ -12,9 +12,6 @@ public class Almacen : Estructura, IEstructura, IEquipo {
     public float yPos = -0.383f;
     LineRenderer line;
 
-    public Sprite spriteVaciar;
-    public Sprite spriteAdmin;
-
     new void Awake() {
         base.Awake();
 
@@ -41,8 +38,8 @@ public class Almacen : Estructura, IEstructura, IEquipo {
 
     public string OnText() {
         //manager.management.AbrirBaul(this);
-        manager.info.ActivarBoton(0, spriteAdmin, "Gestionar", true, () => { manager.management.AbrirBaul(this); });
-        manager.info.ActivarBoton(1, spriteVaciar, "Vaciar", inventario.Count>0, () => manager.actions.CreateAction (transform.position, HERRAMIENTA.Custom, TIPOACCION.VaciarAlmacen, null, false));
+        manager.info.AddActionButton(manager.GetIconSprite(TIPOACCION.SacarAlmacen), "Gestionar", true, () => { manager.management.AbrirBaul(this); });
+        manager.info.AddActionButton(manager.GetIconSprite(TIPOACCION.VaciarAlmacen), "Vaciar", inventario.Count>0, () => manager.actions.CreateAction (transform.position, HERRAMIENTA.Custom, TIPOACCION.VaciarAlmacen, null, false));
         
         return RecibirTexto(inventario);
     }
@@ -60,7 +57,7 @@ public class Almacen : Estructura, IEstructura, IEquipo {
             _inventario.CopyContent(almacenes[i].inventario);
         }
         
-        manager.info.ActivarBoton(0, spriteVaciar, "Vaciar", _inventario.Count > 0, () => {
+        manager.info.AddActionButton(manager.GetIconSprite(TIPOACCION.VaciarAlmacen), "Vaciar", _inventario.Count > 0, () => {
             for (int i = 0; i < almacenes.Length; i++) {
                 manager.actions.CreateAction(almacenes[i].transform.position, HERRAMIENTA.Custom, TIPOACCION.VaciarAlmacen, null, false);
             }

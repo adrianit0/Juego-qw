@@ -67,13 +67,6 @@ public class ActionManager {
 
                     action.RegisterAction(ACTIONEVENT.OnCompleted, (gameAction) => { methods.ExtraerRecursos(_resource, gameAction); });
 
-                } else if(build.GetBuildType() == ESTRUCTURA.Agua) {
-                    type = TIPOACCION.Pescar;
-
-                    action.SetExperience(ATRIBUTO.Recoleccion, 1);
-
-                    action.RegisterAction(ACTIONEVENT.OnCompleted, (gameAction) => { methods.Pescar(build, gameAction); });
-
                 } else {
                     return null;
                 }
@@ -140,6 +133,8 @@ public class ActionManager {
                 type = TIPOACCION.Destruir;
                 customTime = build.tiempoDestruccion;
 
+                action.RegisterAction(ACTIONEVENT.OnCompleted, (GameAction) => { manager.RemoveBuildInMap(build.transform.position, 0.5f);  });
+
                 action.SetExperience(ATRIBUTO.Construccion, 1);
 
                 break;
@@ -187,7 +182,7 @@ public class ActionManager {
 
                         if(_almacen.inventario.Count > 0) {
                             customTime = 0.5f;
-                            customIcon = SearchIcon(TIPOACCION.SacarAlmacen);
+                            customIcon = manager.GetIconSprite(TIPOACCION.SacarAlmacen);
 
                             action.RegisterAction(ACTIONEVENT.OnCompleted, (gameAction) => { methods.VaciarAlmacen(_almacen, gameAction); });
 
@@ -209,6 +204,13 @@ public class ActionManager {
                         customTime = 0.5f;
                         action.RegisterAction(ACTIONEVENT.OnCompleted, (gameAction) => { methods.ExtraerAgua(build, gameAction); });
 
+                        break;
+
+                    case TIPOACCION.Pescar:
+                        type = TIPOACCION.Pescar;
+                        action.SetExperience(ATRIBUTO.Recoleccion, 1);
+
+                        action.RegisterAction(ACTIONEVENT.OnCompleted, (gameAction) => { methods.Pescar(build, gameAction); });
                         break;
 
                     case TIPOACCION.Regar:
@@ -243,7 +245,7 @@ public class ActionManager {
         SpriteRenderer actionRender = icon_go.GetComponent<SpriteRenderer>();
         icon_go.transform.position = (Vector3) pos;
 
-        actionRender.sprite = (customIcon==null) ? SearchIcon(type) : customIcon;
+        actionRender.sprite = (customIcon==null) ? manager.GetIconSprite(type) : customIcon;
 
         action.SetTime(customTime);
         action.SetSprite(actionRender.sprite);
@@ -261,15 +263,5 @@ public class ActionManager {
     
     public void RemoveAction(GameAction action) {
         actionsQueue.RemoveAction(action);
-    }
-
-    public Sprite SearchIcon(TIPOACCION tipoAccion) {
-        for(int i = 0; i < manager.iconos.Length; i++) {
-            if(manager.iconos[i].type == tipoAccion)
-                return manager.iconos[i].sprite;
-        }
-
-        //Si no encuentra el icono devuelve el primero.
-        return manager.iconos[0].sprite;
     }
 }

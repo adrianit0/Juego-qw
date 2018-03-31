@@ -82,6 +82,14 @@ public class Estructura : MonoBehaviour {
             }
         }
 
+        if(esDestruible) {
+            manager.info.AddActionButton(manager.GetIconSprite(TIPOACCION.Destruir), "Destruir", true, () => {
+                for(int i = 0; i < estructuras.Length; i++) {
+                    manager.actions.CreateAction(estructuras[i].transform.position, HERRAMIENTA.Destruir, TIPOACCION.Almacenar);
+                }
+            });
+        }
+
         manager.info.SetText(texto);
     }
 

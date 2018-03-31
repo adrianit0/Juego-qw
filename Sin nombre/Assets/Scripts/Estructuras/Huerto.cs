@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+//TODO:
+// Solo regar plantas que no tenga agua o que tenga muy poca
 public class Huerto : Estructura, IEstructura {
 
     public Cultivo cultivo = null;
@@ -88,18 +90,18 @@ public class Huerto : Estructura, IEstructura {
     public string OnText() {
         if (cultivo==null) {
             //CULTIVAR
-            manager.info.ActivarBoton(0, spriteCultivar, "Cultivar", true, () => {
+            manager.info.AddActionButton(spriteCultivar, "Cultivar", true, () => {
                 manager.GetComponent<Agricultura>().AbrirPanel(1);
             });
         } else {
             //FERTILIZAR
-            manager.info.ActivarBoton(0, spriteFertilizar, "Fertilizar", false, () => {
+            manager.info.AddActionButton(spriteFertilizar, "Fertilizar", false, () => {
                 //Añadir aquí el contenido
             });
         }
 
         //REGAR
-        manager.info.ActivarBoton(1, spriteRegar, "Regar", true, () => {
+        manager.info.AddActionButton(spriteRegar, "Regar", true, () => {
             manager.actions.CreateAction(transform.position, HERRAMIENTA.Custom, TIPOACCION.Regar, null, false);
         });
 
@@ -119,18 +121,18 @@ public class Huerto : Estructura, IEstructura {
 
         if (cantidadSinSembrar > 0) {
             //CULTIVAR
-            manager.info.ActivarBoton(0, spriteCultivar, "Cultivar", true, () => {
+            manager.info.AddActionButton(spriteCultivar, "Cultivar", true, () => {
                 manager.GetComponent<Agricultura>().AbrirPanel(cantidadSinSembrar);
             });
         } else {
             //FERTILIZAR
-            manager.info.ActivarBoton(0, spriteFertilizar, "Fertilizar", true, () => {
+            manager.info.AddActionButton(spriteFertilizar, "Fertilizar", true, () => {
                 //Añadir aquí el contenido
             });
         }
 
         //REGAR
-        manager.info.ActivarBoton(1, spriteRegar, "Regar", true, () => {
+        manager.info.AddActionButton(spriteRegar, "Regar", true, () => {
             for(int i = 0; i < huertos.Length; i++) {
                 manager.actions.CreateAction(huertos[i].transform.position, HERRAMIENTA.Custom, TIPOACCION.Regar, null, false);
             }

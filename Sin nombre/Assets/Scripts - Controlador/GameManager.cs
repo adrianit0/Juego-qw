@@ -229,6 +229,11 @@ public class GameManager : MonoBehaviour, IEquipo {
         }
     }
 
+    public void CrearSaco (IntVector2 pos, ResourceInfo[] inventario) {
+        //MAX STEP POR DEFECTO
+        CrearSaco(pos, 15, inventario);
+    }
+
     public Estructura CreateBuild (IntVector2 position, GameObject prefab) {
         if(position.x < 0 || position.y < 0 || position.x >= totalSize.x || position.y >= totalSize.y)
             return null;
@@ -272,23 +277,41 @@ public class GameManager : MonoBehaviour, IEquipo {
         AddBuildInMap(position.x, position.y, estructura);
     }
 
-    public void RemoveBuildInMap(int x, int y) {
-        Estructura build = map[x, y].GetBuild();
+    /// <summary>
+    /// Elimina una estructura, devolviendo un porcentaje de lo que costaba su creación
+    /// El valor va del 0 al 1.
+    /// </summary>
+    public void RemoveBuildInMap(int x, int y, float devolver = 0) {
+        Estructura _build = map[x, y].GetBuild();
 
-        if(build==null)
+        if(_build==null)
             return;
 
-        ESTRUCTURA _tipo = build.GetBuildType();
-        if(ExistBuild(_tipo) && builds[_tipo]!=null && builds[_tipo].Contains(build))
-            builds[_tipo].Remove(build);
+        ResourceInfo[] items = build.getObjetoConstrucción(_build.nombre);
+
+        ESTRUCTURA _tipo = _build.GetBuildType();
+        if(ExistBuild(_tipo) && builds[_tipo]!=null && builds[_tipo].Contains(_build))
+            builds[_tipo].Remove(_build);
         
         map[x, y].RemoveBuild();
 
-        Destroy(build.gameObject);
+        if(devolver > 0 && items != null && items.Length > 0) {
+            int total = 0;
+            for(int i = 0; i < items.Length; i++) {
+                items[i].quantity = Mathf.RoundToInt(items[i].quantity * devolver);
+                total += items[i].quantity;
+            }
+
+            if(total > 0) {
+                CrearSaco(new IntVector2(x, y), items);
+            }
+        }
+
+        Destroy(_build.gameObject);
     }
 
-    public void RemoveBuildInMap (Vector3 position) {
-        RemoveBuildInMap(Mathf.RoundToInt(position.x), Mathf.RoundToInt(position.y));
+    public void RemoveBuildInMap (Vector3 position, float devolver = 0) {
+        RemoveBuildInMap(Mathf.RoundToInt(position.x), Mathf.RoundToInt(position.y), devolver);
     }
 
     ///Actualiza los sprites de todo el mapa.
@@ -387,6 +410,17 @@ public class GameManager : MonoBehaviour, IEquipo {
 
     public int SetSortingLayer (float yPos) {
         return Mathf.RoundToInt(yPos*1000 * -1);
+    }
+
+
+    public Sprite GetIconSprite(TIPOACCION tipoAccion) {
+        for(int i = 0; i < iconos.Length; i++) {
+            if(iconos[i].type == tipoAccion)
+                return iconos[i].sprite;
+        }
+
+        //Si no encuentra el icono devuelve el primero.
+        return iconos[0].sprite;
     }
 }
 

@@ -33,8 +33,13 @@ public class Agua : Estructura , IEstructura {
 
     public string OnText() {
         //EXTRAER AGUA
-        manager.info.ActivarBoton(0, spriteExtraer, "Extraer", true, () => {
+        manager.info.AddActionButton(manager.GetIconSprite(TIPOACCION.ExtraerAgua), "Extraer", true, () => {
             manager.actions.CreateAction(transform.position, HERRAMIENTA.Custom, TIPOACCION.ExtraerAgua, null, false, -1, null);
+        });
+
+        //PESCAR
+        manager.info.AddActionButton(manager.GetIconSprite(TIPOACCION.Pescar), "Pescar", true, () => {
+            manager.actions.CreateAction(transform.position, HERRAMIENTA.Custom, TIPOACCION.Pescar, null, false, -1, null);
         });
 
         return

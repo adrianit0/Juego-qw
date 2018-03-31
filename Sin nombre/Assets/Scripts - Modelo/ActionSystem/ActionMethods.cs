@@ -213,6 +213,8 @@ public class ActionMethods  {
             case TIPOCONSTRUCCION.Estructura:
                 //Para construir estructuras.
                 Estructura _build = manager.CreateBuild(pos, manager.build.construcciones[buildID].prefab);
+                _build.nombre = manager.build.construcciones[buildID].nombre; //Lo renombra para evitar errores
+
                 for(int i = 0; i < manager.build.construcciones[buildID].posicionesExtras.Length; i++) {
                     manager.AddBuildInMap(pos + manager.build.construcciones[buildID].posicionesExtras[i], _build);
                 }
