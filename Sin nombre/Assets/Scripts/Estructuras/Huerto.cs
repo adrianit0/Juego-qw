@@ -16,10 +16,6 @@ public class Huerto : Estructura, IEstructura {
 
     public Sprite sueloSeco, sueloMojado;
 
-    public Sprite spriteCultivar;
-    public Sprite spriteFertilizar;
-    public Sprite spriteRegar;
-
     new void Awake() {
         base.Awake();
 
@@ -30,14 +26,14 @@ public class Huerto : Estructura, IEstructura {
 
     }
 
-    void Update() {
-        if (cultivo != null && agua.litrosTotales>0) {
+    public void OnUpdate(float delta) {
+        if(cultivo != null && agua.litrosTotales > 0) {
             tiempoCreciendo += Time.deltaTime;
             tiempoAgua += Time.deltaTime;
 
-            if (tiempoAgua > (60/cultivo.litrosPorMinuto)) {
+            if(tiempoAgua > (60 / cultivo.litrosPorMinuto)) {
                 tiempoAgua = 0;
-                if (agua.ConsumirAgua (1)) {
+                if(agua.ConsumirAgua(1)) {
                     renderCultivo.sprite = sueloSeco;
                 }
             }
@@ -90,18 +86,18 @@ public class Huerto : Estructura, IEstructura {
     public string OnText() {
         if (cultivo==null) {
             //CULTIVAR
-            manager.info.AddActionButton(spriteCultivar, "Cultivar", true, () => {
+            manager.info.AddActionButton(manager.GetIconSprite(TIPOACCION.Plantar), "Cultivar", true, () => {
                 manager.GetComponent<Agricultura>().AbrirPanel(1);
             });
         } else {
             //FERTILIZAR
-            manager.info.AddActionButton(spriteFertilizar, "Fertilizar", false, () => {
+            manager.info.AddActionButton(manager.GetIconSprite(TIPOACCION.Arar), "Fertilizar", false, () => {
                 //Añadir aquí el contenido
             });
         }
 
         //REGAR
-        manager.info.AddActionButton(spriteRegar, "Regar", true, () => {
+        manager.info.AddActionButton(manager.GetIconSprite(TIPOACCION.Regar), "Regar", true, () => {
             manager.actions.CreateAction(transform.position, HERRAMIENTA.Custom, TIPOACCION.Regar, null, false);
         });
 
@@ -121,18 +117,18 @@ public class Huerto : Estructura, IEstructura {
 
         if (cantidadSinSembrar > 0) {
             //CULTIVAR
-            manager.info.AddActionButton(spriteCultivar, "Cultivar", true, () => {
+            manager.info.AddActionButton(manager.GetIconSprite(TIPOACCION.Plantar), "Cultivar", true, () => {
                 manager.GetComponent<Agricultura>().AbrirPanel(cantidadSinSembrar);
             });
         } else {
             //FERTILIZAR
-            manager.info.AddActionButton(spriteFertilizar, "Fertilizar", true, () => {
+            manager.info.AddActionButton(manager.GetIconSprite(TIPOACCION.Arar), "Fertilizar", true, () => {
                 //Añadir aquí el contenido
             });
         }
 
         //REGAR
-        manager.info.AddActionButton(spriteRegar, "Regar", true, () => {
+        manager.info.AddActionButton(manager.GetIconSprite(TIPOACCION.Regar), "Regar", true, () => {
             for(int i = 0; i < huertos.Length; i++) {
                 manager.actions.CreateAction(huertos[i].transform.position, HERRAMIENTA.Custom, TIPOACCION.Regar, null, false);
             }

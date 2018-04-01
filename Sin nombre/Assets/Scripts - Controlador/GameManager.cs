@@ -31,9 +31,10 @@ public class GameManager : MonoBehaviour, IEquipo {
     public Slider barraprioridad;
 
     //Lista de construcciones en el juego
-    private Dictionary<ESTRUCTURA, List<Estructura>> builds;
+    private Dictionary<ESTRUCTURA, List<Estructura>> builds;    //Todas las estructuras
+    private List<Estructura> updateBuild;                       //Para el update
     //Lista de personajes jugables
-    public List<Personaje> characters;
+    public List<Personaje> characters { get; private set; }
     //Lista de NPC
     //public List<Personaje> NPC;
 
@@ -102,11 +103,30 @@ public class GameManager : MonoBehaviour, IEquipo {
         //TODO: 
         //Poner esto en el Start cuando no haya estructuras pregeneradas.
         tiles = new Dictionary<Node, SpriteRenderer>();
+        updateBuild = new List<Estructura>();
 
         CrearMapa();
 
         inventario = new Inventario(int.MaxValue, this);
         inventario.SetInterface((IEquipo) this);
+    }
+
+    void Start() {
+
+    }
+
+    //SUPER IMPORTANTE, SOLO EXISTIRÁ ESTE UPDATE
+    void Update() {
+        //SI ESTÁ EN PAUSE, PONER UN RETURN
+
+
+        float delta = Time.deltaTime;
+        for(int i = 0; i < updateBuild.Count; i++) {
+            updateBuild[i].UpdatableMethod(delta);
+        }
+
+
+        //INTRODUCIR AQUÍ EL UPDATE DE TODOS LOS DEMÁS MANAGERS
     }
 
     public void AddCharacter(Personaje character) {
@@ -155,14 +175,6 @@ public class GameManager : MonoBehaviour, IEquipo {
             return false;
 
         return builds[buildType].Count>0;
-
-        // Antigua manera de hacerlo
-        /* for (int i = 0; i < builds.Count; i++) {
-            if(builds[i].GetBuildType() == buildType)
-                return true;
-        }
-
-        return false;*/
     }
 
     /// <summary>
@@ -270,7 +282,11 @@ public class GameManager : MonoBehaviour, IEquipo {
         } else {
             builds.Add(_tipo, new List<Estructura>());
         }
-        
+
+        IEstructura _update = estructura.GetComponent<IEstructura>();
+        if(_update != null)
+            updateBuild.Add(estructura);
+
     }
 
     public void AddBuildInMap(IntVector2 position, Estructura estructura) {
@@ -292,6 +308,9 @@ public class GameManager : MonoBehaviour, IEquipo {
         ESTRUCTURA _tipo = _build.GetBuildType();
         if(ExistBuild(_tipo) && builds[_tipo]!=null && builds[_tipo].Contains(_build))
             builds[_tipo].Remove(_build);
+
+        if(updateBuild.Contains(_build))
+            updateBuild.Remove(_build);
         
         map[x, y].RemoveBuild();
 
@@ -313,69 +332,6 @@ public class GameManager : MonoBehaviour, IEquipo {
     public void RemoveBuildInMap (Vector3 position, float devolver = 0) {
         RemoveBuildInMap(Mathf.RoundToInt(position.x), Mathf.RoundToInt(position.y), devolver);
     }
-
-    ///Actualiza los sprites de todo el mapa.
-    /*public void UpdateMap() {
-        for(int x = 0; x < map.GetLength(0); x++) {
-            for(int y = 0; y < map.GetLength(1); y++) {
-                map[x, y].render.sprite = SelectTileset(map[x, y].bloqueado ? 1 : 0, new Vector2(x, y));
-            }
-        }
-    }
-
-    Sprite SelectTileset(int valor, Vector2 position) {
-        int _direccion = tipoSprite(valor, Mathf.RoundToInt(position.x), Mathf.RoundToInt (position.y));
-
-        return (valor==0) ? spriteTierra[_direccion] : spriteAgua;
-    }
-
-    int tipoSprite(int valor, int x, int y) {
-        bool[] value = new bool[4];
-
-        if(y<(map.GetLength(1)-1) && (map[x, y + 1].bloqueado ? 1 : 0) == valor)
-            value[0] = true;
-        if(x>0 && (map[x - 1, y].bloqueado ? 1 : 0) == valor)
-            value[1] = true;
-        if(x<(map.GetLength(0)-1) && (map[x + 1, y].bloqueado ? 1 : 0) == valor)
-            value[2] = true;
-        if(y>0 && (map[x, y - 1].bloqueado ? 1 : 0) == valor)
-            value[3] = true;
-        
-        if(value[0] && value[1] && value[2] && value[3])
-            return 4;
-        else if(value[0] && value[1] && value[2] && !value[3])
-            return 7;
-        else if(value[0] && value[1] && !value[2] && value[3])
-            return 5;
-        else if(value[0] && value[1] && !value[2] && !value[3])
-            return 8;
-        else if(value[0] && !value[1] && value[2] && value[3])
-            return 3;
-        else if(value[0] && !value[1] && value[2] && !value[3])
-            return 6;
-        else if(value[0] && !value[1] && !value[2] && value[3])
-            return 10;
-        else if(value[0] && !value[1] && !value[2] && !value[3])
-            return 11;
-        else if(!value[0] && value[1] && value[2] && value[3])
-            return 1;
-        else if(!value[0] && value[1] && value[2] && !value[3])
-            return 13;
-        else if(!value[0] && value[1] && !value[2] && value[3])
-            return 2;
-        else if(!value[0] && value[1] && !value[2] && !value[3])
-            return 14;
-        else if(!value[0] && !value[1] && value[2] && value[3])
-            return 0;
-        else if(!value[0] && !value[1] && value[2] && !value[3])
-            return 12;
-        else if(!value[0] && !value[1] && !value[2] && value[3])
-            return 9;
-        else if(!value[0] && !value[1] && !value[2] && !value[3])
-            return 15;
-
-        return 4;
-    }*/
     
     public void CambiarPestañaRecursos (int index) {
         for (int i = 0; i < panelesRecursos.Length; i++) {

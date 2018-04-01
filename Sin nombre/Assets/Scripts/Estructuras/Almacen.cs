@@ -23,6 +23,8 @@ public class Almacen : Estructura, IEstructura, IEquipo {
         inventario.SetInterface((IEquipo) this);
     }
 
+    public void OnUpdate(float delta) { }
+
     public void OnCapacityChange (params ResourceInfo[] recursos) {
         manager.inventario.AddResource(recursos);
 

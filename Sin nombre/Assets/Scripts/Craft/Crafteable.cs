@@ -17,6 +17,8 @@ public class Crafteable : Estructura, IEstructura {
         crafteos = new List<Craft>();
     }
 
+    public void OnUpdate(float delta) { }
+
     public Craft GetThisCraft () {
         if (crafteos == null || crafteos.Count == 0) {
             Debug.LogWarning("Crafteable::GetThisCraft error: No hay nada que craftear.");

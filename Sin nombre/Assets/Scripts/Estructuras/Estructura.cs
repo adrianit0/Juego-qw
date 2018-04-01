@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public enum ESTRUCTURA { Ninguno, Vivienda, Almacen, Recurso, Huerto, Bolsa, Agua, Muro, Suelo }
+public enum ESTRUCTURA { Ninguno, Vivienda, Almacen, Recurso, Huerto, Bolsa, Agua, Muro, Suelo, Hoguera }
 
 
 public class Estructura : MonoBehaviour {
@@ -44,13 +44,18 @@ public class Estructura : MonoBehaviour {
             estructura.OnStart();
         }
     }
-    
+
     //Constructor, actualmente desactivado al ser una clase heredada del MonoBehvaiour
     //En un futuro, para seguir con el patron MVC, no será heredada de esta.
     /*
     public Estructura (GameManager manager) {
         this.manager = manager;
     }*/
+
+    public void UpdatableMethod(float delta) {
+        if(estructura != null)
+            estructura.OnUpdate(delta);
+    }
 
     public IntVector2 GetPosition () {
         return new IntVector2(Mathf.RoundToInt(transform.position.x), Mathf.RoundToInt(transform.position.y));

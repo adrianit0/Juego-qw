@@ -17,6 +17,8 @@ public class Agua : Estructura , IEstructura {
         agua = new Fluido(875, 1, 0, 0);
     }
 
+    public void OnUpdate(float delta) { }
+
     public bool Pescar () {
         bool obtenido = Random.value < cantPeces;
 

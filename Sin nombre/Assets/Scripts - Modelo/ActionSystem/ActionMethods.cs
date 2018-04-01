@@ -42,12 +42,15 @@ public class ActionMethods  {
 
         if(!action.worker.inventario.IsFull() && recursos.actualQuantity > 0) {
             action.worker.AddAction(actions.CreateAction(action, action.worker, true));
+            return;
         } else if(manager.ExistBuild(ESTRUCTURA.Almacen)) {
             action.worker.BuscarAlmacenCercano();
+        } else {
+            action.worker.TirarRecursos();
+        }
 
-            if(recursos.actualQuantity > 0) {
-                action.worker.AddAction(actions.CreateAction(action, action.worker, true));
-            }
+        if(recursos.actualQuantity > 0) {
+            action.worker.AddAction(actions.CreateAction(action, action.worker, true));
         }
     }
 

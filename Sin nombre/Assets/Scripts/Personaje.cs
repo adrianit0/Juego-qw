@@ -245,9 +245,17 @@ public class Personaje : MonoBehaviour, IEquipo {
         if(pos != new IntVector2(0, 0)) {
             AddAction(manager.actions.CreateAction(pos, HERRAMIENTA.Custom, TIPOACCION.Almacenar, this, true, -1, inventario.ToArray()));
         } else {
-            manager.CrearSaco(transform.position, maxSteps, inventario.ToArray());
-            inventario.CleanResource();
+            //Si no consigue llegar a ún almacén cercano tirará los objetos al suelo.
+            TirarRecursos();
         }
+    }
+
+    /// <summary>
+    /// Tira todos los recursos al suelo en una bolsa.
+    /// </summary>
+    public void TirarRecursos() {
+        manager.CrearSaco(transform.position, maxSteps, inventario.ToArray());
+        inventario.CleanResource();
     }
 
     bool BuscarAguaCercana(TIPOAGUA agua, float minNecesario) {

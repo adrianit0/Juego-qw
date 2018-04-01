@@ -52,7 +52,7 @@ public class ActionManager {
                 Recurso _resource = build.GetComponent<Recurso>();
 
                 if(_resource != null) {
-                    if(_resource.actualQuantity == 0)   //Si el recurso está vacio no te permite usarlo.
+                    if(_resource.actualQuantity <= 0)   //Si el recurso está vacio no te permite usarlo.
                         return null;
                     type = _resource.actionType;
 

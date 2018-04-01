@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Hoguera : MonoBehaviour {
+public class Hoguera : Estructura, IEstructura {
 
     public Light luz;
 
@@ -15,20 +15,39 @@ public class Hoguera : MonoBehaviour {
 
     public float minLight = 1.5f, maxLight = 2f;
 
-    float value = 0;
+    float total = 0;
+    public void OnStart() {
 
-	void Update () {
+    }
+
+    public void OnUpdate(float delta) {
         if(luz == null)
             return;
 
-        luz.intensity = Mathf.PingPong(Time.time, maxLight - minLight) + minLight;
-        /*
-        directionalLight.transform.rotation = Quaternion.Euler(curva.Evaluate(value) * 360, -30, 0);
-        RenderSettings.ambientLight = colores.Evaluate(value);
+        total += delta;
+        luz.intensity = Mathf.PingPong(total, maxLight - minLight) + minLight;
+    }
 
-        value += Time.deltaTime/ segundos;
+    public string OnText() {
+        //ALIMENTAR
+        manager.info.AddActionButton(manager.GetIconSprite(TIPOACCION.VaciarAlmacen), "Alimentar fuego", false, () => { });
+        //COCINAR
+        manager.info.AddActionButton(manager.GetIconSprite(TIPOACCION.Cocinar), "Cocinar alimento", false, () => { });
+        //APAGAR
+        manager.info.AddActionButton(manager.GetIconSprite(TIPOACCION.Destruir), "Apagar fuego", false, () => { });
 
-        if(value > 1)
-            value = 0;*/
+
+        return "Es una calurosa hoguera... Parece tardar hasta que se apague sola...";
+    }
+
+    public string OnTextGroup(Estructura[] estructuras) {
+        //APAGAR
+        manager.info.AddActionButton(manager.GetIconSprite(TIPOACCION.Destruir), "Apagar fuego", false, () => { });
+
+        return "Son hogueras...";
+    }
+
+    public void OnDestroyBuild() {
+
     }
 }

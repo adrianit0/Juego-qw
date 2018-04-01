@@ -20,6 +20,10 @@ public class Recurso : Estructura, IEstructura {
         SetSprite();
     }
 
+    public void OnUpdate(float delta) {
+
+    }
+
     void SetSprite () {
         float porc = ((float) actualQuantity) / ((float) maxQuantity);
 
@@ -127,7 +131,8 @@ public class Recurso : Estructura, IEstructura {
                 text += "Está vacío.";
             }
 
-            text += "\n\n<b>Atención:</b> Esta bolsa desaparecerá si no la recoges antes de media noche";
+            if (tipo== ESTRUCTURA.Bolsa)
+                text += "\n\n<b>Atención:</b> Esta bolsa desaparecerá si no la recoges antes de media noche";
         } else {
             float probTotal = 0;
 
@@ -144,16 +149,57 @@ public class Recurso : Estructura, IEstructura {
             }
         }
 
+
+        //ACCIONES:
+        //Solo
+        if(actualQuantity > 0) {
+            SetButton();
+        } else {
+            esDestruible = true;
+        }
+
         return text;
     }
 
     public string OnTextGroup(Estructura[] estructuras) {
-
+        manager.info.AddActionButton(manager.GetIconSprite(TIPOACCION.Minar), "Recolectar", true, () => {
+            for(int i = 0; i < estructuras.Length; i++) {
+                estructuras[i].GetComponent<Recurso>().SetButton();
+            }
+        });
         return "";
     }
 
-    public void OnDestroyBuild() {
+    public void SetButton() {
+        switch(actionType) {
+            case TIPOACCION.Minar:
+                manager.info.AddActionButton(manager.GetIconSprite(TIPOACCION.Minar), "Minar", true, () => {
+                    manager.actions.CreateAction(transform.position, HERRAMIENTA.Recolectar, TIPOACCION.Minar, null, false);
+                });
+                break;
+            case TIPOACCION.Talar:
+                manager.info.AddActionButton(manager.GetIconSprite(TIPOACCION.Talar), "Talar", true, () => {
+                    manager.actions.CreateAction(transform.position, HERRAMIENTA.Recolectar, TIPOACCION.Talar, null, false);
+                });
+                manager.info.AddActionButton(manager.GetIconSprite(TIPOACCION.RecogerObjeto), "Zarandear", false, () => {
+                    //Incluir
+                });
+                break;
+            case TIPOACCION.Cosechar:
+                manager.info.AddActionButton(manager.GetIconSprite(TIPOACCION.Cosechar), "Cosechar", true, () => {
+                    manager.actions.CreateAction(transform.position, HERRAMIENTA.Recolectar, TIPOACCION.Cosechar, null, false);
+                });
+                break;
+            case TIPOACCION.RecogerObjeto:
+                manager.info.AddActionButton(manager.GetIconSprite(TIPOACCION.RecogerObjeto), "Recoger", true, () => {
+                    manager.actions.CreateAction(transform.position, HERRAMIENTA.Recolectar, TIPOACCION.RecogerObjeto, null, false);
+                });
+                break;
+        }
+    }
 
+    public void OnDestroyBuild() {
+        //No debería de pasar nada
     }
 }
 
