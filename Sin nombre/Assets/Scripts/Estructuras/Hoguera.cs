@@ -1,6 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 
 public class Hoguera : Estructura, IEstructura {
 
@@ -48,6 +46,6 @@ public class Hoguera : Estructura, IEstructura {
     }
 
     public void OnDestroyBuild() {
-
+        //No pasa nada al destruirse...
     }
 }

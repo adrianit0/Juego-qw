@@ -8,7 +8,7 @@ public class LightManager : MonoBehaviour {
 
     [Range(0,1)]
     public float initialDay = 0.5f;
-    public float segundos = 7;
+    float duracionDia = 3600;
 
     public Gradient colores;
     public AnimationCurve curva;
@@ -27,9 +27,9 @@ public class LightManager : MonoBehaviour {
         directionalLight.transform.rotation = Quaternion.Euler(curva.Evaluate(value) * 360, -30, 0);
         RenderSettings.ambientLight = colores.Evaluate(value);
 
-        value += Time.deltaTime/ segundos;
+        value += Time.deltaTime/ duracionDia;
 
         if(value > 1)
-            value = 0;
+            value--;
     }
 }
