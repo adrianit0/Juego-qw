@@ -21,6 +21,7 @@ public class Estructura : MonoBehaviour {
     bool awaken = false;
 
     IEstructura estructura;
+    IUpdatable update;
     protected SpriteRenderer render;
 
     protected void Awake() {
@@ -51,11 +52,6 @@ public class Estructura : MonoBehaviour {
     public Estructura (GameManager manager) {
         this.manager = manager;
     }*/
-
-    public void UpdatableMethod(float delta) {
-        if(estructura != null)
-            estructura.OnUpdate(delta);
-    }
 
     public IntVector2 GetPosition () {
         return new IntVector2(Mathf.RoundToInt(transform.position.x), Mathf.RoundToInt(transform.position.y));

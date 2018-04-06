@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class LightManager : MonoBehaviour {
+public class LightManager : MonoBehaviour, IUpdatable {
     
     Light directionalLight;
 
@@ -22,14 +22,18 @@ public class LightManager : MonoBehaviour {
     void Start() {
         value = initialDay;
     }
-
-    void Update() {
+    
+    public void OnUpdate(float delta) {
         directionalLight.transform.rotation = Quaternion.Euler(curva.Evaluate(value) * 360, -30, 0);
         RenderSettings.ambientLight = colores.Evaluate(value);
 
-        value += Time.deltaTime/ duracionDia;
+        value += delta / duracionDia;
 
         if(value > 1)
             value--;
     }
+
+    //public void OnUpdate(float delta) { }
+    public void OnFixedUpdate(float delta) { }
+    public void OnVelocityChange(float nueva) { }
 }

@@ -56,6 +56,7 @@ MonoBehaviour:
   - {fileID: 21300000, guid: add8b10203e44ea4f842473119d848f2, type: 3}
   - {fileID: 21300002, guid: add8b10203e44ea4f842473119d848f2, type: 3}
   velocidad: 5
+  isUpdatable: 0
 --- !u!212 &212384575083814514
 SpriteRenderer:
   m_ObjectHideFlags: 1
@@ -86,8 +87,15 @@ SpriteRenderer:
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: 1737905605
+  m_SortingLayer: 1
   m_SortingOrder: 2
   m_Sprite: {fileID: 21300000, guid: add8b10203e44ea4f842473119d848f2, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
+  m_DrawMode: 0
+  m_Size: {x: 1, y: 1}
+  m_AdaptiveModeThreshold: 0.5
+  m_SpriteTileMode: 0
+  m_WasSpriteAssigned: 1
+  m_MaskInteraction: 0

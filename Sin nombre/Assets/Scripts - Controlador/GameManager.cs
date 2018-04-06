@@ -32,7 +32,7 @@ public class GameManager : MonoBehaviour, IEquipo {
 
     //Lista de construcciones en el juego
     private Dictionary<ESTRUCTURA, List<Estructura>> builds;    //Todas las estructuras
-    private List<Estructura> updateBuild;                       //Para el update
+    
     //Lista de personajes jugables
     public List<Personaje> characters { get; private set; }
     //Lista de NPC
@@ -69,6 +69,9 @@ public class GameManager : MonoBehaviour, IEquipo {
     public Construccion build { get; private set; }
     public Artesania craft { get; private set; }
     public ManagementManager management { get; private set; }
+    
+    public LightManager lightManager { get; private set; }
+    public TimeManager time { get; private set; }
     public Informacion info { get; private set; }
     public CharacterInterfaceController characterController { get; private set; }
 
@@ -90,6 +93,8 @@ public class GameManager : MonoBehaviour, IEquipo {
         farm = GetComponent<Agricultura>();
         build = GetComponent<Construccion>();
         management = GetComponent<ManagementManager>();
+        
+        time = GetComponent<TimeManager>();
         craft = GetComponent<Artesania>();
         info = GetComponent<Informacion>();
         characterController = GetComponent<CharacterInterfaceController>();
@@ -97,13 +102,13 @@ public class GameManager : MonoBehaviour, IEquipo {
         path = new PathFinding(this);
         actions = new ActionManager(this);
 
+        lightManager = FindObjectOfType<LightManager>();
         resourceController = FindObjectOfType<ResourceController>();
         interfaz = FindObjectOfType<UIManager>();
 
         //TODO: 
         //Poner esto en el Start cuando no haya estructuras pregeneradas.
         tiles = new Dictionary<Node, SpriteRenderer>();
-        updateBuild = new List<Estructura>();
 
         CrearMapa();
 
@@ -112,21 +117,8 @@ public class GameManager : MonoBehaviour, IEquipo {
     }
 
     void Start() {
-
-    }
-
-    //SUPER IMPORTANTE, SOLO EXISTIRÁ ESTE UPDATE
-    void Update() {
-        //SI ESTÁ EN PAUSE, PONER UN RETURN
-
-
-        float delta = Time.deltaTime;
-        for(int i = 0; i < updateBuild.Count; i++) {
-            updateBuild[i].UpdatableMethod(delta);
-        }
-
-
-        //INTRODUCIR AQUÍ EL UPDATE DE TODOS LOS DEMÁS MANAGERS
+        //Añadimos los UPDATES de cada manager.
+        time.AddUpdatable(lightManager.gameObject);
     }
 
     public void AddCharacter(Personaje character) {
@@ -283,10 +275,10 @@ public class GameManager : MonoBehaviour, IEquipo {
             builds.Add(_tipo, new List<Estructura>());
         }
 
-        IEstructura _update = estructura.GetComponent<IEstructura>();
+        IUpdatable[] _update = estructura.GetComponents<IUpdatable>();
         if(_update != null)
-            updateBuild.Add(estructura);
-
+            time.AddUpdatable(_update);
+        
     }
 
     public void AddBuildInMap(IntVector2 position, Estructura estructura) {
@@ -309,8 +301,10 @@ public class GameManager : MonoBehaviour, IEquipo {
         if(ExistBuild(_tipo) && builds[_tipo]!=null && builds[_tipo].Contains(_build))
             builds[_tipo].Remove(_build);
 
-        if(updateBuild.Contains(_build))
-            updateBuild.Remove(_build);
+        IUpdatable[] update = _build.GetComponents<IUpdatable>();
+
+        if (update!=null)
+            time.RemoveUpdatable(update);
         
         map[x, y].RemoveBuild();
 

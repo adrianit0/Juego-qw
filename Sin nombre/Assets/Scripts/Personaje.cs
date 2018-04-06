@@ -9,7 +9,7 @@ using UnityEngine;
 /// <summary>
 /// Clase que controla al personaje.
 /// </summary>
-public class Personaje : MonoBehaviour, IEquipo {
+public class Personaje : MonoBehaviour, IEquipo, IUpdatable {
 
     public float velocity = 5;
     public int maxSteps = 0;
@@ -78,11 +78,12 @@ public class Personaje : MonoBehaviour, IEquipo {
         inventario.SetInterface((IEquipo) this);
 
         manager.AddCharacter(this);
+        manager.time.AddUpdatable(this);
 
         velocity = 3 + attributes[ATRIBUTO.Atletismo];
 	}
     
-    void Update() {
+    public void OnUpdate(float delta) {
         //Actualizar el LineRenderer
         UpdateLine();
         
@@ -105,7 +106,7 @@ public class Personaje : MonoBehaviour, IEquipo {
                     action.RealizeAction(ACTIONEVENT.BeforeStart);
                 }
 
-                action.totalTime -= Time.deltaTime;
+                action.totalTime -= delta;
                 PercentAction(1- action.totalTime / tiempoInicialTrabajo);
 
                 if (action.totalTime<0) {
@@ -123,11 +124,11 @@ public class Personaje : MonoBehaviour, IEquipo {
                 }
 
                 if (_positions.Count>1) {
-                    transform.position += (-_positions[0] + _positions[1]).normalized * velocity * Time.deltaTime;
+                    transform.position += (-_positions[0] + _positions[1]).normalized * velocity * delta;
                     transform.localScale = new Vector3(Mathf.Sign(_positions[0].x - _positions[1].x), 1, 1);
                     contentCharacter.transform.localScale = new Vector3(Mathf.Sign(_positions[0].x - _positions[1].x), 1, 1);
                 } else {
-                    transform.position += ((Vector3) action.node.GetPosition()-transform.position).normalized * velocity * Time.deltaTime;
+                    transform.position += ((Vector3) action.node.GetPosition()-transform.position).normalized * velocity * delta;
                     transform.localScale = new Vector3(Mathf.Sign(transform.position.x - action.node.GetPosition().x), 1, 1);
                     contentCharacter.transform.localScale = new Vector3(Mathf.Sign(transform.position.x - action.node.GetPosition().x), 1, 1);
                 }
@@ -141,6 +142,11 @@ public class Personaje : MonoBehaviour, IEquipo {
         } else {
             anim.SetBool("Mov", false);
         }
+    }
+
+    public void OnFixedUpdate(float delta) { }
+    public void OnVelocityChange(float nueva) {
+        anim.speed = nueva;
     }
 
     // Si el contador de la acción llega al 100%, da por realizada la acción.

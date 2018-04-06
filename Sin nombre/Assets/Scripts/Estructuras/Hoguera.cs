@@ -1,21 +1,14 @@
 ﻿using UnityEngine;
 
-public class Hoguera : Estructura, IEstructura {
+public class Hoguera : Estructura, IEstructura, IUpdatable {
 
     public Light luz;
-
-    public Light directionalLight;
-
-    public float segundos = 7;
-
-    public Gradient colores;
-    public AnimationCurve curva;
 
     public float minLight = 1.5f, maxLight = 2f;
 
     float total = 0;
     public void OnStart() {
-
+        manager.time.AddUpdatable(GetComponent<SpriteAnimation>().getUpdatable());
     }
 
     public void OnUpdate(float delta) {
@@ -25,6 +18,9 @@ public class Hoguera : Estructura, IEstructura {
         total += delta;
         luz.intensity = Mathf.PingPong(total, maxLight - minLight) + minLight;
     }
+
+    public void OnFixedUpdate(float delta) { }
+    public void OnVelocityChange(float nueva) { }
 
     public string OnText() {
         //ALIMENTAR

@@ -4,7 +4,7 @@ using UnityEngine;
 
 //TODO:
 // Solo regar plantas que no tenga agua o que tenga muy poca
-public class Huerto : Estructura, IEstructura {
+public class Huerto : Estructura, IEstructura, IUpdatable {
 
     public Cultivo cultivo = null;
     public Fluido agua = new Fluido(0, 0, 0, 0);
@@ -41,6 +41,9 @@ public class Huerto : Estructura, IEstructura {
             SetSprite(Mathf.Clamp(tiempoCreciendo / cultivo.tiempoCrecer, 0, 1));
         }
     }
+    
+    public void OnFixedUpdate(float delta) { }
+    public void OnVelocityChange(float nueva) { }
 
     void SetSprite(float porc) {
         int pos = Mathf.CeilToInt(((float) cultivo.sprite.Length) * porc);

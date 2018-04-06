@@ -20,10 +20,6 @@ public class Recurso : Estructura, IEstructura {
         SetSprite();
     }
 
-    public void OnUpdate(float delta) {
-
-    }
-
     void SetSprite () {
         float porc = ((float) actualQuantity) / ((float) maxQuantity);
 

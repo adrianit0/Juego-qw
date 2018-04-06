@@ -1,7 +1,6 @@
 ﻿public interface IEstructura  {
 
     void OnStart();
-    void OnUpdate(float delta);
 
     string OnText();
     string OnTextGroup(Estructura[] estructuras);
