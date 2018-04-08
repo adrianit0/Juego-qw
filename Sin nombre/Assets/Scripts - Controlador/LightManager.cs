@@ -4,36 +4,31 @@ using UnityEngine;
 
 public class LightManager : MonoBehaviour, IUpdatable {
     
-    Light directionalLight;
-
-    [Range(0,1)]
-    public float initialDay = 0.5f;
-    float duracionDia = 3600;
-
+    public Light directionalLight;
+    
     public Gradient colores;
     public AnimationCurve curva;
     
-    float value;
+    private TimeManager time;
 
-    void Awake() {
-        directionalLight = GetComponent<Light>();
+    private void Awake() {
+        time = GetComponent<TimeManager>();
     }
 
     void Start() {
-        value = initialDay;
+        
     }
-    
+
     public void OnUpdate(float delta) {
+        float value = time.GetDayValue();
+
         directionalLight.transform.rotation = Quaternion.Euler(curva.Evaluate(value) * 360, -30, 0);
         RenderSettings.ambientLight = colores.Evaluate(value);
-
-        value += delta / duracionDia;
-
-        if(value > 1)
-            value--;
     }
 
     //public void OnUpdate(float delta) { }
     public void OnFixedUpdate(float delta) { }
     public void OnVelocityChange(float nueva) { }
+    
+
 }

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class TimeManager :MonoBehaviour {
+public class TimeManager : MonoBehaviour {
 
     /// <summary>
     /// 0 - STOP x0
@@ -13,8 +13,23 @@ public class TimeManager :MonoBehaviour {
     /// </summary>
     public Button[] botones = new Button[4];
 
+    // Texto de dia y hora
+    public Text textoDia;
+    public Text textoHora;
+
+    //Info del día
+    [Range(0, 1)]
+    public float initialDay = 0.5f;
+    private float duracionDia = 900;
+    private float value;
+
+    //Otra info
+    private int dia;
+    private float hora;
+    private float minuto;
+
     private List<IUpdatable> updateBuild;
-    public float vel = 1;
+    private float vel = 1;
 
     void Awake() {
         updateBuild = new List<IUpdatable>();
@@ -25,6 +40,9 @@ public class TimeManager :MonoBehaviour {
             float x = i;
             botones[i].onClick.AddListener(() => CambiarVelocidad(x));
         }
+
+        value = initialDay;
+        SetDay(1);
 
         CambiarVelocidad(1);
     }
@@ -39,6 +57,16 @@ public class TimeManager :MonoBehaviour {
         for(int i = 0; i < updateBuild.Count; i++) {
             updateBuild[i].OnUpdate(delta);
         }
+
+        //MODIFICACION DEL TIEMPO ACTUAL 
+        value += delta / duracionDia;
+
+        if(value > 1) {
+            value--;
+            NextDay();
+        }
+
+        UpdateTime(value);
     }
 
     void FixedUpdate() {
@@ -47,6 +75,30 @@ public class TimeManager :MonoBehaviour {
         for(int i = 0; i < updateBuild.Count; i++) {
             updateBuild[i].OnFixedUpdate(fixedDelta);
         }
+    }
+
+    public void SetDay(int day) {
+        dia = day;
+        textoDia.text = dia.ToString();
+    }
+
+    public void NextDay() {
+        dia++;
+        textoDia.text = dia.ToString();
+    }
+
+    public void UpdateTime(float tiempo) {
+        hora = tiempo * 24;
+        minuto = Mathf.Floor((hora % 1) * 60);
+        hora = Mathf.Floor(hora);
+        
+        string _min = (minuto.ToString().Length == 1) ? "0" + minuto : minuto.ToString();
+
+        textoHora.text = hora + ":" + _min;
+    }
+
+    public float GetDayValue() {
+        return value;
     }
 
     public void AddUpdatable(GameObject obj) {
@@ -75,7 +127,7 @@ public class TimeManager :MonoBehaviour {
                 RemoveUpdatable(interfaz[i]);
         }
     }
-
+   
     void CambiarVelocidad(float nueva) {
         for(int i = 0; i < botones.Length; i++) {
             botones[i].image.color = Color.white;

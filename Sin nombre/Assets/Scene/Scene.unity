@@ -3372,6 +3372,7 @@ GameObject:
   - component: {fileID: 162923591}
   - component: {fileID: 162923592}
   - component: {fileID: 162923593}
+  - component: {fileID: 162923594}
   m_Layer: 0
   m_Name: GameManager
   m_TagString: Untagged
@@ -4018,7 +4019,68 @@ MonoBehaviour:
   - {fileID: 1080881886}
   - {fileID: 703541513}
   - {fileID: 2027697703}
-  vel: 1
+  textoDia: {fileID: 1510426953}
+  textoHora: {fileID: 1369585418}
+  initialDay: 0.99
+--- !u!114 &162923594
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 162923583}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 283b9da73beaf5243acfa1514050b4b5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  directionalLight: {fileID: 1674961336}
+  colores:
+    serializedVersion: 2
+    key0: {r: 0, g: 0, b: 0.4901961, a: 1}
+    key1: {r: 0, g: 0, b: 0.4901961, a: 1}
+    key2: {r: 1, g: 0.61960787, b: 0.37647063, a: 0}
+    key3: {r: 0.5882353, g: 0.5882353, b: 0.5882353, a: 0}
+    key4: {r: 0.5882353, g: 0.5882353, b: 0.5882353, a: 0}
+    key5: {r: 0.5882353, g: 0.5882353, b: 0.5882353, a: 0}
+    key6: {r: 0.9450981, g: 0.37254903, b: 0, a: 0}
+    key7: {r: 0, g: 0, b: 0.4901961, a: 0}
+    ctime0: 0
+    ctime1: 15554
+    ctime2: 20420
+    ctime3: 24769
+    ctime4: 36933
+    ctime5: 48138
+    ctime6: 53077
+    ctime7: 58163
+    atime0: 0
+    atime1: 65535
+    atime2: 0
+    atime3: 0
+    atime4: 0
+    atime5: 0
+    atime6: 0
+    atime7: 0
+    m_Mode: 0
+    m_NumColorKeys: 8
+    m_NumAlphaKeys: 2
+  curva:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 2
+      time: 0.6
+      value: 0
+      inSlope: 1
+      outSlope: 1
+      tangentMode: 34
+    - serializedVersion: 2
+      time: 1.6
+      value: 1
+      inSlope: 1
+      outSlope: 1
+      tangentMode: 34
+    m_PreInfinity: 1
+    m_PostInfinity: 2
+    m_RotationOrder: 0
 --- !u!1 &165618186
 GameObject:
   m_ObjectHideFlags: 0
@@ -30339,9 +30401,8 @@ GameObject:
   m_Component:
   - component: {fileID: 1674961337}
   - component: {fileID: 1674961336}
-  - component: {fileID: 1674961338}
   m_Layer: 0
-  m_Name: LightManager
+  m_Name: Sol
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -30410,65 +30471,6 @@ Transform:
   m_Father: {fileID: 1654456600}
   m_RootOrder: 3
   m_LocalEulerAnglesHint: {x: 50, y: -30, z: 0}
---- !u!114 &1674961338
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 1674961335}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 283b9da73beaf5243acfa1514050b4b5, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  initialDay: 0.46
-  colores:
-    serializedVersion: 2
-    key0: {r: 0, g: 0, b: 0.4901961, a: 1}
-    key1: {r: 0, g: 0, b: 0.4901961, a: 1}
-    key2: {r: 1, g: 0.61960787, b: 0.37647063, a: 0}
-    key3: {r: 0.5882353, g: 0.5882353, b: 0.5882353, a: 0}
-    key4: {r: 0.5882353, g: 0.5882353, b: 0.5882353, a: 0}
-    key5: {r: 0.5882353, g: 0.5882353, b: 0.5882353, a: 0}
-    key6: {r: 0.9450981, g: 0.37254903, b: 0, a: 0}
-    key7: {r: 0, g: 0, b: 0.4901961, a: 0}
-    ctime0: 0
-    ctime1: 15554
-    ctime2: 20420
-    ctime3: 24769
-    ctime4: 36933
-    ctime5: 48138
-    ctime6: 53077
-    ctime7: 58163
-    atime0: 0
-    atime1: 65535
-    atime2: 0
-    atime3: 0
-    atime4: 0
-    atime5: 0
-    atime6: 0
-    atime7: 0
-    m_Mode: 0
-    m_NumColorKeys: 8
-    m_NumAlphaKeys: 2
-  curva:
-    serializedVersion: 2
-    m_Curve:
-    - serializedVersion: 2
-      time: 0.6
-      value: 0
-      inSlope: 1
-      outSlope: 1
-      tangentMode: 34
-    - serializedVersion: 2
-      time: 1.6
-      value: 1
-      inSlope: 1
-      outSlope: 1
-      tangentMode: 34
-    m_PreInfinity: 1
-    m_PostInfinity: 2
-    m_RotationOrder: 0
 --- !u!1 &1684552070
 GameObject:
   m_ObjectHideFlags: 0
