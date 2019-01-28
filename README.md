@@ -1,8 +1,4 @@
 # Juego-qw
-Proyecto para probar a crear un juego y mostrarlo en Forocoches.
-
-Post de Forocoches sobre la documentación y proceso del proyecto:
-http://www.forocoches.com/foro/showthread.php?t=5668279
 
 ## Información técnica del juego:
 
